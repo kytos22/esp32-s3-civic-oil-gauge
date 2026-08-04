@@ -1,6 +1,8 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Last verified: 2026-08-04 — fix commit `9b806cc` passed 12/12 native tests, project
+Last verified: 2026-08-04 — the GitHub Pages simulator is published from
+`main:/docs`; its 47,509-byte deployed HTML is byte-identical to the approved
+source. Firmware fix commit `9b806cc` passed 12/12 native tests, project
 consistency, and a complete ESP-IDF 6.0.2 build. The resulting 669,824-byte app
 `701d0b4`, SHA-256
 `7591c7cf5a02899252ad8404f67fa93d557c52124b93c2f76aeabd2b9f63ffbe`, was flashed

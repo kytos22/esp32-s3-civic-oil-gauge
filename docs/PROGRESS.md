@@ -30,16 +30,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1 and 3 in progress; Sprint 2 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 3](sprints/sprint-3-readme-simulator.md) interactive README entry |
+| 5 Development | Sprint 1 in progress; Sprints 2 and 3 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 3](sprints/sprint-3-readme-simulator.md) interactive README entry |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 3 README simulator publication
-- Next action: publish the approved standalone simulator through GitHub Pages,
-  verify the deployed HTTPS response and README destinations, then return to
-  Sprint 1 physical visual judgment.
+- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
+- Next action: review the corrected 60 FPS demo physically on the target display.
+  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
+  safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact sensor pinouts/curves, installed connector identities, and final hardware route A vs B
@@ -71,10 +71,16 @@
   at `https://github.com/kytos22/esp32-s3-civic-oil-gauge`, with `main` created
   from sanitized root `5ad0a4d`; the private development history remains only in
   the ignored local recovery bundle.
+- Interactive simulator: both bilingual README previews and CTAs point to the
+  HTTPS GitHub Pages simulator. Pages serves the byte-identical approved HTML
+  from `main:/docs` (47,509 bytes; SHA-256
+  `b96bddee2599f8fd4ddfcc233e6ba87aec415dcbc7c38567554197cded62e9e1`).
+  Browser-driven slider movement remains `PLATFORM-IMPOSSIBLE` in this session
+  because Browser bootstrap rejects the WSL workspace path containing spaces.
 
 ### Deferred items (consciously postponed work)
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — Sprint 3 interactive README entry in progress
+Last updated: 2026-08-04 — Sprint 3 Pages simulator published and integrity-verified
