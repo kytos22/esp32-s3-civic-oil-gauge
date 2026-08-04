@@ -161,6 +161,10 @@ See `docs/03-technical-plan.md`.
 - **AC-27:** No GitHub remote is created or pushed until Marcos explicitly chooses
   visibility; a public remote starts from a sanitized snapshot rather than the
   development history that previously recorded the test-board identifier.
+- **AC-28:** Both root README previews link to the live HTTPS simulator. The
+  GitHub Pages copy exposes working pressure, RPM and temperature range controls
+  backed by the approved standalone HTML, without implying that GitHub can run
+  JavaScript inline inside README content.
 
 ## Estimate
 

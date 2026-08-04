@@ -81,6 +81,7 @@ flowchart LR
 | `docs/UI_DESIGN.md` | [E] | Approved visual/semantic contract |
 | `docs/WAVESHARE_PINOUT.md` | [E] | Verified board pin map |
 | `docs/design/references/` | [E] | Editable, standalone, and static approved UI references |
+| `docs/.nojekyll` | [E] | Publish the approved standalone simulator unchanged through GitHub Pages |
 | `docs/PROGRESS.md` | [E] | Keel living state |
 | `docs/decisions.md` | [E] | Append-only decisions |
 | `docs/lessons-learned.md` | [E] | Closed problem/solution memory |
@@ -124,6 +125,7 @@ flowchart LR
 | Dependency/toolchain change | `src/idf_component.yml`, `dependencies.lock`, `sdkconfig.defaults`, `platformio.ini` when native tests change, `docs/decisions.md`, support matrix, license check, build and native test evidence |
 | New fault/public core surface | header + implementation + tests + `docs/api/INDEX.md` and per-surface docs when released |
 | Repository/publication change | Root READMEs, `docs/REPOSITORY.md`, firmware/assets namespace, functional AC rows, test ledger, decision log, progress card, privacy scan and `scripts/keel-verify` |
+| README simulator/Pages change | Root READMEs, standalone HTML reference, `docs/.nojekyll`, functional AC row, test ledger, playground, sprint record, decision log, progress card and `scripts/keel-verify` |
 | Release/version change | `firmware/<version>/` bilingual instructions, app/full images, visual proof, `SHA256SUMS.txt`, authoritative version touchpoints, clean-tree tests/build/image inspection and applicable hardware evidence; never add a golden snapshot |
 
 ## Conventions

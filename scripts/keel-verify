@@ -30,6 +30,7 @@ def required_paths() -> None:
         "assets/README.md",
         "firmware/README.md",
         "docs/REPOSITORY.md",
+        "docs/.nojekyll",
         "docs/design/references/oil-gauge-design.fragment.html",
         "docs/design/references/oil-gauge-design.html",
         "docs/design/references/oil-gauge-design.png",
@@ -38,6 +39,7 @@ def required_paths() -> None:
         "docs/BUILD-SPEC.md",
         "docs/sprints/sprint-0-remediation.md",
         "docs/sprints/sprint-2-repository-productization.md",
+        "docs/sprints/sprint-3-readme-simulator.md",
         "docs/05-test-points.md",
         "docs/playground.md",
         "scripts/keel-doctor",
@@ -336,9 +338,30 @@ def public_repository_structure() -> None:
         if not forbidden and not identifiers
         else f"forbidden={forbidden[:8]}; identifiers={identifiers[:4]}",
     )
+
+
+def interactive_demo_entry() -> None:
+    url = "https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html"
+    english = text("README.md")
+    spanish = text("README.es.md")
+    simulator = text("docs/design/references/oil-gauge-design.html")
+    required_ids = ("ogrPressureInput", "ogrRpmInput", "ogrTemperatureInput")
+    linked = english.count(url) >= 2 and spanish.count(url) >= 2
+    controls = all(f'id=&quot;{control_id}&quot;' in simulator for control_id in required_ids)
+    listeners = "input.addEventListener(&#x27;input&#x27;, update)" in simulator
+    check(
+        "Interactive README entry",
+        linked and controls and listeners,
+        "bilingual live links and three slider listeners present"
+        if linked and controls and listeners
+        else f"linked={linked}; controls={controls}; listeners={listeners}",
+    )
+
+
 def main() -> int:
     git_repository()
     public_repository_structure()
+    interactive_demo_entry()
     required_paths()
     conformance()
     acceptance_coverage()

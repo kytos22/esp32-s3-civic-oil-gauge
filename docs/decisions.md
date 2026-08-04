@@ -249,3 +249,18 @@
   separate user decisions.
 - Supersedes: D-023 only where remote visibility was unresolved; all structural,
   no-copy and no-golden-version constraints remain binding.
+
+## D-025 — Link the README preview to a GitHub Pages simulator
+- Date / phase: 2026-08-04 / Phase 5, Sprint 3 README simulator
+- Decision: Publish the approved standalone oil-gauge HTML from `docs/` through
+  GitHub Pages. Make the preview image and an explicit bilingual call-to-action in
+  each root README open the live simulator. Keep one simulator source rather than
+  copying its markup into a second public page.
+- Why: GitHub sanitizes README content and cannot execute inline JavaScript,
+  sliders or iframes. A linked Pages surface preserves the expected interaction
+  while making the limitation clear to readers.
+- Alternatives rejected (and why): Embed an iframe or script in README; GitHub
+  removes or disables it. Replace the preview with an animation; it cannot expose
+  adjustable pressure, RPM and temperature. Duplicate the simulator under a new
+  path; two binding visual sources would drift.
+- Supersedes: none.

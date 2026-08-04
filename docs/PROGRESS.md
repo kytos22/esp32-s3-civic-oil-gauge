@@ -30,16 +30,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprint 1 in progress; Sprint 2 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 2](sprints/sprint-2-repository-productization.md) repository productization |
+| 5 Development | Sprints 1 and 3 in progress; Sprint 2 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 3](sprints/sprint-3-readme-simulator.md) interactive README entry |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
-- Next action: review the corrected 60 FPS demo physically on the target display.
-  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
-  safety-gated work.
+- Phase: 5 — Development  Step: Sprint 3 README simulator publication
+- Next action: publish the approved standalone simulator through GitHub Pages,
+  verify the deployed HTTPS response and README destinations, then return to
+  Sprint 1 physical visual judgment.
 
 ## Open items
 - Unresolved user questions: exact sensor pinouts/curves, installed connector identities, and final hardware route A vs B
@@ -77,4 +77,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — Sprint 2 complete; sanitized public repository verified
+Last updated: 2026-08-04 — Sprint 3 interactive README entry in progress

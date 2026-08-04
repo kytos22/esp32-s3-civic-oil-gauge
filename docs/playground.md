@@ -22,9 +22,12 @@ the complete firmware compile. It is headless and does not take over the user's 
 - Synthetic seed: native tests create calibrated `ConvertedValue` fixtures in memory;
   no vehicle or personal data is used.
 
-The HTML reference can be opened locally at
-`docs/design/references/oil-gauge-design.html`. Its controls are design-only and are
-not the driving UI.
+The interactive HTML reference can be opened locally at
+`docs/design/references/oil-gauge-design.html` or, after deployment, at
+`https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html`.
+Move the pressure, RPM and temperature sliders and confirm that the numeric value,
+bar colour/length and semantic state update. This is a design simulator, not a
+source of real sensor data and not the driving firmware UI.
 
 ## Debug output
 

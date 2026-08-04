@@ -14,6 +14,7 @@ Spanish originals are linked only through the archive index.
 - [Sprint 0](sprints/sprint-0-remediation.md)
 - [Sprint 1](sprints/sprint-1-fluid-demo.md)
 - [Sprint 2](sprints/sprint-2-repository-productization.md)
+- [Sprint 3](sprints/sprint-3-readme-simulator.md)
 - [Estimate](estimate.md)
 
 ## Product, engineering, and safety
