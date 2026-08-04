@@ -31,16 +31,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1 and 4 in progress; Sprints 2 and 3 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 4](sprints/sprint-4-noncommercial-license.md) repository licensing |
+| 5 Development | Sprint 1 in progress; Sprints 2–4 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 4](sprints/sprint-4-noncommercial-license.md) repository licensing |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 4 noncommercial repository license
-- Next action: compare the committed PolyForm Noncommercial 1.0.0 text with the
-  official version, verify the required notice and bilingual summaries, publish
-  them, then return to Sprint 1 physical visual judgment.
+- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
+- Next action: review the corrected 60 FPS demo physically on the target display.
+  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
+  safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact sensor pinouts/curves, installed connector identities, and final hardware route A vs B
@@ -82,10 +82,15 @@
   205 smooth-step HTML samples at 50 FPS. Optimized storage retains 142 unique
   frames (132 at 20 ms), a 4.1-second loop, 1,212,439 bytes and SHA-256
   `1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
+- Repository license: project-authored content uses the byte-matched official
+  PolyForm Noncommercial 1.0.0 text plus `Required Notice: Copyright 2026 Marcos
+  Vidal`. Remote Git blob IDs for `LICENSE.md`, `NOTICE` and `README.md` match the
+  local commit. GitHub labels the nonstandard license family as `Other`; the full
+  terms and bilingual summaries are visible in the repository.
 
 ### Deferred items (consciously postponed work)
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — PolyForm Noncommercial 1.0.0 licensing in progress
+Last updated: 2026-08-04 — Sprint 4 noncommercial license published and verified
