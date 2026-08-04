@@ -30,17 +30,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1 and 2 in progress | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 2](sprints/sprint-2-repository-productization.md) repository productization |
+| 5 Development | Sprint 1 in progress; Sprint 2 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 2](sprints/sprint-2-repository-productization.md) repository productization |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 2 repository productization
-- Next action: publish `kytos22/esp32-s3-civic-oil-gauge` publicly from a
-  sanitized fresh-history `main`; never push the development history containing
-  superseded device evidence. Sprint 1 physical visual judgment remains open in
-  parallel.
+- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
+- Next action: review the corrected 60 FPS demo physically on the target display.
+  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
+  safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact sensor pinouts/curves, installed connector identities, and final hardware route A vs B
@@ -66,16 +65,16 @@
   The local exact-board identifier and all four written regions verified. The bounded
   log records a clean ESP-IDF 6.0.2/demo boot and eight consecutive completed-frame
   windows of 65–67 FPS. Physical visual judgment remains open.
-- Forge issues in progress: none; GitHub public remote creation is authorized and
-  in progress
+- Forge issues in progress: none
 - Repository publication: Marcos selected public visibility for
-  `kytos22/esp32-s3-civic-oil-gauge` on 2026-08-04. Current historical commits
-  must not be pushed because they contain a superseded exact-board identifier;
-  publication therefore uses a sanitized fresh-history `main`.
+  `kytos22/esp32-s3-civic-oil-gauge` on 2026-08-04. The public repository is live
+  at `https://github.com/kytos22/esp32-s3-civic-oil-gauge`, with `main` created
+  from sanitized root `5ad0a4d`; the private development history remains only in
+  the ignored local recovery bundle.
 
 ### Deferred items (consciously postponed work)
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — public visibility selected; sanitized publication in progress
+Last updated: 2026-08-04 — Sprint 2 complete; sanitized public repository verified

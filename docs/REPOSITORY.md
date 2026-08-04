@@ -62,5 +62,7 @@ Before any remote is created or pushed:
    identifier in historical evidence.
 
 Marcos selected public visibility on 2026-08-04. The repository name is
-`kytos22/esp32-s3-civic-oil-gauge`; publication must use the sanitized
-fresh-history snapshot described above.
+`kytos22/esp32-s3-civic-oil-gauge`. It was published from sanitized root
+`5ad0a4d` and verified at
+`https://github.com/kytos22/esp32-s3-civic-oil-gauge`; the private development
+history remains only in ignored local evidence.
