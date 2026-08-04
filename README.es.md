@@ -146,8 +146,14 @@ documentación mantenida está en [`docs/INDEX.md`](docs/INDEX.md).
 
 ## Licencia
 
-Todavía no se ha elegido una licencia de distribución. Que el código fuente sea
-público no concede permiso para copiar, modificar o redistribuir el proyecto.
+El código, la documentación y los recursos propios del proyecto se ofrecen bajo
+la [licencia PolyForm Noncommercial 1.0.0](LICENSE.md). Puedes estudiar,
+modificar y redistribuir el proyecto y tus mejoras para los usos no comerciales
+permitidos. El uso comercial requiere un permiso independiente del titular de
+los derechos. Es software con código disponible, no «open source» según OSI.
+
+Conserva el aviso obligatorio incluido en [`NOTICE`](NOTICE). Las dependencias y
+herramientas de terceros mantienen sus propias licencias.
 
 ## Proyecto independiente
 

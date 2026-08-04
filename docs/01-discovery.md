@@ -67,7 +67,8 @@ accuracy than the MTX-D without traceable calibration.
 
 ## License
 
-- Private, not yet licensed for distribution.
+- At adoption the project was private and not licensed for distribution; D-024
+  made the repository public and D-028 later selected PolyForm Noncommercial 1.0.0.
 - Every dependency license must be reviewed before any public distribution decision.
 
 ## Installed base / upgrade

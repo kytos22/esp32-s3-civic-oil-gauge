@@ -34,7 +34,7 @@ the approved contract. No current file scan found a secret-shaped credential.
 | A-15 | Static analysis | medium | No formatter, linter, static analyzer, or warning-as-error command is configured. | Declared tooling must run and block |
 | A-16 | API/docs | low now, medium if shared | `docs/api/INDEX.md` inventories 15 core surfaces, while only eight behavior tests exist and full per-surface docs are deferred. | Progressive backfill on next touch |
 | A-17 | Language consistency | low | Two Spanish comments remain in `include/calibration_config.h`; adoption did not change code. | English source-comment convention |
-| A-18 | Version/license | low until distribution | No project version, public license, dependency-notice set, package audit, or release artifact definition exists. | Required before public Phase 7 |
+| A-18 | Version/license | low until binary release | PolyForm Noncommercial 1.0.0 and required project notice now exist; no project version, complete dependency-notice set or package audit exists. | Complete remaining items before Phase 7 binary release |
 | A-19 | Accessibility/glanceability | high before driving | No real AMOLED daylight/night, color, motion, glare, target-size, or fault-legibility pass exists. | Honest embedded-display accessibility record |
 | A-20 | RPM source | high | WiCAN/CAN/other engine-state source is not selected or validated. Oil pressure warning cannot meet its contract without it. | Integration trust boundary and AC-05/06 |
 
@@ -78,7 +78,8 @@ the approved contract. No current file scan found a secret-shaped credential.
 - Replace the two Spanish code comments when `calibration_config.h` is next changed.
 - Add a debug logging switch during the first hardware integration slice.
 - Add static analysis in the same change that makes it pass and blocking.
-- Add version/license/notices only when a distribution/release decision is made.
+- Project license and required notice were added by D-028; add version and complete
+  third-party notices only when a binary distribution/release decision is made.
 
 ### Accepted/deferred by current project decisions
 

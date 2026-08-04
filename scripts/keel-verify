@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 import subprocess
 import sys
@@ -26,6 +27,8 @@ def text(path: str) -> str:
 def required_paths() -> None:
     paths = [
         ".gitattributes",
+        "LICENSE.md",
+        "NOTICE",
         "README.es.md",
         "assets/README.md",
         "assets/oil-gauge-demo.gif",
@@ -41,6 +44,7 @@ def required_paths() -> None:
         "docs/sprints/sprint-0-remediation.md",
         "docs/sprints/sprint-2-repository-productization.md",
         "docs/sprints/sprint-3-readme-simulator.md",
+        "docs/sprints/sprint-4-noncommercial-license.md",
         "docs/05-test-points.md",
         "docs/playground.md",
         "scripts/keel-doctor",
@@ -364,10 +368,44 @@ def interactive_demo_entry() -> None:
     )
 
 
+def project_license() -> None:
+    license_text = text("LICENSE.md")
+    notice = text("NOTICE").strip()
+    english = text("README.md")
+    spanish = text("README.es.md")
+    title = "PolyForm Noncommercial License 1.0.0"
+    official_url = "https://polyformproject.org/licenses/noncommercial/1.0.0"
+    required_notice = "Required Notice: Copyright 2026 Marcos Vidal"
+    official_sha256 = "c0ea4a896d2c8c394b29f9427589996db826cd501c512279ff0ed3ef48fabbe5"
+    license_sha256 = hashlib.sha256((REPO / "LICENSE.md").read_bytes()).hexdigest()
+    terms = (
+        license_sha256 == official_sha256
+        and title in license_text
+        and official_url in license_text
+        and "## Changes and New Works License" in license_text
+        and "Any noncommercial purpose is a permitted purpose." in license_text
+        and notice == required_notice
+    )
+    summaries = (
+        "[PolyForm Noncommercial License 1.0.0](LICENSE.md)" in english
+        and "Commercial use is not permitted" in english
+        and "[licencia PolyForm Noncommercial 1.0.0](LICENSE.md)" in spanish
+        and "El uso comercial requiere" in spanish
+    )
+    check(
+        "Noncommercial project license",
+        terms and summaries,
+        "official byte-matched terms, required notice and bilingual summaries present"
+        if terms and summaries
+        else f"terms={terms}; summaries={summaries}; sha256={license_sha256}",
+    )
+
+
 def main() -> int:
     git_repository()
     public_repository_structure()
     interactive_demo_entry()
+    project_license()
     required_paths()
     conformance()
     acceptance_coverage()

@@ -71,6 +71,7 @@ flowchart LR
 | `test/test_gauge_core/test_main.cpp` | [E] | Fourteen Unity native tests |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
+| `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |
 | `assets/README.md` | [E] | Oil-owned public visual namespace and provenance rule |
 | `assets/oil-gauge-demo.gif` | [E] | Generated looping README preview of synthetic simulator states |
 | `firmware/README.md` | [E] | Immutable versioned release-package contract |
@@ -102,6 +103,7 @@ flowchart LR
 | `docs/05-test-points.md` | [E] | Acceptance/evidence ledger |
 | `docs/REPOSITORY.md` | [E] | Public structure, exclusions and publication gate |
 | `docs/sprints/sprint-2-repository-productization.md` | [E] | Repository-productization scope and slices |
+| `docs/sprints/sprint-4-noncommercial-license.md` | [E] | Noncommercial licensing scope and verification |
 | `scripts/keel-doctor` | [E] | Environment verification and repair plan |
 | `scripts/keel-verify` | [E] | Project consistency checks |
 | `scripts/keel-handoff-verify` | [E] | Continuation courier verification |
@@ -128,6 +130,7 @@ flowchart LR
 | New fault/public core surface | header + implementation + tests + `docs/api/INDEX.md` and per-surface docs when released |
 | Repository/publication change | Root READMEs, `docs/REPOSITORY.md`, firmware/assets namespace, functional AC rows, test ledger, decision log, progress card, privacy scan and `scripts/keel-verify` |
 | README simulator/Pages change | Root READMEs, standalone HTML reference, `docs/.nojekyll`, functional AC row, test ledger, playground, sprint record, decision log, progress card and `scripts/keel-verify` |
+| Project license change | `LICENSE.md`, `NOTICE`, both root READMEs, technical license status, adoption audit, functional AC row, test ledger, sprint record, decision log, progress card and `scripts/keel-verify` |
 | Release/version change | `firmware/<version>/` bilingual instructions, app/full images, visual proof, `SHA256SUMS.txt`, authoritative version touchpoints, clean-tree tests/build/image inspection and applicable hardware evidence; never add a golden snapshot |
 
 ## Conventions
@@ -203,6 +206,9 @@ No project version is declared. A first release must create one source of truth 
 
 ## License & dependency compatibility
 
-- Project: public repository visibility; no distribution license selected yet.
+- Project-authored code, documentation and assets: PolyForm Noncommercial 1.0.0;
+  commercial use requires separate permission from the copyright holder.
 - Dependencies are pinned, but their licenses have not yet been assembled into a distribution decision.
-- Any public release requires a compatibility review and notices before packaging.
+- Third-party dependencies and embedded tools retain their own licenses. Any
+  binary release still requires a compatibility review and complete notices before
+  packaging.

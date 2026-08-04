@@ -295,3 +295,22 @@
   key screenshots; values and text would blur rather than transition correctly.
 - Supersedes: D-026 only for frame cadence and count; its source, ownership,
   reproducibility and live-link decisions remain binding.
+
+## D-028 — License improvements for noncommercial use
+- Date / phase: 2026-08-04 / Phase 5, Sprint 4 repository licensing
+- Decision: Apply the unmodified PolyForm Noncommercial License 1.0.0 to
+  project-authored code, documentation and assets, with the required notice
+  `Copyright 2026 Marcos Vidal`. Permit study, modification and redistribution of
+  improvements for the license's noncommercial purposes. Commercial use requires
+  separate permission from the copyright holder. Third-party content retains its
+  own license.
+- Why: Marcos explicitly wants others to improve the project but not use it
+  commercially. PolyForm Noncommercial is a standardized software license whose
+  official permissions include use, changes and distribution for noncommercial
+  purposes.
+- Alternatives rejected (and why): MIT, Apache-2.0 and GPL; all permit commercial
+  use. Creative Commons BY-NC-SA; Creative Commons does not recommend its content
+  licenses for software. A custom license; standardized terms are clearer and less
+  likely to omit important grants, notices or remedies.
+- Supersedes: D-001, D-024 and the technical-plan license status only where they
+  record that no public distribution license had yet been selected.

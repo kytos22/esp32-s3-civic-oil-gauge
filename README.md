@@ -142,8 +142,14 @@ packaging or hardware procedures. The full maintained documentation map is
 
 ## License
 
-No distribution license has been selected yet. Public source visibility does
-not grant permission to copy, modify or redistribute the project.
+Project-authored code, documentation and assets are available under the
+[PolyForm Noncommercial License 1.0.0](LICENSE.md). You may study, modify and
+redistribute the project and your improvements for permitted noncommercial
+purposes. Commercial use is not permitted without separate permission from the
+copyright holder. This is source-available software, not OSI open source.
+
+Preserve the required copyright notice in [`NOTICE`](NOTICE). Third-party
+dependencies and embedded tools remain under their own licenses.
 
 ## Project independence
 

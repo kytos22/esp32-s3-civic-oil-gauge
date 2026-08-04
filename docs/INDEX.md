@@ -15,6 +15,7 @@ Spanish originals are linked only through the archive index.
 - [Sprint 1](sprints/sprint-1-fluid-demo.md)
 - [Sprint 2](sprints/sprint-2-repository-productization.md)
 - [Sprint 3](sprints/sprint-3-readme-simulator.md)
+- [Sprint 4](sprints/sprint-4-noncommercial-license.md)
 - [Estimate](estimate.md)
 
 ## Product, engineering, and safety
@@ -45,6 +46,7 @@ Spanish originals are linked only through the archive index.
 
 ## Public code surfaces
 
+- [Project license](../LICENSE.md)
 - [API index](api/INDEX.md)
 - [Display-state API](api/display-state.md)
 

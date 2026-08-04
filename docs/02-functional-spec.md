@@ -171,6 +171,10 @@ See `docs/03-technical-plan.md`.
 - **AC-30:** The README GIF renders continuous smooth-step transitions from the
   approved simulator at 50 FPS, using real per-frame gauge values rather than
   cross-fades between a small set of static screenshots.
+- **AC-31:** Project-authored code, documentation and assets are covered by the
+  unmodified PolyForm Noncommercial License 1.0.0 plus a required copyright
+  notice; both READMEs state that improvements and redistribution are permitted
+  only for noncommercial purposes and that third-party licenses remain separate.
 
 ## Estimate
 
