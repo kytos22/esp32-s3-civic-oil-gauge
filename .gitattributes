@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+
+.agents/ export-ignore
+.claude/ export-ignore
+.codex/ export-ignore
+.githooks/ export-ignore
+AGENTS.md export-ignore
+CLAUDE.md export-ignore
+docs/continuation-prompt.md export-ignore

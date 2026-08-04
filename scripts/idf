@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+readonly idf_activation="/home/marcos/.espressif/tools/activate_idf_v6.0.2.sh"
+
+if [ ! -f "$idf_activation" ]; then
+  echo "ESP-IDF 6.0.2 is not installed at the expected project location." >&2
+  exit 1
+fi
+
+exec bash -c '
+  # shellcheck disable=SC1090
+  source "$1" >/dev/null
+  if ! declare -F idf.py >/dev/null || [ "${IDF_PATH:-}" != "/home/marcos/esp/v6.0.2/esp-idf" ]; then
+    echo "ESP-IDF 6.0.2 activation failed." >&2
+    exit 1
+  fi
+  shift
+  set -euo pipefail
+  idf.py "$@"
+' bash "$idf_activation" "$@"

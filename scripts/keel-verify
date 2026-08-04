@@ -1,0 +1,358 @@
+#!/usr/bin/env python3
+"""Run mechanical project/Keel consistency checks."""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parent.parent
+FAILURES: list[str] = []
+
+
+def check(name: str, condition: bool, detail: str) -> None:
+    print(f"{name}: {'PASS' if condition else 'FAIL'} — {detail}")
+    if not condition:
+        FAILURES.append(name)
+
+
+def text(path: str) -> str:
+    return (REPO / path).read_text(encoding="utf-8")
+
+
+def required_paths() -> None:
+    paths = [
+        ".gitattributes",
+        "README.es.md",
+        "assets/README.md",
+        "firmware/README.md",
+        "docs/REPOSITORY.md",
+        "docs/design/references/oil-gauge-design.fragment.html",
+        "docs/design/references/oil-gauge-design.html",
+        "docs/design/references/oil-gauge-design.png",
+        "docs/design/DESIGN-BRIEF.md",
+        "docs/design/design-handoff/README.md",
+        "docs/BUILD-SPEC.md",
+        "docs/sprints/sprint-0-remediation.md",
+        "docs/sprints/sprint-2-repository-productization.md",
+        "docs/05-test-points.md",
+        "docs/playground.md",
+        "scripts/keel-doctor",
+        "scripts/keel-verify",
+        "scripts/keel-handoff-verify",
+    ]
+    missing = [path for path in paths if not (REPO / path).exists()]
+    check("Required paths", not missing, "all present" if not missing else ", ".join(missing))
+
+
+def conformance() -> None:
+    conformance_text = text("docs/keel-conformance.md")
+    missing_rows = [
+        line for line in conformance_text.splitlines() if re.search(r"\|\s*missing\s*\|", line)
+    ]
+    check("Keel conformance", not missing_rows, f"{len(missing_rows)} missing row(s)")
+
+
+def acceptance_coverage() -> None:
+    criteria = set(re.findall(r"\bAC-\d{2}\b", text("docs/02-functional-spec.md")))
+    rows = text("docs/05-test-points.md").splitlines()
+    valid = {
+        "driven",
+        "CREDENTIAL",
+        "HARDWARE",
+        "ASSISTIVE-TECH",
+        "JUDGMENT",
+        "EXTERNAL-APPROVAL",
+        "PLATFORM-IMPOSSIBLE",
+        "PRODUCTION-RISK",
+        "NO-EXECUTION",
+    }
+    covered: dict[str, str] = {}
+    invalid: list[str] = []
+    for line in rows:
+        if not line.startswith("|"):
+            continue
+        columns = [column.strip() for column in line.strip("|").split("|")]
+        if len(columns) < 4 or not re.fullmatch(r"AC-\d{2}", columns[1]):
+            continue
+        covered[columns[1]] = columns[2]
+        if columns[2] not in valid:
+            invalid.append(columns[1])
+        if columns[2] != "driven" and columns[3] in {"", "—"}:
+            invalid.append(columns[1])
+    absent = sorted(criteria - covered.keys())
+    check(
+        "Acceptance coverage",
+        not absent and not invalid,
+        f"{len(covered)}/{len(criteria)} covered; absent={absent}; invalid={sorted(set(invalid))}",
+    )
+
+
+def local_links() -> None:
+    markdown_files = list((REPO / "docs").rglob("*.md")) + [
+        REPO / "README.md",
+        REPO / "README.es.md",
+        REPO / "assets/README.md",
+        REPO / "firmware/README.md",
+    ]
+    broken: list[str] = []
+    pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+    for source in markdown_files:
+        for target in pattern.findall(source.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#", "mailto:")):
+                continue
+            clean = target.split("#", 1)[0]
+            if not clean:
+                continue
+            destination = (source.parent / clean).resolve()
+            if not destination.exists():
+                broken.append(f"{source.relative_to(REPO)} -> {target}")
+    check("Internal links", not broken, "all resolve" if not broken else "; ".join(broken[:8]))
+
+
+def cited_commands() -> None:
+    sources = list((REPO / "docs").rglob("*.md")) + [
+        REPO / "README.md",
+        REPO / "README.es.md",
+        REPO / "AGENTS.md",
+        REPO / "CLAUDE.md",
+    ]
+    cited: set[str] = set()
+    for source in sources:
+        body = source.read_text(encoding="utf-8")
+        cited.update(re.findall(r"`(\./scripts/[A-Za-z0-9._/-]+)", body))
+
+    invalid: list[str] = []
+    for command in sorted(cited):
+        target = REPO / command.removeprefix("./")
+        if not target.is_file() or not target.stat().st_mode & 0o111:
+            invalid.append(command)
+    check(
+        "Cited commands",
+        not invalid,
+        f"{len(cited)} executable command(s)" if not invalid else ", ".join(invalid),
+    )
+
+
+def orphan_documents() -> None:
+    roots = [REPO / "README.md"]
+    pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+    reachable: set[Path] = set()
+    pending = roots.copy()
+
+    while pending:
+        source = pending.pop()
+        source = source.resolve()
+        if source in reachable or not source.is_file():
+            continue
+        reachable.add(source)
+        for target in pattern.findall(source.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#", "mailto:")):
+                continue
+            clean = target.split("#", 1)[0]
+            if not clean:
+                continue
+            destination = (source.parent / clean).resolve()
+            if destination.is_file() and destination.suffix == ".md":
+                pending.append(destination)
+
+    maintained = {
+        path.resolve()
+        for path in (REPO / "docs").rglob("*.md")
+        if path.name != "continuation-prompt.md"
+    }
+    orphaned = sorted(str(path.relative_to(REPO)) for path in maintained - reachable)
+    check(
+        "Document reachability",
+        not orphaned,
+        f"{len(maintained)} maintained document(s) reachable"
+        if not orphaned
+        else ", ".join(orphaned[:8]),
+    )
+
+
+def code_fences() -> None:
+    bad: list[str] = []
+    markdown_files = list((REPO / "docs").rglob("*.md")) + [
+        REPO / "README.md",
+        REPO / "README.es.md",
+        REPO / "assets/README.md",
+        REPO / "firmware/README.md",
+    ]
+    for path in markdown_files:
+        count = sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.startswith("```"))
+        if count % 2:
+            bad.append(str(path.relative_to(REPO)))
+    check("Code fences", not bad, "balanced" if not bad else ", ".join(bad))
+
+
+def safety_invariants() -> None:
+    sdkconfig_defaults = text("sdkconfig.defaults")
+    effective_sdkconfig_path = REPO / "sdkconfig"
+    effective_sdkconfig = (
+        effective_sdkconfig_path.read_text(encoding="utf-8")
+        if effective_sdkconfig_path.is_file()
+        else ""
+    )
+    component_manifest = text("src/idf_component.yml")
+    calibration = text("include/calibration_config.h")
+    demo_ok = "CONFIG_OIL_GAUGE_DEMO_MODE=y" in sdkconfig_defaults
+    invalid_count = len(re.findall(r"\bfalse\s*}", calibration))
+    check("Demo mode", demo_ok, "CONFIG_OIL_GAUGE_DEMO_MODE=y")
+    check(
+        "Compressed font rendering",
+        "CONFIG_LV_DRAW_SW_DRAW_UNIT_CNT=1" in sdkconfig_defaults
+        and (
+            not effective_sdkconfig_path.is_file()
+            or "CONFIG_LV_DRAW_SW_DRAW_UNIT_CNT=1" in effective_sdkconfig
+        ),
+        "single LVGL software draw unit in defaults and effective sdkconfig",
+    )
+    main_source = text("src/main.cpp")
+    direct_lvgl_lock = (
+        "bsp_display_lock(" not in main_source
+        and "esp_lv_adapter_lock(-1)" in main_source
+        and "esp_lv_adapter_unlock()" in main_source
+    )
+    check("LVGL locking", direct_lvgl_lock, "direct esp_lv_adapter lock/unlock API")
+    check("Calibration gate", invalid_count >= 2, f"{invalid_count} invalid calibration initializer(s)")
+    idf_wrapper = text("scripts/idf")
+    check(
+        "ESP-IDF firmware toolchain",
+        "activate_idf_v6.0.2.sh" in idf_wrapper
+        and 'version: "==6.0.2"' in component_manifest
+        and 'version: "==2.0.1"' in component_manifest
+        and 'version: "==9.5.0"' in component_manifest,
+        "ESP-IDF 6.0.2, Waveshare BSP 2.0.1, LVGL 9.5.0",
+    )
+    pio_wrapper = text("scripts/pio")
+    check(
+        "PlatformIO isolation",
+        'platformio_state_root="${PLATFORMIO_OIL_GAUGE_STATE_DIR:-/home/marcos/.platformio-oil-gauge}"'
+        in pio_wrapper
+        and "PLATFORMIO_BUILD_DIR=" in pio_wrapper
+        and "PLATFORMIO_LIBDEPS_DIR=" in pio_wrapper
+        and "PLATFORMIO_CORE_DIR=" in pio_wrapper,
+        "project-specific WSL cache plus a space-safe ephemeral source mirror",
+    )
+
+
+def approved_geometry() -> None:
+    ui = text("docs/UI_DESIGN.md")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    conditions = [
+        "480×480" in ui,
+        "50/50" in ui,
+        "9 px" in ui,
+        "--ogr-yellow: #ffb020" in fragment.lower(),
+        "--ogr-danger: #ff3948" in fragment.lower(),
+        "height: 9px" in fragment,
+        'id="ogrRpmInput"' in fragment,
+    ]
+    check("Approved reference geometry", all(conditions), f"{sum(conditions)}/{len(conditions)} invariants")
+
+
+def marked_existing_paths() -> None:
+    plan = text("docs/03-technical-plan.md")
+    missing: list[str] = []
+    for path in re.findall(r"\|\s*`([^`]+)`\s*\|\s*\[E\]", plan):
+        if "/" in path and " / " in path:
+            continue
+        if not (REPO / path).exists():
+            missing.append(path)
+    check("[E] code map", not missing, "all paths exist" if not missing else ", ".join(missing))
+
+
+def suppressions() -> None:
+    patterns = ("eslint-disable", "phpcs:ignore", "@SuppressWarnings", "# noqa", "NOLINT")
+    count = 0
+    for root in ("include", "src", "test"):
+        for path in (REPO / root).rglob("*"):
+            if path.is_file():
+                body = path.read_text(encoding="utf-8", errors="ignore")
+                count += sum(body.count(pattern) for pattern in patterns)
+    check("Suppressions", count == 0, f"count={count}")
+
+
+def git_repository() -> None:
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    check(
+        "Git repository",
+        result.returncode == 0 and Path(result.stdout.strip()).resolve() == REPO,
+        result.stdout.strip() or "invalid",
+    )
+
+
+def public_repository_structure() -> None:
+    english = text("README.md")
+    spanish = text("README.es.md")
+    reciprocal = "[Español](README.es.md)" in english and "[English](README.md)" in spanish
+
+    tracked_result = subprocess.run(
+        ["git", "ls-files"],
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    tracked = tracked_result.stdout.splitlines() if tracked_result.returncode == 0 else []
+    forbidden_roots = ("build/", "managed_components/", ".pio/", ".artifacts/")
+    forbidden = [
+        path
+        for path in tracked
+        if path == "sdkconfig"
+        or path.startswith(forbidden_roots)
+        or "GOLDEN_VERSION" in path.upper()
+        or path in {"diagram.json", "wokwi.toml"}
+        or path.startswith("lib/")
+    ]
+
+    identifier_result = subprocess.run(
+        ["git", "grep", "-n", "-I", "-E", r"([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"],
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    identifiers = identifier_result.stdout.splitlines() if identifier_result.returncode == 0 else []
+
+    check("Bilingual public entry", reciprocal, "reciprocal English/Spanish README navigation")
+    check(
+        "Publishable tracked tree",
+        not forbidden and not identifiers,
+        "no golden/simulator/vendor/generated paths or exact MAC-like identifiers"
+        if not forbidden and not identifiers
+        else f"forbidden={forbidden[:8]}; identifiers={identifiers[:4]}",
+    )
+def main() -> int:
+    git_repository()
+    public_repository_structure()
+    required_paths()
+    conformance()
+    acceptance_coverage()
+    local_links()
+    cited_commands()
+    orphan_documents()
+    code_fences()
+    safety_invariants()
+    approved_geometry()
+    marked_existing_paths()
+    suppressions()
+    print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")
+    return 0 if not FAILURES else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+pio_executable="$repo_root/.venv-platformio/bin/pio"
+platformio_state_root="${PLATFORMIO_OIL_GAUGE_STATE_DIR:-/home/marcos/.platformio-oil-gauge}"
+platformio_core_dir="$platformio_state_root/core"
+platformio_build_dir="$platformio_state_root/build"
+platformio_libdeps_dir="$platformio_state_root/libdeps"
+platformio_project_dir=$(mktemp -d "${TMPDIR:-/tmp}/oil-gauge-platformio-project.XXXXXX")
+
+cleanup() {
+  rm -rf -- "$platformio_project_dir"
+}
+trap cleanup EXIT HUP INT TERM
+
+if [ ! -x "$pio_executable" ]; then
+  printf '%s\n' \
+    "Project PlatformIO is missing." \
+    "Run: ./scripts/keel-doctor --plan" \
+    "Then, after approval: ./scripts/keel-doctor --fix" >&2
+  exit 127
+fi
+
+mkdir -p "$platformio_core_dir" "$platformio_build_dir" "$platformio_libdeps_dir"
+
+cp "$repo_root/platformio.ini" "$platformio_project_dir/"
+cp "$repo_root/partitions.csv" "$platformio_project_dir/"
+cp -R "$repo_root/include" "$platformio_project_dir/"
+cp -R "$repo_root/src" "$platformio_project_dir/"
+cp -R "$repo_root/test" "$platformio_project_dir/"
+cd "$platformio_project_dir"
+
+PLATFORMIO_CORE_DIR="$platformio_core_dir" \
+PLATFORMIO_BUILD_DIR="$platformio_build_dir" \
+PLATFORMIO_LIBDEPS_DIR="$platformio_libdeps_dir" \
+PLATFORMIO_DISABLE_UPGRADE_CHECK=1 \
+"$pio_executable" "$@"

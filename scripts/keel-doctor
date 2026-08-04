@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""Detect and optionally repair this project's local development environment."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parent.parent
+VENV = REPO / ".venv-platformio"
+PIO = VENV / "bin" / "pio"
+PLATFORMIO_VERSION = "6.1.19"
+
+
+def command_output(command: list[str]) -> tuple[int, str]:
+    result = subprocess.run(
+        command,
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    return result.returncode, result.stdout.strip()
+
+
+def check_rows() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+
+    git = shutil.which("git")
+    git_code, git_root = command_output(["git", "rev-parse", "--show-toplevel"])
+    git_ok = git is not None and git_code == 0 and Path(git_root).resolve() == REPO
+    rows.append(
+        {
+            "requirement": "Git repository",
+            "detected": git_root if git_ok else ("git present, repository invalid" if git else "absent"),
+            "required": str(REPO),
+            "state": "OK" if git_ok else ("NOT OPERATIONAL" if git else "MISSING"),
+            "severity": "blocking",
+            "install": "git init -b main" if not git_ok else "—",
+        }
+    )
+
+    python = shutil.which("python3")
+    py_code, py_version = command_output(["python3", "--version"]) if python else (1, "")
+    rows.append(
+        {
+            "requirement": "Python",
+            "detected": py_version or "absent",
+            "required": ">= 3.7",
+            "state": "OK" if py_code == 0 else "MISSING",
+            "severity": "blocking",
+            "install": "Install Python 3 with venv support" if py_code else "—",
+        }
+    )
+
+    compiler = shutil.which("g++")
+    cc_code, cc_version = command_output(["g++", "--version"]) if compiler else (1, "")
+    rows.append(
+        {
+            "requirement": "C++ host compiler",
+            "detected": cc_version.splitlines()[0] if cc_version else "absent",
+            "required": "C++17",
+            "state": "OK" if cc_code == 0 else "MISSING",
+            "severity": "blocking",
+            "install": "Install a C++17 compiler" if cc_code else "—",
+        }
+    )
+
+    if PIO.is_file():
+        pio_code, pio_version = command_output([str(PIO), "--version"])
+        expected = f"PlatformIO Core, version {PLATFORMIO_VERSION}"
+        pio_state = "OK" if pio_code == 0 and expected in pio_version else "TOO OLD"
+        detected = pio_version or "not operational"
+    else:
+        pio_state = "MISSING"
+        detected = "absent"
+    rows.append(
+        {
+            "requirement": "Project PlatformIO",
+            "detected": detected,
+            "required": PLATFORMIO_VERSION,
+            "state": pio_state,
+            "severity": "blocking",
+            "install": (
+                f"python3 -m venv .venv-platformio; "
+                f".venv-platformio/bin/python -m pip install platformio=={PLATFORMIO_VERSION}"
+            )
+            if pio_state != "OK"
+            else "—",
+        }
+    )
+
+    return rows
+
+
+def print_table(rows: list[dict[str, str]]) -> None:
+    headers = ["Requirement", "Detected", "Required", "State", "Severity", "How to install"]
+    values = [
+        [
+            row["requirement"],
+            row["detected"],
+            row["required"],
+            row["state"],
+            row["severity"],
+            row["install"],
+        ]
+        for row in rows
+    ]
+    widths = [
+        max(len(headers[index]), *(len(value[index]) for value in values))
+        for index in range(len(headers))
+    ]
+    print(" | ".join(header.ljust(widths[index]) for index, header in enumerate(headers)))
+    print("-+-".join("-" * width for width in widths))
+    for value in values:
+        print(" | ".join(item.ljust(widths[index]) for index, item in enumerate(value)))
+
+
+def install_platformio() -> int:
+    if not VENV.exists():
+        code, output = command_output(["python3", "-m", "venv", str(VENV)])
+        if output:
+            print(output)
+        if code:
+            return code
+    commands = [
+        [str(VENV / "bin" / "python"), "-m", "pip", "install", "--upgrade", "pip"],
+        [
+            str(VENV / "bin" / "python"),
+            "-m",
+            "pip",
+            "install",
+            f"platformio=={PLATFORMIO_VERSION}",
+        ],
+    ]
+    for command in commands:
+        print("+", " ".join(command))
+        result = subprocess.run(command, cwd=REPO, check=False)
+        if result.returncode:
+            return result.returncode
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true", help="detect only (default)")
+    mode.add_argument("--plan", action="store_true", help="show the exact repair commands")
+    mode.add_argument("--fix", action="store_true", help="run the approved local repair")
+    parser.add_argument("--json", action="store_true", help="emit structured check output")
+    args = parser.parse_args()
+
+    rows = check_rows()
+    if args.json:
+        print(json.dumps(rows, indent=2))
+    else:
+        print_table(rows)
+
+    if args.plan:
+        missing_pio = next(row for row in rows if row["requirement"] == "Project PlatformIO")
+        if missing_pio["state"] != "OK":
+            print("\nApproved local repair plan:")
+            print("  python3 -m venv .venv-platformio")
+            print("  .venv-platformio/bin/python -m pip install --upgrade pip")
+            print(
+                "  .venv-platformio/bin/python -m pip install "
+                f"platformio=={PLATFORMIO_VERSION}"
+            )
+        else:
+            print("\nNo repair commands are required.")
+        return 0
+
+    if args.fix:
+        blocking_non_pio = [
+            row
+            for row in rows
+            if row["severity"] == "blocking"
+            and row["state"] != "OK"
+            and row["requirement"] != "Project PlatformIO"
+        ]
+        if blocking_non_pio:
+            print("Cannot repair PlatformIO until the other blocking rows are resolved.", file=sys.stderr)
+            return 2
+        if install_platformio():
+            return 2
+        rows = check_rows()
+        if not args.json:
+            print("\nPost-fix verification:")
+            print_table(rows)
+
+    blocking = [
+        row for row in rows if row["severity"] == "blocking" and row["state"] != "OK"
+    ]
+    return 1 if blocking else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

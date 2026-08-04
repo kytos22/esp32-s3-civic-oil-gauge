@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Verify a Keel continuation courier before another session acts on it."""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parent.parent
+DEFAULT_HANDOFF = REPO / "docs" / "continuation-prompt.md"
+MAX_AGE_SECONDS = 24 * 60 * 60
+
+
+def git(*args: str) -> tuple[int, str]:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    return result.returncode, result.stdout.strip()
+
+
+def header(path: Path) -> dict[str, str]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0] != "---":
+        return {}
+    result: dict[str, str] = {}
+    for line in lines[1:]:
+        if line == "---":
+            return result
+        if ":" in line:
+            key, value = line.split(":", 1)
+            result[key.strip()] = value.strip()
+    return {}
+
+
+def report(name: str, passed: bool, detail: str) -> bool:
+    print(f"{name}: {'PASS' if passed else 'FAIL'} — {detail}")
+    return passed
+
+
+def main() -> int:
+    path = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else DEFAULT_HANDOFF.resolve()
+    if not path.is_file():
+        print(f"Containment: FAIL — handoff does not exist: {path}")
+        print("VERDICT: STOP")
+        return 1
+
+    root_code, root_text = git("rev-parse", "--show-toplevel")
+    if root_code:
+        print("Containment: FAIL — current directory is not a Git repository")
+        print("VERDICT: STOP")
+        return 1
+    root = Path(root_text).resolve()
+    contained = path == root or root in path.parents
+    checks = [report("Containment", contained, f"{path} inside {root}")]
+    if not contained:
+        print("VERDICT: STOP")
+        return 1
+
+    values = header(path)
+    required = {"Repo", "Generated", "Keel", "Commit", "Tree", "Position", "Handover"}
+    if not required.issubset(values):
+        report("Header", False, "required freshness fields are missing")
+        print("VERDICT: STOP")
+        return 1
+
+    shallow_code, shallow = git("rev-parse", "--is-shallow-repository")
+    root_commit_code, root_commits = git("rev-list", "--max-parents=0", "HEAD")
+    if shallow_code == 0 and shallow == "true":
+        repo_ok = values["Repo"] == "unavailable (shallow)"
+        repo_detail = "identity unavailable in shallow repository"
+    elif root_commit_code:
+        repo_ok = False
+        repo_detail = "repository has no commit"
+    else:
+        root_commit = sorted(root_commits.splitlines())[0][:7]
+        repo_ok = values["Repo"] == root_commit
+        repo_detail = f"header {values['Repo']}; current {root_commit}"
+    checks.append(report("Repo", repo_ok, repo_detail))
+
+    head_code, head = git("rev-parse", "HEAD")
+    commit_ok = head_code == 0 and values["Commit"] == head
+    checks.append(report("Commit", commit_ok, f"header {values['Commit']}; current {head or 'unborn'}"))
+
+    try:
+        generated_epoch = datetime.fromisoformat(values["Generated"]).timestamp()
+        mtime_epoch = path.stat().st_mtime
+        now = time.time()
+        generated_ok = (
+            abs(generated_epoch - mtime_epoch) <= 5
+            and 0 <= now - generated_epoch <= MAX_AGE_SECONDS
+        )
+        generated_detail = (
+            f"age {int(now - generated_epoch)}s; "
+            f"header/mtime delta {abs(generated_epoch - mtime_epoch):.1f}s"
+        )
+    except (ValueError, OSError):
+        generated_ok = False
+        generated_detail = "timestamp is invalid"
+    checks.append(report("Generated", generated_ok, generated_detail))
+
+    status_code, status = git("status", "--porcelain")
+    actual_tree = "clean" if status_code == 0 and not status else f"dirty ({len(status.splitlines())} files)"
+    tree_ok = values["Tree"] == actual_tree
+    checks.append(report("Tree", tree_ok, f"header {values['Tree']}; current {actual_tree}"))
+
+    handover_ok = values["Handover"] == "clean"
+    checks.append(report("Handover", handover_ok, values["Handover"]))
+    print(f"Position: INFO — {values['Position']}")
+
+    verdict = all(checks)
+    print(f"VERDICT: {'CONTINUE' if verdict else 'STOP'}")
+    return 0 if verdict else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

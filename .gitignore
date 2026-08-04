@@ -1,0 +1,15 @@
+.pio/
+.venv-platformio/
+build/
+managed_components/
+sdkconfig
+sdkconfig.old
+.vscode/
+tmp/
+*.log
+.artifacts/
+.keel-update-check
+CLAUDE.local.md
+.claude/settings.local.json
+AGENTS.override.md
+docs/continuation-prompt.md

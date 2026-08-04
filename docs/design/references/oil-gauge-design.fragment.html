@@ -1,0 +1,410 @@
+<div id="oilGaugeRefinedIcons">
+  <div
+    class="ogr-screen"
+    role="region"
+    aria-label="Indicador de presión y temperatura de aceite"
+    aria-live="polite"
+  >
+    <section class="ogr-half ogr-pressure" data-state="ok">
+      <div class="ogr-heading">
+        <span>Presión aceite</span>
+        <span class="ogr-state" id="ogrPressureState">OK</span>
+      </div>
+      <div class="ogr-main">
+        <svg class="ogr-icon ogr-pressure-icon" viewBox="0 0 114 72" aria-hidden="true">
+          <path class="ogr-bold-line" d="M13 33l9-21 23 12" />
+          <path class="ogr-bold-line" d="M39 23l5 31h34l21-29" />
+          <path class="ogr-bold-line" d="M40 23h27l11 9 21-7 10 8" />
+          <path class="ogr-bold-line" d="M58 22V11M51 10h15" />
+          <path class="ogr-solid" d="M105 42s-8 9-8 15a8 8 0 0 0 16 0c0-6-8-15-8-15z" />
+        </svg>
+        <span class="ogr-value" id="ogrPressureValue">61</span>
+        <span class="ogr-unit">PSI</span>
+      </div>
+      <div class="ogr-scale" aria-hidden="true">
+        <span class="ogr-fill" id="ogrPressureFill"></span>
+        <i style="left:6.7%"></i>
+        <i style="left:10%"></i>
+        <i style="left:53.3%"></i>
+      </div>
+      <div class="ogr-context">
+        <span>Alerta ≤10 PSI</span>
+        <span>OK: 15–80 PSI</span>
+      </div>
+    </section>
+
+    <section class="ogr-half ogr-temperature" data-state="optimal">
+      <div class="ogr-heading">
+        <span>Temperatura aceite</span>
+        <span class="ogr-state" id="ogrTemperatureState">Óptimo</span>
+      </div>
+      <div class="ogr-main">
+        <svg class="ogr-icon ogr-temperature-icon" viewBox="0 0 88 74" aria-hidden="true">
+          <rect class="ogr-solid" x="36" y="3" width="12" height="45" rx="6" />
+          <circle class="ogr-solid" cx="42" cy="48" r="13" />
+          <rect class="ogr-solid" x="49" y="11" width="21" height="7" rx="1" />
+          <rect class="ogr-solid" x="49" y="25" width="21" height="7" rx="1" />
+          <rect class="ogr-solid" x="49" y="39" width="21" height="7" rx="1" />
+          <path class="ogr-wave" d="M5 55c8-6 15 6 23 0M56 55c8-6 15 6 23 0" />
+          <path class="ogr-wave" d="M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0" />
+        </svg>
+        <span class="ogr-value" id="ogrTemperatureValue">92</span>
+        <span class="ogr-unit">°C</span>
+      </div>
+      <div class="ogr-scale" aria-hidden="true">
+        <span class="ogr-fill" id="ogrTemperatureFill"></span>
+        <i style="left:8%"></i>
+        <i style="left:28.4%"></i>
+        <i style="left:45.5%"></i>
+        <i style="left:50%"></i>
+        <i style="left:56.8%"></i>
+      </div>
+      <div class="ogr-context">
+        <span>Óptimo desde 75 °C</span>
+        <span>&gt;94 °C caliente</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="viz-controls ogr-controls" aria-label="Simular lecturas">
+    <label class="form-label" for="ogrPressureInput">
+      Presión <span id="ogrPressureControlValue">61 PSI</span>
+      <input class="form-range" id="ogrPressureInput" type="range" min="0" max="150" value="61">
+    </label>
+    <label class="form-label" for="ogrRpmInput">
+      RPM, solo lógica <span id="ogrRpmControlValue">2.500</span>
+      <input class="form-range" id="ogrRpmInput" type="range" min="0" max="6000" step="100" value="2500">
+    </label>
+    <label class="form-label" for="ogrTemperatureInput">
+      Temperatura <span id="ogrTemperatureControlValue">92 °C</span>
+      <input class="form-range" id="ogrTemperatureInput" type="range" min="0" max="138" value="92">
+    </label>
+  </div>
+</div>
+
+<style>
+  #oilGaugeRefinedIcons {
+    --ogr-white: #f7f9fb;
+    --ogr-muted: rgba(247, 249, 251, 0.55);
+    --ogr-line: rgba(247, 249, 251, 0.15);
+    --ogr-yellow: #ffb020;
+    --ogr-danger: #ff3948;
+    --ogr-neutral: #9aa4af;
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+  }
+
+  #oilGaugeRefinedIcons * {
+    box-sizing: border-box;
+  }
+
+  #oilGaugeRefinedIcons .ogr-screen {
+    width: min(100%, 480px);
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    overflow: hidden;
+    color: var(--ogr-white);
+    background: #000;
+    border: 1px solid var(--ogr-line);
+    border-radius: 11%;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #oilGaugeRefinedIcons .ogr-half {
+    --ogr-metric-color: var(--ogr-yellow);
+    min-height: 0;
+    padding: 6.5% 8% 5.5%;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+  }
+
+  #oilGaugeRefinedIcons .ogr-half + .ogr-half {
+    border-top: 1px solid var(--ogr-line);
+  }
+
+  #oilGaugeRefinedIcons .ogr-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: var(--ogr-muted);
+    font-size: clamp(11px, 2.4vw, 15px);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  #oilGaugeRefinedIcons .ogr-state {
+    color: var(--ogr-metric-color);
+    font-size: clamp(16px, 5vw, 24px);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  #oilGaugeRefinedIcons .ogr-main {
+    position: relative;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+  }
+
+  #oilGaugeRefinedIcons .ogr-icon {
+    position: absolute;
+    left: 0;
+    width: 82px;
+    color: var(--ogr-metric-color);
+    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ogr-metric-color) 45%, transparent));
+  }
+
+  #oilGaugeRefinedIcons .ogr-bold-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  #oilGaugeRefinedIcons .ogr-solid {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  #oilGaugeRefinedIcons .ogr-wave {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  #oilGaugeRefinedIcons .ogr-temperature-icon {
+    width: 76px;
+  }
+
+  #oilGaugeRefinedIcons .ogr-value {
+    grid-column: 2;
+    color: var(--ogr-white);
+    font-size: clamp(68px, 17vw, 108px);
+    font-weight: 500;
+    line-height: 0.86;
+    letter-spacing: -0.07em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-unit {
+    grid-column: 3;
+    justify-self: start;
+    margin-left: 12px;
+    color: var(--ogr-muted);
+    font-size: clamp(18px, 4.4vw, 27px);
+    font-weight: 500;
+  }
+
+  #oilGaugeRefinedIcons .ogr-scale {
+    position: relative;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--ogr-line);
+  }
+
+  #oilGaugeRefinedIcons .ogr-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--ogr-metric-color);
+    box-shadow: 0 0 11px color-mix(in srgb, var(--ogr-metric-color) 55%, transparent);
+    transition: width 160ms ease, background-color 160ms ease;
+  }
+
+  #oilGaugeRefinedIcons .ogr-scale i {
+    position: absolute;
+    top: -2px;
+    width: 1px;
+    height: 13px;
+    background: var(--ogr-white);
+    opacity: 0.34;
+  }
+
+  #oilGaugeRefinedIcons .ogr-context {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 5px;
+    color: var(--ogr-muted);
+    font-size: clamp(10px, 2vw, 12px);
+    letter-spacing: 0.03em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-controls {
+    width: min(100%, 736px);
+  }
+
+  #oilGaugeRefinedIcons .ogr-controls .form-label {
+    min-width: min(190px, 100%);
+    flex: 1 1 190px;
+  }
+
+  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-icon,
+  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-state,
+  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-fill {
+    animation: ogr-pressure-warning-blink 1s step-end infinite;
+  }
+
+  @keyframes ogr-pressure-warning-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0.14;
+    }
+  }
+
+  @media (max-width: 420px) {
+    #oilGaugeRefinedIcons .ogr-half {
+      padding-inline: 7%;
+    }
+
+    #oilGaugeRefinedIcons .ogr-icon {
+      width: 66px;
+    }
+
+    #oilGaugeRefinedIcons .ogr-temperature-icon {
+      width: 60px;
+    }
+
+    #oilGaugeRefinedIcons .ogr-heading {
+      letter-spacing: 0.08em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #oilGaugeRefinedIcons .ogr-fill {
+      transition: none;
+    }
+
+    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-icon,
+    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-state,
+    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-fill {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const root = document.getElementById('oilGaugeRefinedIcons');
+    const pressureHalf = root.querySelector('.ogr-pressure');
+    const temperatureHalf = root.querySelector('.ogr-temperature');
+    const pressureInput = document.getElementById('ogrPressureInput');
+    const rpmInput = document.getElementById('ogrRpmInput');
+    const temperatureInput = document.getElementById('ogrTemperatureInput');
+    const pressureValue = document.getElementById('ogrPressureValue');
+    const temperatureValue = document.getElementById('ogrTemperatureValue');
+    const pressureState = document.getElementById('ogrPressureState');
+    const temperatureState = document.getElementById('ogrTemperatureState');
+    const pressureFill = document.getElementById('ogrPressureFill');
+    const temperatureFill = document.getElementById('ogrTemperatureFill');
+    const pressureControlValue = document.getElementById('ogrPressureControlValue');
+    const rpmControlValue = document.getElementById('ogrRpmControlValue');
+    const temperatureControlValue = document.getElementById('ogrTemperatureControlValue');
+    const formatRpm = new Intl.NumberFormat('es-ES');
+    const yellow = [255, 176, 32];
+    const red = [255, 57, 72];
+
+    const mix = (start, end, amount) => start.map((channel, index) =>
+      Math.round(channel + (end[index] - channel) * amount)
+    );
+
+    const toRgb = (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+
+    const temperatureColor = (temperature) => {
+      const stops = [
+        [50, [30, 132, 255]],
+        [57, [30, 132, 255]],
+        [75, [174, 205, 167]],
+        [89, [174, 205, 167]],
+        [94, [234, 190, 82]],
+        [100, [255, 118, 28]],
+        [138, [255, 45, 56]]
+      ];
+
+      if (temperature <= stops[0][0]) return toRgb(stops[0][1]);
+      if (temperature >= stops[stops.length - 1][0]) return toRgb(stops[stops.length - 1][1]);
+
+      for (let index = 1; index < stops.length; index += 1) {
+        const [nextValue, nextColor] = stops[index];
+        const [previousValue, previousColor] = stops[index - 1];
+        if (temperature <= nextValue) {
+          const amount = (temperature - previousValue) / (nextValue - previousValue);
+          return toRgb(mix(previousColor, nextColor, amount));
+        }
+      }
+
+      return toRgb(stops[stops.length - 1][1]);
+    };
+
+    const getPressureState = (psi, rpm) => {
+      if (rpm === 0) return ['stopped', 'Motor parado'];
+      if (psi <= 10) return ['warning', 'Warning'];
+      if (psi < 15) return ['low', 'Presión baja'];
+      if (psi <= 80) return ['ok', 'OK'];
+      return ['high', 'Presión alta'];
+    };
+
+    const getTemperatureState = (temperature) => {
+      if (temperature < 70) return ['cold', 'Frío'];
+      if (temperature < 75) return ['warming', 'Calentando'];
+      if (temperature < 94) return ['optimal', 'Óptimo'];
+      if (temperature <= 100) return ['hot', 'Caliente'];
+      return ['very-hot', 'Muy caliente'];
+    };
+
+    const update = () => {
+      const psi = Number(pressureInput.value);
+      const rpm = Number(rpmInput.value);
+      const temperature = Number(temperatureInput.value);
+      const [pressureKey, pressureLabel] = getPressureState(psi, rpm);
+      const [temperatureKey, temperatureLabel] = getTemperatureState(temperature);
+      const pressureColor = pressureKey === 'warning' ? toRgb(red) : toRgb(yellow);
+      const currentTemperatureColor = temperatureColor(temperature);
+      const temperatureDisplay = temperature < 50 ? '<50' : String(temperature);
+
+      pressureHalf.dataset.state = pressureKey;
+      temperatureHalf.dataset.state = temperatureKey;
+      pressureHalf.style.setProperty('--ogr-metric-color', pressureColor);
+      temperatureHalf.style.setProperty('--ogr-metric-color', currentTemperatureColor);
+      pressureValue.textContent = String(psi);
+      temperatureValue.textContent = temperatureDisplay;
+      pressureState.textContent = pressureLabel;
+      temperatureState.textContent = temperatureLabel;
+      pressureFill.style.width = `${(psi / 150) * 100}%`;
+      temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
+      pressureControlValue.textContent = `${psi} PSI`;
+      rpmControlValue.textContent = formatRpm.format(rpm);
+      temperatureControlValue.textContent = `${temperature} °C`;
+      pressureHalf.setAttribute('aria-label', `Presión de aceite ${psi} PSI, ${pressureLabel}, motor a ${rpm} RPM`);
+      temperatureHalf.setAttribute(
+        'aria-label',
+        temperature < 50
+          ? `Temperatura de aceite por debajo de 50 grados Celsius, ${temperatureLabel}`
+          : `Temperatura de aceite ${temperature} grados Celsius, ${temperatureLabel}`
+      );
+    };
+
+    [pressureInput, rpmInput, temperatureInput].forEach((input) => {
+      input.addEventListener('input', update);
+    });
+
+    update();
+  })();
+</script>

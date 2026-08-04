@@ -1,0 +1,16 @@
+idf_component_register(
+    SRCS
+        "main.cpp"
+        "demo_sequence.cpp"
+        "gauge_core.cpp"
+        "oil_gauge_ui.cpp"
+        "fonts/oil_font_ui_12.c"
+        "fonts/oil_font_ui_16.c"
+        "fonts/oil_font_ui_24.c"
+        "fonts/oil_font_value_96.c"
+    INCLUDE_DIRS
+        "."
+        "../include"
+    PRIV_REQUIRES
+        esp_timer
+)

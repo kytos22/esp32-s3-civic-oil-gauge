@@ -1,0 +1,17 @@
+menu "Civic Oil Gauge"
+
+    config OIL_GAUGE_DEMO_MODE
+        bool "Use synthetic demo readings"
+        default y
+        help
+            Keep this enabled until the installed Innovate pressure and
+            temperature sensors have measured, cross-validated calibrations.
+
+    config OIL_GAUGE_BRIGHTNESS_PERCENT
+        int "AMOLED brightness (%)"
+        range 5 100
+        default 55
+        help
+            Initial AMOLED brightness used for the bench graphics demo.
+
+endmenu

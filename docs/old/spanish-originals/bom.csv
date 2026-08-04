@@ -1,0 +1,24 @@
+fase,cantidad,material,referencia,prioridad,nota
+banco,1,ADC ADS1115 breakout,Adafruit 1085,alta,No es la pieza automotriz final
+banco,1,RS232 a TTL 3.3V,MAX3232E o TRS3232E,alta,No usar MAX232 de 5V
+banco,1,DB9 a bornas,Genero por confirmar,alta,Para cable Innovate 38400
+banco,1,Caja de decadas 0-100kohm,0.1 por ciento preferido,alta,Caracterizar entrada de temperatura
+banco,1,Kit resistencias precision,0.1 por ciento 1k-150k,alta,Divisores y pullups
+banco,1,Kit condensadores X7R,100nF 1uF 10uF,alta,Filtro y desacoplo
+banco,1,Protoboard sin soldar y jumpers,Paso 2.54mm,alta,Caracterizacion inicial
+banco,1,Bornas pines y conectores,Paso 2.54mm y 5.08mm,media,Conexiones reversibles
+banco,1,Fuente USB,5V 3A,alta,Primeras pruebas
+banco,1,Cable USB-C de datos,Certificado,alta,Programacion
+banco,1,Multimetro,Entrada alta impedancia,alta,Pinout y calibracion
+banco,1,Back-probes finos,Puntas aisladas,alta,No perforar el mazo original
+banco,1,Termometro de referencia,Sonda de contacto,media,Calibracion termistor
+coche-prototipo,1,Buck 5V,Pololu D36V28F5 #3782,media,No es homologacion final
+coche-prototipo,1,TVS load dump,Littelfuse SLD8S24A,media,Red de 12V
+coche-prototipo,1,Portafusible automocion,Mini o ATO,alta,Cerca de ACC
+coche-prototipo,3,Fusible,2A,alta,Uno mas repuestos
+opcional,1,USB a RS232,Innovate 37330,media,Solo si no se dispone
+opcional,1,Cable programa MTX,Innovate 38400,alta,Deberia venir con el kit
+opcional,1,Termistor de repuesto,Innovate 15-0049,baja,Calibracion sin desmontar
+opcional,1,Cable sensor presion,Innovate 08-0256C,baja,Adaptador reversible
+pcb-final,1,ADC automotriz,TI ADS1115-Q1 DGS,esperar,Comprar al cerrar el esquema
+pcb-final,1,Transceptor MTS,TI TRS3232E-Q1,esperar,Solo si se adopta ruta MTS

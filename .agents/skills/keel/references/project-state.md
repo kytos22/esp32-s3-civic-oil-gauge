@@ -1,0 +1,631 @@
+# Project State, Resume & Context Discipline (cross-cutting)
+
+Load this reference at two moments, and only these: (a) the moment Phase 1 begins on a new project, (b) the moment a session resumes an in-progress Keel project. It defines the living state system that makes a project survive across many chats, many models, and long gaps — without re-reading the codebase, re-litigating decisions, or losing the exact working position.
+
+The problem this solves: a fresh chat has no memory. Without a state system it reconstructs context by scanning code and re-asking the user, which wastes tokens, breaks prompt caching, and — worse — re-decides things differently each time. With this system, every session starts from the same small set of files, in the same order, and continues instead of restarting.
+
+## The state files (created in Phase 1, live until release)
+
+Created the moment Phase 1 starts producing artifacts — NOT in Phase 5. Before creating them, confirm with the user where the project lives (the project directory / repository); create it if it doesn't exist yet. Never write state into an arbitrary working directory.
+
+| File | Purpose | Created | Updated |
+|------|---------|---------|---------|
+| `docs/PROGRESS.md` | The single living state: project card, phase status, exact current position, open items | Phase 1, first action | Continuously — after every phase step, slice, or test point |
+| `docs/decisions.md` | Append-only log of decisions that shape the project (so no session re-litigates them) | Phase 1, first action | Whenever a decision is made |
+| `docs/lessons-learned.md` | Append-only problem → solution log (so no session repeats a mistake) | Phase 1, first action | Whenever something failed and a fix was found |
+| `docs/design/design-requests/DR-NNN.md` | One file per Design Request, numbered, with status | Phase 4, when the first gap appears | When a DR is sent / resolved |
+| `docs/api/INDEX.md` | One line per public surface — the cheap lookup layer for the reuse rule | Phase 5, first slice | Same slice that adds, changes, or removes a surface |
+| `docs/issues.md` | Living log of forge issues: inventory + one entry per issue worked (diagnosis, resolution, commits, what remains) | First time forge issues are triaged or worked (any phase) | The moment an issue is triaged, worked, or closed |
+| `docs/token-ledger.md` | Actual token usage: one row per working session; final reconciliation (cost + deviation vs estimate) at release | With Estimate v1 (Phase 1 close), per `references/estimation-budget.md` | At the end of every working session; verified at phase/sprint closes |
+| `CLAUDE.md` + `AGENTS.md` (repo root) | The portability lock, the same Keel block mirrored in both: binds ANY assistant/environment opening the repo to the Keel workflow | Phase 1, first action (or adoption) | When Keel's protocol block changes (between its delimiters only) — verified every session by the lock-freshness check (version stamp on the BEGIN delimiter) |
+| `.claude/skills/keel/` + `.agents/skills/keel/` | Embedded copy of the skill (optional, recommended), one tree per discovery convention — makes the repo self-sufficient | Phase 1, first action (with user approval) | Version-synced from the installed skill, one direction, both trees |
+| Assistant rules + subagents (`.claude/rules/`, `.claude/agents/`, and the other accepted tools' containers) | Optional native assistant config: path-scoped rules + reviewer subagents, generated from recorded decisions | Phase 2 close, if accepted at 0a (adoption: after its step 4) — per `references/assistant-config.md` | When a recorded decision changes their source — deliberately, never silently, every container in the same change |
+| Permission allow-lists, `.githooks/pre-commit`, MCP registration (per tool) | Optional: confirmed permission allow-lists, confidential-data commit gate (one per project), dev MCP servers | Phase 5 scaffold (gate at adoption step 2 if accepted) | Tooling/playground commands or the dev MCP set change |
+
+Everything else in `docs/` (specs, flows, design handoff, BUILD-SPEC, sprint files) is a **stable artifact**: written once at its phase, amended deliberately — a mid-project scope change follows "Scope changes" below — never casually rewritten. The state files above are the only ones that change constantly — keeping them small and the artifacts stable is what makes context cheap and cache-friendly.
+
+## `docs/PROGRESS.md` — template (ALWAYS this structure)
+
+Keep it to roughly one page. Detail lives in the linked files, never accumulated here.
+
+```
+# PROGRESS — [Project name]
+
+> Living state. Read this FIRST in every session. Keep current and compact.
+
+## Project card
+- Name / one-line purpose: ...
+- Project type: [primary] / [secondary or none]
+- Stack & target platform(s): [from docs/03-technical-plan.md once it exists]
+- License: [e.g. GPL-3.0-or-later]
+- Docs language: [the language all docs/ artifacts are written in — English by default (token economy)]
+- Security profile: references/security/[file]
+- Accessibility: [targeted level] (references/accessibility.md)
+- i18n: [multi — base X, locales Y, mechanism Z / single — language X]
+- Installed base: [fresh v1 / upgrades vX.Y in production with data]
+- Design system: [existing — source/location / founding — canonical, will live at X / one-off / n/a no UI]
+- Keel portability: [lock only / lock + embedded vX.Y.Z]
+- Assistant config: [none / rules / rules+agents / full] (tools: [claude, codex, copilot, cursor, gemini, windsurf, ...]) — per references/assistant-config.md
+- Models: [orchestrator=<model> / reviewer=<model> / mechanical=<model>, per accepted tool — role→model map, per references/assistant-config.md; n/a if no agents]
+- Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
+- Website intent: [yes — own domain|subdomain / no]
+- Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
+- User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
+- Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
+- Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
+
+## Phase status
+| Phase | Status | Key artifacts |
+|-------|--------|---------------|
+| 1 Discovery | [pending/in progress/done/parked — <why>] | docs/00-competitive-landscape.md, docs/01-discovery.md, docs/estimate.md (v1 preliminary) |
+| 2 Functional spec | ... | docs/02-functional-spec.md, docs/03-technical-plan.md, docs/flows/, docs/estimate.md (firm), docs/budget.md |
+| 3 Design handoff | ... | docs/design/DESIGN-BRIEF.md |
+| 4 Faithful build | ... | docs/BUILD-SPEC.md |
+| 5 Development | ... | docs/sprints/, docs/05-test-points.md |
+| 6 Documentation | ... | docs/architecture.md, docs/api/, docs/usage/, docs/reference/ |
+| 7 Release | ... | docs/07-release.md |
+| 8 Website | [n/a if no intent] | docs/site/ or site repo |
+
+## Current position
+- Phase: [N — name]  Step/sprint: [exact step or sprint + slice]
+- Next action: [the single next concrete thing to do]
+
+## Open items
+- Unresolved user questions: [list or "none"]
+- Open Design Requests: [DR-001 — sent/resolved | "none"]
+- Unverified external steps/assets: [from Phase 4 loops | "none"]
+- Forge issues in progress: [see docs/issues.md | "none"]
+
+### Deferred items (consciously postponed work)
+- [what — severity — review trigger: "revisit when touching X" / "before release" | "none"]
+
+Last updated: [date — phase/step]
+```
+
+Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none.
+
+Deferred items are the living list of consciously postponed WORK — a definition-of-done ✗ the user accepted, a performance finding accepted as-is — each entry carrying a severity and a review trigger ("revisit when touching X", "before release"). This is the greenfield counterpart of adoption's fix-now / fix-when-touched / accepted triage: `docs/decisions.md` logs the DECISION to defer; this list tracks the work until its trigger fires or the user closes it.
+
+## `docs/decisions.md` — template
+
+Append-only; never edit or delete past entries (if a decision is reversed, append a new entry that supersedes it and says why).
+
+```
+# Decisions — [Project name]
+
+> Append-only. A session NEVER re-opens a decision recorded here on its own initiative;
+> only the user reverses a decision (append the reversal as a new entry).
+
+## D-001 — [short title]
+- Date / phase: ...
+- Decision: ...
+- Why: ...
+- Alternatives rejected (and why): ...
+- Supersedes: [D-0XX or none]
+```
+
+Record here: project type, stack choice, license, i18n and accessibility levels, scope cuts, architecture choices, anything where a future session could plausibly "re-decide" differently. Phase 6's `architecture.md` consolidates from this log instead of reconstructing memory. When an entry must reference a secret-shaped string (a token format, a key pattern), describe it or split it apart — never paste it verbatim: the confidential-data gate scans decision notes like any other file (SKILL.md "Confidential data never reaches Git", point 5).
+
+## `docs/lessons-learned.md` — template
+
+Append-only; never trim.
+
+```
+# Lessons Learned — [Project name]
+
+## L-001 — [short title]
+- Symptom: [what was observed — the thing a future session would recognize]
+- Cause: [what was actually wrong, once diagnosed]
+- Fix: [what resolved it]
+- Where: [phase/slice/file]
+- What failed first: [the attempt that didn't work — saves the next session from repeating it]
+- Check added: [the keel-verify check, test, or gate that now catches it — or "none possible: <reason>"]
+- Rule for next time: [one line a future session can apply directly]
+```
+
+The entry leads with **symptom → cause → fix** because that is how it gets read: a future session arrives holding a symptom, not a diagnosis, and an entry organized any other way is not found at the moment it would have helped.
+
+If a lesson came from a code bug, the fix gets a regression test in the same slice (Phase 5 rule) — the lesson entry links to it. And **"Check added" is a real field, not a formality**: whenever a lesson could have been caught mechanically, adding that check to `scripts/keel-verify` (or to the test suite) is part of closing the lesson, because a rule that lives only in prose is a rule that will be broken again by a session under pressure.
+
+**Where a lesson goes — two destinations, and the distinction is load-bearing:**
+
+| What happened | Destination |
+|---|---|
+| A problem specific to THIS project | `docs/lessons-learned.md` — this file. Memory. |
+| A trap that would bite ANY project of this class | Keel's `references/anti-patterns.md`. Prevention. |
+
+When something is clearly the second, propose codifying it into the skill — per SKILL.md, an improvement the user agrees to is codified into Keel, not only recorded in the project that found it. Recording it in both places is fine; recording a class-wide trap only in one project's log means the next project pays for it again.
+
+## Design Request register (Phase 4)
+
+Every Design Request is numbered and saved before it is given to the user: `docs/design/design-requests/DR-001.md`, `DR-002.md`, ... (the filled design-request-template, plus a `Status: sent / resolved [date]` line at the top). PROGRESS.md "Open items" lists every DR and its status. The Phase 4 faithfulness checklist item "zero unresolved Design Requests" is verified against this register, not against memory — a fresh session must be able to see that DR-002 is still open.
+
+## `docs/issues.md` — the forge issue log (any phase)
+
+Whenever the project's forge issues are accessed — GitHub, GitLab, Gitea, Bitbucket, or any other Git forge — the work is tracked in `docs/issues.md`. The purpose is total traceability: at any moment, and from any future session, it must be possible to see everything there is, everything that was done and exactly HOW, and everything still pending — so when a problem surfaces later, what was changed and why is on record, never reconstructed from memory.
+
+Created the first time issues are triaged or worked (any phase — development, post-release maintenance, adoption). Updated **at the moment** an issue is triaged, worked, or closed — like every state file, never "later".
+
+```
+# Issues — [Project name]
+
+> Living log of forge issues ([forge + repo URL]). Inventory first, one entry per issue worked.
+> Updated the moment an issue is triaged, worked, or closed.
+
+## Inventory
+| # | Title | Type | Priority | Status | Entry |
+|---|-------|------|----------|--------|-------|
+| 123 | Checkout fails on empty cart | bug | high | resolved | E-001 |
+| 124 | Support WebP product images | feature | low | open | — |
+
+## Entries (one per issue worked)
+
+### E-001 — #123 Checkout fails on empty cart
+- Link: [forge issue URL]   Status: resolved [date] / in progress / won't fix (reason)
+- Diagnosis: [what was actually wrong — root cause, not the symptom]
+- Resolution: [what was done and why — the approach taken]
+- Changes: [commits/PR, files touched, the version that ships the fix]
+- Verification: [regression test added (Phase 5 rule), test point, playground check]
+- Lesson: [L-NNN in docs/lessons-learned.md if one was recorded | none]
+- Pending: [anything left on this issue | none]
+```
+
+Rules:
+
+- **Inventory covers what is known; entries cover what was worked.** On first contact with the forge, fill the inventory with at least the open issues (closed history is optional). Every issue actually worked gets its E-entry — an issue closed without its entry is a state defect.
+- **Status values:** open / triaged / in progress / resolved / won't fix (reason recorded). The inventory row and its entry must agree.
+- **An entry must answer "what did we do here?" months later:** diagnosis, approach, commits, verification — enough to reopen the work cold if the problem resurfaces. If the fix produced a lesson, record it in `docs/lessons-learned.md` and link it; the regression test lives with the fix (Phase 5 rule).
+- **Both directions:** issues can drive work (a bug report becomes a slice) or record it (work done reveals something to file upstream). Either way the log stays current.
+- **Growth:** if the file grows large, old **resolved** entries may move to `docs/old/issues-archive.md` (move, never delete); the inventory always stays complete, with archived entries still referenced from their rows.
+
+## `docs/api/INDEX.md` — the cheap reuse lookup (Phase 5)
+
+The reuse rule ("search the existing internal API before writing new code") must not require loading every file in `docs/api/` and `docs/reference/`. The index is the first — and usually only — thing consulted:
+
+```
+# API Index — [Project name]
+> One line per public surface. Grep here FIRST; open the full doc only on a hit.
+
+| Surface | Kind | Code file | Doc | Purpose (one line) |
+|---------|------|-----------|-----|--------------------|
+| mcm_get_licenses() | function | includes/api.php | docs/api/licenses.md | List licenses for a user |
+| mcm/license-created | action | includes/api.php | docs/reference/hooks-and-extension-points.md | Fires after license creation |
+```
+
+Updated in the same slice that adds, changes, or removes a surface — an INDEX row without its doc, or a doc without its row, is a slice defect. A changed surface has its row and its doc updated in that same slice; a removed surface has its row deleted (never released) or marked deprecated/removed with its replacement (already released), per SKILL.md "Document every public surface at the moment it changes". A row pointing at a symbol the code no longer has is a defect like any other.
+
+## Sprint files (Phase 5) — template
+
+```
+# Sprint [N] — [short goal]
+- Scope: [slices/tasks in this sprint]
+- Acceptance: [what "done" means for this sprint]
+- Status: [planned / in progress / closed]
+- Slices:
+  | Slice | Status | Test point result | Notes |
+- Close-out: [filled at close: what shipped, what moved to next sprint]
+```
+
+## Continuation prompt (ANY phase, not just sprint closes)
+
+A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt. Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
+
+```
+Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
+1. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
+2. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
+3. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
+4. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
+```
+
+The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance. Like everything Keel creates, the continuation prompt is written in English (SKILL.md "Token economy"), regardless of the conversation language.
+
+### The continuation file — `docs/continuation-prompt.md` (UNBREAKABLE)
+
+The prompt is not only shown in the chat; it is also WRITTEN to `docs/continuation-prompt.md`, always at that exact path, overwritten each time. The fixed path is what makes the hand-off addressable by a short constant instruction instead of a wall of text that has to be selected, copied and pasted without losing a line, and it removes every length limit from the hand-off, because what travels between chats is a path.
+
+The file is ephemeral session state, not project history: it is listed in `.gitignore` and never committed. Showing the prompt in the chat does not stop — the file is in addition, never instead.
+
+It opens with a freshness header, then the prompt verbatim:
+
+```
+---
+Repo: 8f2c1ab
+Generated: 2026-07-29T18:40:00+02:00
+Keel: 5.3.0
+Commit: a1b2c3d
+Tree: clean
+Position: Phase 5 — Sprint 3, slice 3.4 closed; next action: slice 3.5
+Handover: clean
+---
+
+[the continuation prompt, exactly as templated above]
+```
+
+`Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
+
+**Producing `Repo:` — three traps, all silent.** It is the SHORT root-commit hash, and the command has edges that return a wrong answer with exit 0:
+
+```
+git rev-parse --is-shallow-repository        # true → do NOT write a hash
+git rev-list --max-parents=0 HEAD | sort | head -1
+```
+
+- **A shallow clone returns the grafted commit, not the root**, with no error, and the value CHANGES after `git fetch --unshallow`. A hand-off written under `--depth 1` therefore carries an identity no full clone accepts, and the same directory rejects its own hand-off once deepened. When `--is-shallow-repository` is `true`, write `Repo: unavailable (shallow)`; the reader treats repository identity as unverifiable and relies on the containment check below.
+- **A repository can have more than one root commit** (unrelated histories merged), and the command then prints several lines — a naive `$(...)` yields a multi-line value that can never match a 7-character header. `sort | head -1` picks one stably, independent of traversal order.
+- **`Repo:` identifies the REPOSITORY, not the working directory** — see the containment check below.
+
+**Why `Repo:` exists, and why the obvious fix is not enough.** The filename is IDENTICAL in every Keel project. So a chat opened in the wrong window reads that project's own hand-off, and every other check passes — the commit really is its `HEAD`, the position really is its `PROGRESS.md`, the timestamp really is recent. Nothing is stale; the session simply continues the wrong project, coherently and unsupervised. That is why two independent halves are required and neither is optional:
+
+- **Every launch passes this repository's ABSOLUTE hand-off path**, not a relative one, so the right file gets read even from the wrong window.
+- **`Repo:` carries the root-commit hash** — the stable identity of a repository, unlike a remote URL, which may be absent or plural — so a session that finds itself in a different repository than the hand-off names STOPS and says so instead of working.
+
+The first makes the right file get read; the second makes a session in the wrong place refuse. Alone, each leaves the failure silent.
+
+**And `Repo:` alone is still not enough, because a repository is not a directory.** Two checkouts of the SAME repository at the same commit — a `git worktree`, a second clone, a copied folder, a sync-service duplicate — share their root commit AND their `HEAD`. A session in one of them reading the other's hand-off passes every identity check while working in the wrong directory, which is the original flaw wearing a narrower disguise. Worktrees are not exotic: agent harnesses create them routinely to isolate parallel work. The separating check is containment — the hand-off's REAL path must lie inside this session's own `git rev-parse --show-toplevel` — and it costs one command.
+
+**The file is a courier, never a source of truth.** `docs/PROGRESS.md` and the repository are the authority; this file only points at them. The session that reads it verifies, in this order:
+
+| Check | How | Mechanical? |
+|---|---|---|
+| **Containment** | the file's REAL path (symlinks resolved) is inside this session's `git rev-parse --show-toplevel` | Yes |
+| `Repo:` | against `git rev-list --max-parents=0 HEAD \| sort \| head -1` in the repo the session is actually in | Yes |
+| `Commit:` | against `git rev-parse HEAD`; `git merge-base --is-ancestor <Commit> HEAD` also reports HOW FAR behind, which is more useful than a yes/no | Yes |
+| `Generated:` | against the current time AND the file's own modification time (`stat`), which the header cannot forge | Yes |
+| `Tree:` | against `git status --porcelain` — a hand-off written `clean` on a tree that is now dirty, or vice versa, means work moved outside the hand-off's account of it | Yes |
+| `Position:` | against PROGRESS.md's current position and next action | **No — prose against prose** |
+
+The first five are executable. `Position:` is a human-readable corroborator, deliberately kept in prose because a position is a sentence, and it is NOT claimed as a mechanical check anywhere — a check that cannot be run is a promise, and this skill does not write promises as checks. Containment runs FIRST because it is the only one that catches a second checkout of the same repository, where every identity check legitimately passes.
+
+**A session never composes these checks itself — it runs `scripts/keel-handoff-verify` (UNBREAKABLE).** This is not a style preference, it is what makes the checks run at all. A session writing them inline produces one line of nested `$(...)`, the permission matcher cannot decompose it, the call comes back `Parse error`, and the project's allow-list is bypassed **even when every git command in it is allowed** — at every link of a chain, not only the first. Measured. So the checks live in a generated script with ONE allow-list entry:
+
+```json
+{ "permissions": { "allow": ["Bash(./scripts/keel-handoff-verify:*)"] } }
+```
+
+The table above is that script's CONTRACT, not a recipe for the session to reimplement. Keel generates it at the Phase 5 scaffold beside `keel-verify` and `keel-doctor`, and the continuation prompt instructs the next session to run it. Its output is one line per check plus a `VERDICT: CONTINUE` or `VERDICT: STOP`, so the session reads a verdict instead of interpreting five command outputs. Written any other way, the courier checks are exactly the promise this skill refuses to write.
+
+**Timestamps are compared as epoch seconds, never as strings.** The header writes an ISO offset (`+02:00`) and `stat` reports another form (`+0200`); a string comparison of the same instant therefore reports tampering on every run. Normalise both to epoch first — the script does; a human reading them will silently do the right thing and never notice the trap.
+
+Everything agrees → continue. Containment fails → STOP: this hand-off belongs to another working directory, name it and do not act. `Repo:` disagrees → STOP: this hand-off belongs to another repository. `Repo: unavailable (shallow)` is neither pass nor fail: identity is unverifiable, containment carries the weight, and the session says so rather than pretending either way. Anything else disagrees, or `Generated:` is old enough that the repository has moved since (new commits, a changed position) → **STOP and say exactly what disagrees**, then resume from `docs/PROGRESS.md` instead. A stale or foreign hand-off is more dangerous than no hand-off: it reads like an instruction and is actually a memory. A missing file is not an error — it means resume normally from PROGRESS.md.
+
+Timestamping is done in the header and not in the filename deliberately: a dated filename would make the path change on every write, and the header plus the file's modification time answer "was this written just now or three days ago?" at no cost.
+
+**The most common case is not a new chat at all — it is `/clear` in the same window.** A session whose context is full but whose window is perfectly good starts a fresh session in place (`/clear` — "start a new session with empty context; the previous session stays on disk, resumable with `/resume`"), then reads the hand-off. This is the SAFEST route and it is the one to recommend by default: same window, same repository, permissions already granted, the wrong-window failure impossible by construction. It is also the least automatable — nothing lets a session clear its own context — which is exactly why it is stated here rather than left implicit. All the chaining machinery below exists for when a new window is genuinely wanted; `/clear` needs none of it.
+
+### Chaining the next chat (opt-in — `Chaining:` on the project card)
+
+**Split this in two before reading further, because only one half is universal.** The continuation FILE works with every assistant, everywhere, with no integration whatsoever: "read `<abs-path>/docs/continuation-prompt.md` and continue" is an ordinary prompt, so Codex, Copilot, Cursor, Gemini CLI, Windsurf, a web chat or a human typing it all consume the hand-off identically. That half is the mechanism. Opening the next chat automatically is the other half — a per-tool convenience that depends on an integration each vendor either offers or does not, and that Keel must never assume on a tool's behalf.
+
+The card records what a CLEAN close-out does beyond writing the file:
+
+| `Chaining:` | What happens | Human gesture left |
+|---|---|---|
+| `off` (default) | The file is written and the prompt shown. Nothing opens. | Open a chat, paste |
+| `prefill` | The tool's recorded action opens a session with the prompt already typed | Press Enter |
+| `start` | The tool's recorded action launches AND submits | None — unless the lane is busy, in which case the new window prints the prompt |
+
+The values name the BEHAVIOUR, not the mechanism, on purpose: the same tool family does both — Claude Code's URI handler pre-fills and never submits, while its CLI, started with a prompt argument, submits immediately. A single value meaning different things on different tools is precisely the ambiguity this skill refuses everywhere else.
+
+**`start` is opt-in per project, is not the default, and is GATED on the single-lane lock below.** The protections that matter survive without a human keystroke: a blocked hand-off never chains, and a stale, foreign or misplaced one is refused on reading — all machine checks. What a keystroke uniquely guarded against was landing in the wrong place, and the absolute path, `Repo:` and containment close that.
+
+But removing the human removes something else that nobody had accounted for, and it was found by RUNNING the mechanism rather than reading it: **the person between links was the only thing keeping the chain single-file.** A three-link chain under test produced four live sessions and four windows in sixteen seconds — two launches were still in flight while the counter was read, so the cap was passed by design rather than by accident. Two sessions live on one checkout means interleaved commits on one branch, `docs/PROGRESS.md` overwritten by whichever finishes last, a hand-off describing a state neither of them left, and edits made on reads the other has already invalidated. **None of the courier checks fire**: same repository, same starting commit, a perfectly fresh hand-off. And it escaped the person who had just written the cap, which is the part that matters — a user who merely switched `start` on has strictly worse odds.
+
+So `start` requires four things, and a project missing any of them is offered `prefill` at most:
+
+1. **The single-lane lock** (below). Without it, `start` is a chain that can fork silently.
+2. **A verified open action for the tool that produces a VISIBLE session**, not a headless run. On macOS that is `osascript` driving Terminal.app, verified. Linux (`gnome-terminal` / `konsole` / `xterm`) and Windows are NOT verified: an implementer who reaches for the plain platform open command ships the headless variant, which runs correctly and opens nothing, leaving the user waiting for a window that will never appear. **`start` is therefore verified on macOS only today.**
+3. **The project's allow-list entry for `scripts/keel-handoff-verify`**, plus folder trust granted once. Without them every link stops for a permission prompt, which is not automation with extra steps — it is `prefill` pretending.
+4. **The `claude` command on PATH.** `start` launches a CLI session, so without the standalone CLI there is nothing to launch. This is worth stating because it is not obvious: neither the desktop app nor the VS Code extension puts `claude` on PATH — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so a user can have both installed, use Claude Code daily, and still have no `claude` command. Absent → `prefill` is the maximum, and say which requirement failed rather than letting the first close-out of a chain discover it.
+
+The residual risk stays real even with all three: a window begins working unsupervised from a hand-off composed by a session that was running out of context. That is not uniform — a routine slice is not a migration, a release, or anything touching production data — so it remains the user's call per project, recorded on the card and in `docs/decisions.md`.
+
+#### The single-lane lock
+
+One rule, and its two properties are both consequences of how the failure actually happened:
+
+- **The ARRIVING session takes the lock, not the launching one.** A launcher cannot know who else is in flight — that is precisely what failed. A session that starts, finds the lock held by a live process, and exits saying so is the only shape that closes the window between launch and execution.
+- **The lock file lives OUTSIDE the repository** (the user's state directory), **keyed by the REAL path of `git rev-parse --show-toplevel`** — not by the root-commit hash. A lock inside the tree is a brake the chain can erase: a `git clean`, a checkout, or a fresh clone resets it, and the thing it protects is the thing that modifies it. The key is the working directory for two reasons: the root-commit hash carries the shallow trap described above (it is not the root in a shallow clone and it CHANGES on `--unshallow`, so a live session's lock would become invisible to the next one in the same directory), and what has to be serialised is the tree being written to, not the repository in the abstract — two worktrees of one repository are two legitimate lanes, exactly as containment already treats them.
+
+It holds the owning PID and its start time, so a stale lock from a crashed session is detectable rather than permanent. A session that cannot take the lock does what every other blocked path does: prints the prompt and exits 0.
+
+**Who implements it, and when: `scripts/keel-handoff-verify`, at the Phase 5 scaffold** (`references/phase-5-development.md` §1). The lane is claimed by the same script the arriving session already runs before acting, because that is precisely the moment it must be claimed — one command, one allow-list entry, and no window between verifying and starting work in which a second session could slip through. There is no separate lock script and no lock step for the user to remember. On a card that is not `Chaining: start` the script runs its five checks and takes nothing.
+
+Until a project has this, `start` is not offered — not as a warning, as a gate.
+
+**How the question is asked — at the start, and with the warning attached.** `Chaining:` is not a configuration preference to be buried in the project card and filled in silently. It is asked at Phase 1 step 0a (and at the reconciliation, for an existing project) alongside the other opening decisions, in this shape:
+
+> **Do you want development to chain automatically between chats?**
+>
+> - `off` (recommended) — every chat ends with the hand-off written and the prompt ready to copy. You decide when it continues.
+> - `prefill` — the next chat opens with the instruction already typed; you press Enter.
+> - `start` — the next chat opens **and starts by itself**, without you touching anything.
+>
+> **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
+>
+> **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+Two reasons the warning is text the user reads and not a footnote. **It changes the tool, not just a setting** — someone working in VS Code who picks `start` expecting their editor to do something gets terminal windows instead, and that belongs before the choice, not after. **And it changes who supervises** — `off` and `prefill` keep a person between links; `start` removes the only participant who can notice that the chain has forked.
+
+Whatever the value:
+
+- **Chaining fires only on a clean hand-off.** Any "When to stop and ask" row (SKILL.md), a failed test point, an open Design Request, or the three-attempt rule → the file is written with `Handover: blocked` and the reason, and nothing is opened. Chaining a blocked state hands the next session a problem dressed as an instruction, and the next session cannot tell the difference.
+- **Opening a window the user did not ask for takes over their screen**, so it is never done silently and never on `off`.
+- **An open action is a local convenience only.** It needs the tool running on the same machine as the repository, so it has no meaning in CI, in a cloud session, or anywhere the repo is not open locally. Where it does not apply, the file alone does the whole job — chaining is a convenience on top of the file, never a replacement for it.
+
+#### Whenever a chat cannot be opened, the prompt is shown to be copied (UNBREAKABLE)
+
+Chaining fails for ordinary reasons — the card says `off`, the tool has no recorded action (the normal case), the tool is not running, the command is missing, the action does not fire, the hand-off is blocked. Every one of them ends the same way: **the full continuation prompt is printed in the conversation, ready to copy, with the one line saying to paste it into a new chat.** There is no path in which a session ends without the user holding either an opened chat or a copyable prompt.
+
+This is why the file and the chat display are never traded against each other. Writing the file does not excuse skipping the prompt, chaining does not excuse skipping it either, and a failure to chain is not an error to report but a fallback to take — say in one line that the chat could not be opened, then show the prompt. A session that ends with "I could not open the next chat" and nothing else has stranded the user at exactly the moment the mechanism existed to help them.
+
+#### Closing the current chat when a new one is launched (UNBREAKABLE)
+
+When chaining DOES fire, the session that fired it is finished, and it says so as its last message — otherwise the user is left with two live chats and no idea which one is theirs. The closing message is short and states three things:
+
+1. This chat is closed.
+2. A continuation chat is being launched, and where the hand-off lives.
+3. What is left for them to do: press Enter in the window that just opened (`prefill`), or nothing at all (`start`) — **and, under `start`, that if the single lane is already busy the new window will say so and print the prompt instead of continuing.** The closing session cannot know: the lock is taken by the ARRIVING session, after this one has finished. Promising an unconditional "nothing to do" is the one claim in this message that can be false, and the user is by definition not watching.
+
+Nothing else — no summary of the sprint, which is already in `docs/PROGRESS.md` and in the file, and no work started after it.
+
+**This closing message follows the language of the conversation, not the English default.** It is spoken TO the person, so it obeys SKILL.md's rule that the assistant always talks in the user's language; the English default governs what Keel *creates*, and `docs/continuation-prompt.md` — an artifact — stays in English like every other. Getting this backwards is a real and easy mistake: the file in Spanish and the goodbye in English is precisely the wrong way round.
+
+For a Spanish-speaking user, that last message reads like: *"Chat cerrado. Lanzo el chat de continuación — el traspaso está en `docs/continuation-prompt.md`. Solo tienes que pulsar Enter en la ventana nueva."*
+
+#### The tool registry — what each assistant may do
+
+The chaining action is a property of the TOOL, not of Keel, so the script detects rather than assumes and probes at the moment it runs. Evidence is graded in three tiers, because "documented" and "verified" are not the same claim:
+
+| Tool | Recognised by | Action | Evidence |
+|---|---|---|---|
+| Claude Code, VS Code extension | `CLAUDECODE=1` **and** `CLAUDE_CODE_ENTRYPOINT=claude-vscode` | `vscode://anthropic.claude-code/open?prompt=…` — pre-fills, does NOT submit → `prefill` | **VERIFIED** on macOS: new tab opened, box pre-filled, no session file written until Enter |
+| Claude Code, CLI | `CLAUDECODE=1` **and** `CLAUDE_CODE_ENTRYPOINT` set to anything OTHER than `claude-vscode` (observed: `cli` when a person types the command, `sdk-cli` when another session launches it) | `claude '<prompt>'` in the repo — submits immediately, and inherits `cwd` so it cannot land in the wrong repository → `start` | **VERIFIED** on macOS: `sdk-cli` in Terminal.app, end to end in a scratch repo; `cli` in VS Code's integrated terminal |
+| Cursor | Marker not verified | `cursor://anysphere.cursor-deeplink/prompt?text=…`; its documentation states deeplinks never trigger automatic execution → would be `prefill` | **DOCUMENTED, UNTESTED** — no row is active until someone runs it |
+| Codex | Marker not verified | A positional prompt argument is documented; whether it submits or pre-fills is not | **DOCUMENTED, UNTESTED** |
+| Gemini CLI | Marker not verified | The documented prompt flags are headless mode — run and exit, i.e. submitting, not pre-filling | **DOCUMENTED, UNTESTED** |
+| GitHub Copilot, Windsurf | — | No documented mechanism for opening a chat with a prompt | **NONE FOUND** |
+| Anything unidentified — a cloud session, a web or desktop chat, CI, an unknown tool | No marker matches | — | Print |
+
+**Match one value positively; treat every other entrypoint as the CLI. Never exclude on `VSCODE_*`, and never enumerate the CLI's values.** Two drafts got this wrong the same way — by describing the environment that had happened to be measured rather than the property that matters.
+
+The first required the CLI row to see zero `VSCODE_*`, which would have un-matched the CLI whenever it runs inside VS Code's integrated terminal, a shell that inherits the editor's variables. The second pinned the CLI row to `CLAUDE_CODE_ENTRYPOINT=sdk-cli`, the one value measured at the time — and then a plain `claude '<prompt>'` typed by a person turned out to report `cli`, so the row would have missed the most ordinary case there is. The entrypoint set belongs to the vendor, and a rule that lists its members ages the day they add one.
+
+So the rule is asymmetric on purpose: **`claude-vscode` is the only value matched by name**, because it is the only one whose BEHAVIOUR differs — a URI handler that pre-fills and never submits. Everything else carrying `CLAUDECODE=1` is the CLI: it submits, and it inherits `cwd`. That holds whichever label the vendor prints and whoever started the session, and it is safe in both directions — a future CLI entrypoint matches correctly, and if one ever appears that is NOT the CLI, containment and `Repo:` still refuse to let it work in the wrong place.
+
+Measured on macOS, and worth reading twice because two of the four are counter-intuitive: the extension reports `claude-vscode` and sets **no** `TERM_PROGRAM` at all; VS Code's integrated terminal reports `cli` with `TERM_PROGRAM=vscode`; a session launched programmatically by another reports `sdk-cli`; Terminal.app sets `TERM_PROGRAM=Apple_Terminal`. So `TERM_PROGRAM=vscode` identifies the terminal PANEL, not the VS Code extension — the exact inversion of the first draft's guess. And `VSCODE_*` is not one family but two disjoint ones: the extension host carries `VSCODE_PID` / `VSCODE_IPC_HOOK` / `VSCODE_ESM_ENTRYPOINT`, the integrated terminal carries `VSCODE_GIT_ASKPASS_*` / `VSCODE_INJECTION`. Three surfaces, overlapping variables, one reliable discriminator.
+
+**Only a VERIFIED row is ever acted on.** Documented-but-untested is not a permission: it is a lead, telling whoever verifies it where to start. Everything else prints, which costs the user one paste and never fails silently.
+
+Two properties make this safe to extend. **An unrecognised tool is never a failure**, it is the print row. And **a tool is promoted to VERIFIED only from an observation on a real machine** — the exact marker, the exact command, and what it actually did (pre-filled or submitted) — never from a plausible-looking URI scheme or an environment variable someone assumed exists. That second rule was written after being broken here: this table's first version identified the VS Code surface by `TERM_PROGRAM=vscode`, which is NOT set there; the real discriminator is `CLAUDE_CODE_ENTRYPOINT`. The guess failed safe, into the print row, but it was a guess, and guessing about a tool nobody is watching produces a close-out that reports a chat as opened when nothing opened.
+
+Adding a tool is therefore a small, ordinary contribution: verify it, promote the row, record the D-entry. Removing one is the same in reverse — if a vendor changes its scheme, the row drops back rather than staying wrong.
+
+#### `scripts/keel-continue`
+
+Generated at the Phase 5 scaffold on projects whose card is not `Chaining: off`. It writes nothing and decides nothing: it detects the tool, looks up its row, and either fires the recorded action or prints. Keeping it that thin is what keeps the mechanism testable without any editor at all — the hand-off is verified by reading the file, not by watching a window appear. One script serves every tool on the project; there is no per-tool script and no per-tool branch in the skill.
+
+The contract it must satisfy, whatever language it is written in:
+
+1. Resolve `REPO_ROOT` (`git rev-parse --show-toplevel`) and build the ABSOLUTE hand-off path from it. Never emit a relative path.
+2. **Verify before firing**, by running `scripts/keel-handoff-verify` — not by composing git commands. A `VERDICT: STOP` → print, do not chain. Firing first and verifying afterwards means the next session discovers it must stop only after it has launched and spent context, which is the wrong order — and under `start` there is no human in between to notice.
+3. A missing file, an unreadable or malformed header (treat it exactly like a missing file — a header that cannot be parsed cannot be trusted), or a `Handover:` that is not `clean` → **print the reason AND the prompt itself, marked as a blocked hand-off, and exit 0.** The prompt rule admits no exception: "whenever a chat cannot be opened, for ANY reason, the prompt is printed" includes this one. Refusing to chain and refusing to print are different things, and only the first is intended.
+4. Detect the tool by `CLAUDE_CODE_ENTRYPOINT` (or the equivalent marker recorded for that tool), matching `claude-vscode` by name and treating every other value as the CLI — never by enumerating the CLI's values, which the vendor extends. No match, or a match whose row is not VERIFIED → print and exit 0. This is a success, not a failure.
+5. A VERIFIED row whose action tier exceeds the card's `Chaining:` value → downgrade to what the card allows; never upgrade. **If the row has no action at the resulting tier, print** — downgrading never means substituting another tier's action. (The CLI row knows only `start`; on a card that says `prefill`, it prints.)
+6. Fire the action. On any non-zero exit, fall back to printing.
+7. Exit 0 in every path that leaves the user with either an opened chat or a printed prompt. Exit non-zero only when it could do neither.
+8. Under `start`, taking the single-lane lock is NOT this script's job — the ARRIVING session does that. `keel-continue` only launches; the launched session refuses if the lane is busy.
+
+Two details an implementer would otherwise have to invent, so they are fixed here: the prompt is **percent-encoded** when it goes into a URI (space → `%20`, `/` → `%2F`), using whatever the platform provides rather than a hand-rolled table; and "copy to the clipboard where available" means `pbcopy` (macOS), `wl-copy` or `xclip -selection clipboard` (Linux), `clip.exe` (Windows) — absent all of them, printing alone satisfies the contract.
+
+**Two different jobs, two different commands, and conflating them is a real trap.** Firing a URI is `open` (macOS), `xdg-open` (Linux), `Start-Process` (Windows) — that serves `prefill`. Opening a VISIBLE CLI session is something else entirely: on macOS it is `osascript` driving Terminal.app, verified; on Linux (`gnome-terminal` / `konsole` / `xterm`) and on Windows it is NOT verified. Reaching for the plain open command to satisfy `start` ships the headless variant, which runs the next session correctly and opens no window at all — the user waits for a chat that does not exist, and nothing reports an error. Until those platforms are verified, `start` resolves only on macOS and prints everywhere else.
+
+`scripts/keel-handoff-verify` is the sibling artifact, generated at the same scaffold: it runs the five mechanical checks and prints one line each plus `VERDICT: CONTINUE|STOP`. Portability is the same open question — the first prototype was BSD/macOS only (`stat -f`, `date -j`); the Linux/GNU forms (`stat -c`, `date -d`) and Windows are unwritten. A generated script that only runs on the machine that generated it is a check that cannot be run, so this is tracked as a real gap rather than a detail.
+
+
+## Context & cache discipline (how every session works)
+
+These rules exist so sessions are cheap, deterministic, and cache-friendly. Follow them literally.
+
+1. **Fixed session-start reading order.** On resume, read in this exact order and nothing more: `docs/PROGRESS.md` → `docs/decisions.md` → `docs/lessons-learned.md` → the current phase's reference file → only the inputs PROGRESS.md names for the current position. On a runnable project, the first test point of the session also runs `scripts/keel-doctor --check` and boots the playground from `docs/playground.md` (the freshness stamp) — a session that assumes the environment still works is a session whose green results mean nothing. The same order every session keeps context predictable and maximizes prompt-cache reuse. While reading PROGRESS.md, compare the card's `Keel baseline:` with the running Keel version — if it is older or missing, offer the post-update reconciliation (see below) before continuing.
+2. **Read each static reference once per session.** Phase references and templates do not change mid-session — never re-read a file already loaded in this conversation; rely on the copy in context. Single exception: immediately after a Keel update, the copies in context belong to the old version — re-read the new `SKILL.md` and the current phase's reference (see "Post-update reconciliation").
+3. **Orient by state, not by scanning code.** The project's shape lives in `docs/03-technical-plan.md` (code map, conventions), `docs/architecture.md` (once it exists), and `docs/api/INDEX.md`. A session that needs to know "where is X / does Y exist" consults these first, then opens the one specific file it needs. Tree-wide code exploration is a signal that the state files are incomplete — fix the state files, don't normalize the scanning.
+4. **Surgical code reads.** When code must be read, read the specific file/function the state points to — not whole directories "for context".
+5. **Small living state, stable artifacts.** Only PROGRESS.md, decisions.md, lessons-learned.md, the DR register, INDEX.md, sprint files, 05-test-points.md, issues.md, token-ledger.md, and playground.md change routinely. Specs, flows, design handoff, and BUILD-SPEC are amended only deliberately (a recorded decision, a Design Request, or a scope change per "Scope changes" below), because every rewrite invalidates what other sessions and caches rely on.
+6. **Reference paths, don't duplicate content.** When producing or discussing a large artifact, write it to its file and refer to the path. Do not paste large file bodies into the conversation when a path reference serves.
+7. **Keep PROGRESS.md ~one page.** History goes to sprint files and `docs/old/`; PROGRESS.md holds only the present.
+8. **Update state at the moment of change.** After each phase step, decision, slice, test point, or DR: update the relevant state file immediately. State updated "later" is state lost when the chat dies.
+
+## Scope changes (a feature or requirement changes mid-project)
+
+Scope moves mid-project — a feature is added, dropped, or redefined after its spec closed. What never happens: code first and artifacts later, or a silent rewrite that leaves the record contradicting the build. The loop, in this order:
+
+1. **`docs/decisions.md` first.** Append the D-entry: what changed, why, decided by whom. No artifact is amended before the decision is on record.
+2. **Amend the spec artifacts.** `docs/01-discovery.md` (feature table) and `docs/02-functional-spec.md` plus its flow files — visible amendments, never silent rewrites.
+3. **If UI is affected: a DELTA brief to Design.** Same templates as Phase 3, scoped to the change; the returned delivery passes the Phase 4 Step 1 audit like any delivery, then lands as a delta in `docs/BUILD-SPEC.md`.
+4. **Re-plan the open sprint** (`docs/sprints/`): re-cut the slices the change invalidates; the sprint file records what moved and why.
+5. **Recompute the estimate** — and the client budget when one exists — per `references/estimation-budget.md`.
+6. **`docs/PROGRESS.md` reflects the new scope** — updated at the moment of change, as always.
+
+Boundary: Design Requests exist for GAPS in an existing handoff — a scope change is never smuggled through a DR.
+
+## Portability across environments — the lock and the embedded skill
+
+A Keel project moves between environments and assistants: the Claude app, Cowork, Claude Code in VS Code / terminal, OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Windsurf, sometimes other AIs entirely. The state files make the project resumable; this section makes the WORKFLOW itself travel with the repo, so whatever opens the project is bound to Keel — even if the Keel skill is not installed there.
+
+Two mechanisms, created at Phase 1 step 0a (and during adoption step 2):
+
+### 1. The lock — `CLAUDE.md` + `AGENTS.md` (mandatory, both)
+
+The project root carries the Keel block below in TWO files, always: `CLAUDE.md` (Claude Code, Cowork and the Claude app read it automatically) and `AGENTS.md` (the open agent-instructions standard — Codex, Copilot, Cursor, Windsurf, opencode, Zed, Warp, JetBrains Junie, Kiro, Cline and most other tools read it automatically). That is what makes this the lock: it is read before anything else, in every environment, by every session, without depending on any skill being installed. Both files carry the SAME block — created together, refreshed together, stamped together. If either file already exists, insert the block between its delimiters without touching the rest; the delimiters make it safely updatable later.
+
+One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
+
+```
+<!-- KEEL:BEGIN — v5.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+# Keel protocol (mandatory for ANY assistant working in this repository)
+
+This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
+
+1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
+   from the installed `keel` skill if present, otherwise from the embedded copy
+   at `.claude/skills/keel/SKILL.md` or `.agents/skills/keel/SKILL.md` — and
+   follow it literally, starting by
+   executing its maintenance block (`references/keel-maintenance.md` — update
+   check, lock freshness). Remembering the protocol from an earlier chat, or
+   having this lock in context, does NOT count as having read it: a session that
+   works without having read SKILL.md in this session is out of protocol. If the
+   update check installs a newer Keel, re-read the new `SKILL.md` and run its
+   post-update reconciliation (defined in Keel's `references/project-state.md`)
+   BEFORE normal work continues, so this project is brought up to date with
+   everything the new version requires — new files or directories, new
+   project-card lines, this very lock block, questions never asked here.
+2. Then read `docs/PROGRESS.md` (project card, current position, next action),
+   `docs/decisions.md` (decisions are NEVER re-opened on your initiative), and
+   `docs/lessons-learned.md` (recorded mistakes are never repeated), plus the
+   phase reference SKILL.md names for the current phase. If the project card's
+   `Keel baseline:` is older than the running Keel (or missing), offer the
+   post-update reconciliation before continuing.
+3. Follow the recorded specs and design exactly: no reinterpretation, no silent
+   deviation, no "improving" recorded decisions. Anything undefined → ask the user.
+   Design gaps → Design Request (Keel Phase 4). Never claim something that was not
+   verified: the code map in `docs/03-technical-plan.md` is a TARGET tree, so a path
+   not marked `[E]` is absent until a slice creates it, and a control, check or test
+   is only described in the present tense once it is built and evidenced. A check
+   whose inputs do not exist yet is "not yet applicable", naming what is missing —
+   never "passed". Before changing anything, read the change map's row for that type
+   of change: it lists every artifact that must be touched.
+4. Update `docs/PROGRESS.md` and `docs/decisions.md` at the moment of every change.
+   Commit at passed test points — never without first checking the staged files for
+   confidential data (secrets, credentials, private keys, tokens, real personal or
+   customer data). A finding STOPS the commit: warn the user file by file that
+   pushing it is a serious security risk, and exclude it via `.gitignore` (already
+   tracked: untrack it too; ever pushed: purge history AND rotate the credential)
+   before committing anything.
+5. NEVER end a session mid-work leaving the user with nothing to continue from
+   (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
+   `references/project-state.md`, SHOW it in the conversation ready to copy, and
+   WRITE it to `docs/continuation-prompt.md` with its freshness header
+   (`Repo` / `Generated` / `Keel` / `Commit` / `Tree` / `Position` / `Handover`). Running low on
+   context is when this is most likely to be skipped and most expensive to skip:
+   do it BEFORE the session is exhausted, never as an afterthought. Reading one of
+   those files obliges the reverse duty — check that its real path is INSIDE this
+   session's `git rev-parse --show-toplevel`, then its `Repo`, `Commit`, `Tree` and
+   timestamp against the repository you are actually in, and STOP rather than act on
+   a stale hand-off OR on another checkout's: the filename is the same in every Keel
+   project, and a worktree or second clone shares both repository and commit, so
+   containment is the only check that separates them. Where the project card's `Chaining:` allows it and the hand-off
+   is clean, and the tool you are running in has a VERIFIED action recorded, also
+   chain the next chat — passing this repository's ABSOLUTE hand-off path — then
+   close this one in one short message in the CONVERSATION's language. If a chat
+   cannot be opened for ANY reason — including "this tool has no recorded action",
+   which is the normal case — that is not an error to report: print the prompt to
+   be copied. The FILE works in every tool and needs no integration; only the
+   auto-open is tool-specific, and it is never guessed.
+6. Work with execution discipline, whatever model or environment is running:
+   - Batch independent tool calls in ONE parallel block; never run sequentially what
+     does not depend on a previous result.
+   - Delegate broad searches/scans to a subagent when the environment provides them;
+     bring back conclusions, never file dumps — the main context stays clean.
+   - The same batching rule governs delegation: independent READING verifiers at one
+     gate, and one agent per independent unit (screen, locale, competitor), go out in
+     ONE parallel block — with at most one EXECUTING verifier per environment running
+     alongside them — and the gate is judged against their merged findings. Serial
+     only when one check's input is another's output, when two executing agents would
+     share one environment (playground, test machine, database, deployed origin), when
+     an agent in the set can write (that one runs first, alone), or when concurrency
+     is capped.
+   - Do not narrate between tool calls ("now I will…"); accumulate findings and
+     report once, at the end of the work block.
+   - Locate before reading: search/grep first, then read only the relevant fragment.
+     Never read whole files or directories "for context".
+   - Edit surgically (exact-match edits on the changed lines); never rewrite a whole
+     file to change one part.
+   - Batch clarifying questions at the START of a work block; close every work block
+     with an explicit verification step (diff, test, or re-read) before calling it
+     done.
+
+This block itself can be outdated: the version stamp on the `KEEL:BEGIN`
+delimiter names the Keel that last wrote it. If that stamp differs from the
+running Keel version (or is missing), refresh this whole block from the
+canonical copy in Keel's `references/project-state.md` ("Portability") —
+between the delimiters only, with the user's OK, restamped with the running
+version. The stamp alone decides; no content comparison is needed.
+
+If neither the skill nor the embedded copy is available: STOP and tell the user to
+install Keel (or restore the embedded copy at `.claude/skills/keel/` /
+`.agents/skills/keel/`) before continuing.
+<!-- KEEL:END -->
+```
+
+**Version stamp and freshness.** The `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`); every write and every refresh stamps it with the RUNNING Keel version — when inserting the canonical block above, replace its stamp with the running version if they differ. The check is stamp-only, by design: stamp equal to the running version → the block is current, nothing else to read; stamp different or missing (blocks written before v1.11.0 carry no stamp) → rewrite the block between the delimiters from this canonical copy, restamped — never a content comparison. Match delimiters by the `KEEL:BEGIN` prefix, never by exact text. The lock-freshness check in SKILL.md's maintenance block (`references/keel-maintenance.md`) runs this in every session; the refresh asks the user's OK (or rides the post-update reconciliation's batched plan). It applies to BOTH lock files — `CLAUDE.md` and `AGENTS.md` are refreshed together — and to the `GEMINI.md` mirror when the project keeps one. The canonical block above keeps its own stamp equal to the skill's current version as part of the skill's release hygiene — the repository's release linter checks it — so a literal copy never seeds a stale stamp.
+
+### 2. The embedded skill copy (recommended — ask the user once)
+
+Copy the installed skill into the repo in TWO trees: `.claude/skills/keel/` (Claude Code loads it automatically as a project-level skill; Cursor, Copilot/VS Code, Cline, opencode, Amp, Warp and Junie also discover this tree) and `.agents/skills/keel/` (the open Agent Skills discovery convention — Codex, Cursor, Gemini CLI, Zed, Warp, Amp, opencode and Windsurf discover it natively). Both trees are identical, byte for byte (SKILL.md + references/, verbatim). Consequences: virtually every tool loads Keel as a project skill on its own; any other environment reads it as plain files via the lock's step 1; the repo is self-sufficient — a collaborator or a future session needs nothing pre-installed. Ask the user once at creation (the pair adds ~300 KB of markdown to the repo; a user who wants only one tree may choose so — record which); record the choice in the project card.
+
+Rules for the embedded copy:
+
+- **Copy the WHOLE skill — every file, verified — never a partial copy.** Copy from the installed skill's own directory, file for file: `SKILL.md` AND the complete `references/` tree (every `phase-*.md`, every template, `project-state.md`, `adoption.md`, `accessibility.md`, and the entire `references/security/` folder), plus `CHANGELOG.md`, `LICENSE`, and `NOTICE`. A partial copy is the single most common failure here and it silently breaks the workflow in the target environment — a missing phase reference makes that phase unrunnable, so the skill never really reaches the other tool. This is therefore a **verified** operation, not fire-and-forget, applied to EACH embedded tree:
+  1. **Copy everything at once.** Prefer a recursive copy of the entire `keel/` folder into the target tree (e.g. `cp -R`), not a hand-picked file list — hand-picking is how files get left behind.
+  2. **Verify against the source manifest.** After copying, list what actually landed in the tree and compare it file-for-file against the source directory: same file set, nothing missing, nothing zero-bytes. `SKILL.md` must sit at the tree's root (`.claude/skills/keel/SKILL.md`, `.agents/skills/keel/SKILL.md` — not nested one level deeper), and every reference the source has must be present.
+  3. **If anything is missing or wrong, retry the copy, then verify again.**
+  4. **If it still fails after the retry, STOP and tell the user plainly** — name exactly which files did not arrive and why the copy could not complete from this environment — and ask them to move the `keel/` folder into place themselves. Never leave a half-copied skill in place as if it worked: an embedded skill that reaches other tools with files missing is a defect, not a partial success. Record the outcome (complete / user-completed) in the project card.
+  If this environment cannot access the installed skill's files at all, do not reconstruct reference files from memory — tell the user to copy the `keel/` folder from the release into both trees manually, then verify as above once they have.
+- **Sync by version, one direction, both trees together.** Each embedded copy's `SKILL.md` frontmatter carries its version. If the installed skill is newer than an embedded tree, update that tree (tell the user); if an embedded tree is newer than what's installed, tell the user to update their installed skill. The two trees must never diverge from each other — a sync that touches one touches both. Never hand-edit an embedded copy. A version sync is also a full-tree copy — apply the same verify → retry → tell-user protocol above so an update can't silently drop a file either.
+- **It never ships.** `.claude/`, `.agents/`, `CLAUDE.md`, `AGENTS.md` (and `GEMINI.md` when kept) are repo-only: Phase 7 marks them `export-ignore` so they stay out of the distributable package.
+
+Project card line: `Keel portability: [lock only / lock + embedded vX.Y.Z]`.
+
+### 3. Native assistant configuration (optional)
+
+Beyond the lock and the embedded skill, a project may carry native config for its accepted assistants — path-scoped rules, reviewer subagents, permission allow-lists, a confidential-data pre-commit gate (`.githooks/pre-commit`), and MCP registrations, generated by Keel from the project's own recorded decisions, one container per tool (`.claude/`, `.github/instructions/` + `.github/agents/`, `.cursor/`, `.gemini/`, `.windsurf/`, `.codex/`, nested context files). Each tool loads only its own — the lock remains the universal mechanism, and nothing critical to the workflow lives only there. Offered once at Phase 1 step 0a / adoption step 2; materialized at Phase 2 close and the Phase 5 scaffold; recorded in the project card (`Assistant config:` line, tools listed); covered by the same Phase 7 export-ignore. Full definition: `references/assistant-config.md`.
+
+## Post-update reconciliation — after a Keel update, bring the PROJECT up to date
+
+A Keel update changes the workflow; it does not automatically change the project. A project created (or last reconciled) under an older Keel may be missing what newer versions introduced: state files or directories that now exist, project-card lines that now exist, lock-block changes, questions a phase now asks that this project was never asked, new one-time verifications. This procedure closes that gap deliberately, on the record, without re-opening anything already decided.
+
+### When it runs
+
+- Immediately after the session-start update check (SKILL.md "Update check") replaces any copy, when the session is working inside a Keel project.
+- On resume, when the project card's `Keel baseline:` is older than the running Keel version — or the line is missing (legacy project: treat the baseline as unknown and reconcile).
+
+Never skip it silently. If the user defers it, record `Reconciliation pending vX → vY` in PROGRESS.md open items so every later session re-offers it.
+
+### The procedure
+
+1. **Re-read the governing files from the NEW copy.** After an update, the `SKILL.md` and the current phase's reference in context belong to the old version — re-read both, and read the new `MANIFEST.md` (the parity manifest): its Table 2 names every skill file changed since the project's baseline (the exact re-read list), its Table 1 drives step 3's parity check, and its Table 3 is the per-version action list — the concrete actions to apply, so the reconciliation applies a delta instead of interpreting the changelog. This is the single exception to the read-once rule (context & cache discipline, rule 2).
+2. **Diff the versions via the changelog.** Read every new `CHANGELOG.md` entry after the baseline version, oldest → newest. The changelog is written to make this cheap — never re-read every reference to find what changed.
+3. **Extract what touches the PROJECT, not only the assistant's behavior.** From each entry: files/directories the project should now have; project-card lines that now exist; changes to the lock block (between its `KEEL:BEGIN/END` delimiters); questions a phase now asks that were never asked here; new one-time verifications or gates. Behavior-only changes need nothing — they apply by themselves from the new references.
+
+   **Then run the conformance sweep — mechanically, from the manifest, not from memory (BLOCKING).** `MANIFEST.md` Table 1 is the ABSOLUTE parity check: walk EVERY row, decide whether it applies at this project's position under its recorded conditions, and give it a state. `MANIFEST.md` Table 3 adds the per-version action list for every version newer than the baseline — each action is a row too. Write the result to `docs/keel-conformance.md` (create it if this project predates it): one line per applicable requirement with exactly one state — `present` (and where), `missing`, `declined` (with its `docs/decisions.md` entry), or `n/a` (with the condition that excludes it). A row with no state is an unfinished sweep, and an unfinished sweep is not a reconciliation.
+
+   This exists because the failure mode is specific and repeated: an update is announced, part of the delta is applied, the rest is quietly not, and nobody notices until the user asks why something is missing. Deriving the list from the manifest instead of from what the session recalls makes that impossible — the assistant cannot forget a row it is reading off a table.
+4. **Present ONE batched catch-up plan — containing EVERY `missing` row, without curation.** What would be created or refreshed, which new questions need answers, what the new version requires versus what is optional, each with its one-line cost. The user approves, trims, or defers, row by row. Optional mechanisms stay optional: reconciliation asks their never-asked question (e.g. the assistant config package for a project older than v1.10.0) — it never force-installs. But **the assistant never decides on the user's behalf that a row is not worth mentioning**: applying is the user's choice, proposing is not optional. Anything the user declines becomes a `declined` row with its D-entry, so a refusal is a decision on the record and a gap can never be mistaken for one.
+5. **Apply.** Refresh the lock block between its delimiters (user OK — the existing safely-updatable mechanism); create missing files/directories from their templates; add new project-card lines without touching the rest; ask the batched questions and record their D-entries; run new one-time verifications where they apply.
+6. **Record and report.** One D-entry — `Keel vX → vY reconciliation: applied …; declined …` — update `Keel baseline:` to the running version, save the finished `docs/keel-conformance.md`, and update PROGRESS.md at the moment, as always. Then **report the sweep to the user in full**: applied / declined / not applicable, one line each, with the totals. A reconciliation reported as "done" without that table is a claim, and this skill does not accept claims.
+
+### Rules
+
+- **Nothing already decided is re-opened.** Reconciliation adds what the new version introduces. If something new conflicts with a recorded decision, surface it — the recorded decision wins until the user explicitly reverses it (a new D-entry).
+- **No phase is re-run.** Completed phases stay completed; new questions are asked standalone and recorded, never by replaying the phase.
+- **It never blocks urgent work.** Deferring is legitimate — but it is recorded as pending, never forgotten.
+- **`Keel baseline:` advances ONLY by completing a reconciliation** (or is stamped at creation — Phase 1 step 0a / adoption step 2 — with the running version). A skill update alone never advances it: an advanced baseline over an unapplied catch-up would hide exactly the gap this mechanism exists to close.
+
+## Archiving (`docs/old/`) — what moves, what never moves
+
+At each sprint close (Phase 5) move to `docs/old/sprint-<N>/` only documents that are finished AND no longer consulted: closed sprint files, resolved one-off scratch documents, superseded drafts. Move — never delete.
+
+These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `lessons-learned.md`, `issues.md` (old resolved entries may move to `docs/old/issues-archive.md`, the file itself never), `estimate.md`, `budget.md`, `00-competitive-landscape.md`, `01-discovery.md`, `02-functional-spec.md`, `03-technical-plan.md`, `05-test-points.md`, `BUILD-SPEC.md`, `flows/`, `design/` (brief, handoff, DR register), `api/`, `reference/`, the current sprint file.
+
+## Definition of done (this reference)
+
+- `docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md` exist from Phase 1 and match the templates.
+- PROGRESS.md reflects reality at all times: correct phase status, executable "Next action", complete open items.
+- Every decision that shapes the project has a D-entry; every solved failure has an L-entry.
+- Every Design Request exists as a numbered file with current status.
+- If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
+- From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
+- Any session ending mid-work produced a continuation prompt.
+- The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
+- Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.
