@@ -280,3 +280,18 @@
   the approved Spanish gauge labels.
 - Supersedes: D-025 only for the preview media type; Pages remains the interactive
   destination because README JavaScript is still unavailable.
+
+## D-027 — Render the README GIF continuously at 50 FPS
+- Date / phase: 2026-08-04 / Phase 5, Sprint 3 README simulator
+- Decision: Generate every GIF frame from an interpolated simulator state using
+  the same smooth-step path concept as the firmware demo. Encode at 20 ms per
+  frame (50 FPS), the practical broadly reproduced GIF cadence, with no cross-fade
+  or duplicated static-only tour.
+- Why: The nine-frame preview communicates states but looks stepped and does not
+  represent the physical demo's continuous motion. Real per-frame HTML renders
+  preserve numbers, bars, colours and semantic thresholds during movement.
+- Alternatives rejected (and why): Claim 60/65 FPS in GIF; browser GIF timers are
+  quantized to centiseconds and playback above 50 FPS is inconsistent. Cross-fade
+  key screenshots; values and text would blur rather than transition correctly.
+- Supersedes: D-026 only for frame cadence and count; its source, ownership,
+  reproducibility and live-link decisions remain binding.

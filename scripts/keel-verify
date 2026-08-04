@@ -347,18 +347,20 @@ def interactive_demo_entry() -> None:
     english = text("README.md")
     spanish = text("README.es.md")
     simulator = text("docs/design/references/oil-gauge-design.html")
+    generator = text("scripts/generate-readme-demo-gif.py")
     required_ids = ("ogrPressureInput", "ogrRpmInput", "ogrTemperatureInput")
     gif_path = "assets/oil-gauge-demo.gif"
     linked = english.count(url) >= 2 and spanish.count(url) >= 2
     animated = gif_path in english and gif_path in spanish
     controls = all(f'id=&quot;{control_id}&quot;' in simulator for control_id in required_ids)
     listeners = "input.addEventListener(&#x27;input&#x27;, update)" in simulator
+    fluid = "FPS = 50" in generator and "smoothstep" in generator and "TRANSITION_FRAMES" in generator
     check(
         "Interactive README entry",
-        linked and animated and controls and listeners,
-        "bilingual GIF/live links and three slider listeners present"
-        if linked and animated and controls and listeners
-        else f"linked={linked}; animated={animated}; controls={controls}; listeners={listeners}",
+        linked and animated and controls and listeners and fluid,
+        "bilingual 50 FPS GIF/live links and three slider listeners present"
+        if linked and animated and controls and listeners and fluid
+        else f"linked={linked}; animated={animated}; controls={controls}; listeners={listeners}; fluid={fluid}",
     )
 
 

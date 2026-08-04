@@ -23,6 +23,7 @@
 | 3.2 GitHub Pages publication | complete | Pages build for `61d3dc3` reports `built`; HTTPS enforced | Serves `main:/docs` |
 | 3.3 Deployed interaction verification | partial | downloaded artifact is byte-identical to approved source; browser slider-driving is `PLATFORM-IMPOSSIBLE` in this session | Browser bootstrap rejects the WSL workspace path containing spaces |
 | 3.4 Animated README preview | complete | deterministic 736×700 nine-frame GIF generated twice with identical 245,667-byte output | Static preview replaced; live link retained |
+| 3.5 Fluid animated preview | complete | 205 smooth-step HTML samples generated at 50 FPS; timing and transitions inspected | Replaces the stepped nine-frame tour without cross-fades |
 
 ## Deployment evidence
 
@@ -42,9 +43,13 @@
 - Generator: `scripts/generate-readme-demo-gif.py`, using headless Edge captures
   of the one approved standalone HTML plus Pillow GIF assembly.
 - States: stopped/cold, running/cold, low-pressure warning, warming, optimal, hot,
-  very hot/high pressure and return-to-optimal loop.
-- Output: `assets/oil-gauge-demo.gif`, 736×700, nine frames, infinite loop,
-  245,667 bytes, SHA-256
-  `e590665c3363fae2a3d0095b07fc61a6c1dd5ebe3f3dc67ac45441232ccf3583`.
-- Reproducibility: two consecutive generator runs produced the same size and
-  SHA-256; five representative frames were visually inspected.
+  very hot/high pressure and return-to-optimal loop, joined by smooth-step values.
+- Output: `assets/oil-gauge-demo.gif`, 736×700, infinite 4.1-second loop,
+  1,212,439 bytes, SHA-256
+  `1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
+- Timing: 205 rendered samples at 50 FPS. GIF optimization stores 142 unique
+  frames; 132 transition frames retain 20 ms timing and identical holds are merged
+  into longer durations without changing total playback time.
+- Inspection: five intermediate smooth-step captures and the animated output were
+  visually checked; values, bars, colours and semantic labels transition without
+  cross-fading.

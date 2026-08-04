@@ -17,9 +17,10 @@ manteniendo los sensores ya instalados y un adaptador reversible en el vehículo
 
 ### [▶ Abrir el simulador interactivo del reloj de aceite](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
+La vista previa representa estados continuos con interpolación suave a 50 FPS.
 Ajusta la presión de aceite, las RPM del motor y la temperatura mediante los
-sliders. GitHub no permite ejecutar JavaScript dentro del README, por lo que la
-vista previa y este enlace abren el simulador publicado con GitHub Pages.
+sliders. GitHub no permite ejecutar JavaScript dentro del README, por lo que el
+GIF y este enlace abren el simulador publicado con GitHub Pages.
 
 ## Estado actual
 

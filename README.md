@@ -16,9 +16,10 @@ already-installed sensors and a reversible vehicle harness.
 
 ### [▶ Open the interactive oil-gauge simulator](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
-Adjust oil pressure, engine RPM and oil temperature with the live sliders. GitHub
-READMEs cannot execute JavaScript inline, so both the preview and this link open
-the simulator hosted by GitHub Pages.
+The preview renders continuous smooth-step gauge states at 50 FPS. Adjust oil
+pressure, engine RPM and oil temperature with the live sliders. GitHub READMEs
+cannot execute JavaScript inline, so both the GIF and this link open the simulator
+hosted by GitHub Pages.
 
 ## Current status
 

@@ -20,24 +20,27 @@ TEMP = ROOT / "tmp/readme-demo-gif"
 
 @dataclass(frozen=True)
 class FrameSpec:
-    name: str
     pressure: int
     rpm: int
     temperature: int
-    duration_ms: int = 650
     virtual_time_ms: int = 350
 
 
-FRAMES = (
-    FrameSpec("stopped-cold", 0, 0, 45, 850),
-    FrameSpec("running-cold", 25, 1500, 55),
-    FrameSpec("low-pressure", 5, 2500, 65, 850, 250),
-    FrameSpec("warming", 40, 2200, 72),
-    FrameSpec("optimal", 61, 2500, 82, 850),
-    FrameSpec("hot", 75, 3200, 96),
-    FrameSpec("very-hot", 90, 3800, 108, 850),
-    FrameSpec("high-pressure", 110, 4200, 120),
-    FrameSpec("optimal-loop", 61, 2500, 92, 850),
+FPS = 50
+FRAME_DURATION_MS = 1000 // FPS
+TRANSITION_FRAMES = 20
+HOLD_FRAMES = 5
+
+KEYFRAMES = (
+    FrameSpec(0, 0, 45),
+    FrameSpec(25, 1500, 55),
+    FrameSpec(5, 2500, 65, 250),
+    FrameSpec(40, 2200, 72),
+    FrameSpec(61, 2500, 82),
+    FrameSpec(75, 3200, 96),
+    FrameSpec(90, 3800, 108),
+    FrameSpec(110, 4200, 120),
+    FrameSpec(61, 2500, 92),
 )
 
 
@@ -88,12 +91,41 @@ def capture(edge: Path, frame: FrameSpec, html_path: Path, png_path: Path) -> No
     completed = subprocess.run(command, capture_output=True, text=True, check=False)
     if completed.returncode != 0 or not png_path.exists():
         raise RuntimeError(
-            f"Browser capture failed for {frame.name}: "
+            f"Browser capture failed for {html_path.stem}: "
             f"{completed.stderr.strip() or completed.stdout.strip()}"
         )
 
 
-def build_gif(png_paths: list[Path], durations: list[int]) -> None:
+def smoothstep(amount: float) -> float:
+    return amount * amount * (3.0 - 2.0 * amount)
+
+
+def interpolate(start: FrameSpec, end: FrameSpec, amount: float) -> FrameSpec:
+    eased = smoothstep(amount)
+
+    def value(first: int, second: int) -> int:
+        return round(first + (second - first) * eased)
+
+    return FrameSpec(
+        value(start.pressure, end.pressure),
+        value(start.rpm, end.rpm),
+        value(start.temperature, end.temperature),
+        value(start.virtual_time_ms, end.virtual_time_ms),
+    )
+
+
+def animation_frames() -> list[FrameSpec]:
+    frames: list[FrameSpec] = []
+    for index, start in enumerate(KEYFRAMES[:-1]):
+        frames.extend([start] * HOLD_FRAMES)
+        end = KEYFRAMES[index + 1]
+        for step in range(1, TRANSITION_FRAMES + 1):
+            frames.append(interpolate(start, end, step / TRANSITION_FRAMES))
+    frames.extend([KEYFRAMES[-1]] * HOLD_FRAMES)
+    return frames
+
+
+def build_gif(png_paths: list[Path]) -> None:
     images = [Image.open(path).convert("RGB") for path in png_paths]
     try:
         palette = images[0].quantize(colors=256, method=Image.Quantize.MEDIANCUT)
@@ -102,10 +134,10 @@ def build_gif(png_paths: list[Path], durations: list[int]) -> None:
             OUTPUT,
             save_all=True,
             append_images=frames[1:],
-            duration=durations,
+            duration=FRAME_DURATION_MS,
             loop=0,
             optimize=True,
-            disposal=2,
+            disposal=1,
         )
     finally:
         for image in images:
@@ -121,18 +153,22 @@ def main() -> int:
     source = SOURCE.read_text(encoding="utf-8")
     TEMP.mkdir(parents=True, exist_ok=True)
 
+    frames = animation_frames()
     png_paths: list[Path] = []
-    durations: list[int] = []
-    for index, frame in enumerate(FRAMES):
-        html_path = TEMP / f"{index:02d}-{frame.name}.html"
-        png_path = TEMP / f"{index:02d}-{frame.name}.png"
+    for index, frame in enumerate(frames):
+        html_path = TEMP / f"frame-{index:03d}.html"
+        png_path = TEMP / f"frame-{index:03d}.png"
         html_path.write_text(render_html(source, frame), encoding="utf-8")
         capture(edge, frame, html_path, png_path)
         png_paths.append(png_path)
-        durations.append(frame.duration_ms)
+        if (index + 1) % 25 == 0 or index + 1 == len(frames):
+            print(f"Captured {index + 1}/{len(frames)} frames", flush=True)
 
-    build_gif(png_paths, durations)
-    print(f"Generated {OUTPUT} ({OUTPUT.stat().st_size:,} bytes, {len(FRAMES)} frames)")
+    build_gif(png_paths)
+    print(
+        f"Generated {OUTPUT} ({OUTPUT.stat().st_size:,} bytes, "
+        f"{len(frames)} frames at {FPS} FPS)"
+    )
     return 0
 
 

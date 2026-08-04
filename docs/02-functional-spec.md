@@ -168,6 +168,9 @@ See `docs/03-technical-plan.md`.
 - **AC-29:** Both root READMEs use the same looping GIF generated from synthetic
   pressure, RPM and temperature states of the approved standalone simulator; the
   GIF remains clickable and does not replace or fork the interactive source.
+- **AC-30:** The README GIF renders continuous smooth-step transitions from the
+  approved simulator at 50 FPS, using real per-frame gauge values rather than
+  cross-fades between a small set of static screenshots.
 
 ## Estimate
 

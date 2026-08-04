@@ -30,7 +30,7 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprint 1 in progress; Sprints 2 and 3 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 3](sprints/sprint-3-readme-simulator.md) animated interactive entry |
+| 5 Development | Sprint 1 in progress; Sprints 2 and 3 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 3](sprints/sprint-3-readme-simulator.md) fluid animated entry |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
@@ -77,13 +77,14 @@
   `b96bddee2599f8fd4ddfcc233e6ba87aec415dcbc7c38567554197cded62e9e1`).
   Browser-driven slider movement remains `PLATFORM-IMPOSSIBLE` in this session
   because Browser bootstrap rejects the WSL workspace path containing spaces.
-- Animated preview: both READMEs use the same nine-frame 736×700 looping GIF,
-  generated twice with identical 245,667-byte output and SHA-256
-  `e590665c3363fae2a3d0095b07fc61a6c1dd5ebe3f3dc67ac45441232ccf3583`.
+- Animated preview: both READMEs use the same 736×700 looping GIF generated from
+  205 smooth-step HTML samples at 50 FPS. Optimized storage retains 142 unique
+  frames (132 at 20 ms), a 4.1-second loop, 1,212,439 bytes and SHA-256
+  `1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
 
 ### Deferred items (consciously postponed work)
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — Sprint 3 animated README preview generated and verified
+Last updated: 2026-08-04 — Sprint 3 fluid 50 FPS README GIF generated and verified
