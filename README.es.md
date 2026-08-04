@@ -13,7 +13,7 @@ manteniendo los sensores ya instalados y un adaptador reversible en el vehículo
 > `DEMO`. No debe utilizarse como protección del motor ni sustituir todavía al
 > MTX-D instalado.
 
-[![Diseño aprobado 50/50 del reloj de aceite — abrir el simulador interactivo](docs/design/references/oil-gauge-design.png)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
+[![Demo animada 50/50 del reloj de aceite — abrir el simulador interactivo](assets/oil-gauge-demo.gif)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
 ### [▶ Abrir el simulador interactivo del reloj de aceite](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 

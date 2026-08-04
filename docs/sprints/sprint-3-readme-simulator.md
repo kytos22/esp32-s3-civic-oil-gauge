@@ -22,6 +22,7 @@
 | 3.1 Bilingual interactive entry | complete | verifier confirms two links per README and three range controls/listeners | Linked preview plus explicit CTA |
 | 3.2 GitHub Pages publication | complete | Pages build for `61d3dc3` reports `built`; HTTPS enforced | Serves `main:/docs` |
 | 3.3 Deployed interaction verification | partial | downloaded artifact is byte-identical to approved source; browser slider-driving is `PLATFORM-IMPOSSIBLE` in this session | Browser bootstrap rejects the WSL workspace path containing spaces |
+| 3.4 Animated README preview | complete | deterministic 736×700 nine-frame GIF generated twice with identical 245,667-byte output | Static preview replaced; live link retained |
 
 ## Deployment evidence
 
@@ -35,3 +36,15 @@
   `input` event listener are present in the deployed file.
 - Unrun leg: `PLATFORM-IMPOSSIBLE` browser slider-driving due to the Browser
   bootstrap rejection of this WSL workspace path with spaces.
+
+## Animated-preview evidence
+
+- Generator: `scripts/generate-readme-demo-gif.py`, using headless Edge captures
+  of the one approved standalone HTML plus Pillow GIF assembly.
+- States: stopped/cold, running/cold, low-pressure warning, warming, optimal, hot,
+  very hot/high pressure and return-to-optimal loop.
+- Output: `assets/oil-gauge-demo.gif`, 736×700, nine frames, infinite loop,
+  245,667 bytes, SHA-256
+  `e590665c3363fae2a3d0095b07fc61a6c1dd5ebe3f3dc67ac45441232ccf3583`.
+- Reproducibility: two consecutive generator runs produced the same size and
+  SHA-256; five representative frames were visually inspected.

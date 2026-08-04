@@ -165,6 +165,9 @@ See `docs/03-technical-plan.md`.
   GitHub Pages copy exposes working pressure, RPM and temperature range controls
   backed by the approved standalone HTML, without implying that GitHub can run
   JavaScript inline inside README content.
+- **AC-29:** Both root READMEs use the same looping GIF generated from synthetic
+  pressure, RPM and temperature states of the approved standalone simulator; the
+  GIF remains clickable and does not replace or fork the interactive source.
 
 ## Estimate
 

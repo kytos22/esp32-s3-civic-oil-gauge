@@ -12,7 +12,7 @@ already-installed sensors and a reversible vehicle harness.
 > clearly labelled synthetic `DEMO` values. Do not use it as an engine-protection
 > instrument or remove the MTX-D from the vehicle.
 
-[![Approved 50/50 oil-gauge layout — open the interactive simulator](docs/design/references/oil-gauge-design.png)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
+[![Animated 50/50 oil-gauge demo — open the interactive simulator](assets/oil-gauge-demo.gif)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
 ### [▶ Open the interactive oil-gauge simulator](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 

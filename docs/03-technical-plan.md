@@ -72,6 +72,7 @@ flowchart LR
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `assets/README.md` | [E] | Oil-owned public visual namespace and provenance rule |
+| `assets/oil-gauge-demo.gif` | [E] | Generated looping README preview of synthetic simulator states |
 | `firmware/README.md` | [E] | Immutable versioned release-package contract |
 | `docs/ARCHITECTURE.md` | [E] | Hardware routes and electrical architecture |
 | `docs/ARRIVAL_CHECKLIST.md` | [E] | Board-arrival and pre-vehicle gates |
@@ -104,6 +105,7 @@ flowchart LR
 | `scripts/keel-doctor` | [E] | Environment verification and repair plan |
 | `scripts/keel-verify` | [E] | Project consistency checks |
 | `scripts/keel-handoff-verify` | [E] | Continuation courier verification |
+| `scripts/generate-readme-demo-gif.py` | [E] | Reproducible Edge/Pillow renderer for the README GIF |
 | `scripts/pio` | [E] | Project-isolated PlatformIO entry point |
 | `scripts/idf` | [E] | Pinned ESP-IDF 6.0.2 firmware entry point |
 | `docs/playground.md` | [E] | Reproducible software and hardware-tagged exercises |

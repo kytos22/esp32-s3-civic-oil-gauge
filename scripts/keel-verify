@@ -28,6 +28,7 @@ def required_paths() -> None:
         ".gitattributes",
         "README.es.md",
         "assets/README.md",
+        "assets/oil-gauge-demo.gif",
         "firmware/README.md",
         "docs/REPOSITORY.md",
         "docs/.nojekyll",
@@ -45,6 +46,7 @@ def required_paths() -> None:
         "scripts/keel-doctor",
         "scripts/keel-verify",
         "scripts/keel-handoff-verify",
+        "scripts/generate-readme-demo-gif.py",
     ]
     missing = [path for path in paths if not (REPO / path).exists()]
     check("Required paths", not missing, "all present" if not missing else ", ".join(missing))
@@ -346,15 +348,17 @@ def interactive_demo_entry() -> None:
     spanish = text("README.es.md")
     simulator = text("docs/design/references/oil-gauge-design.html")
     required_ids = ("ogrPressureInput", "ogrRpmInput", "ogrTemperatureInput")
+    gif_path = "assets/oil-gauge-demo.gif"
     linked = english.count(url) >= 2 and spanish.count(url) >= 2
+    animated = gif_path in english and gif_path in spanish
     controls = all(f'id=&quot;{control_id}&quot;' in simulator for control_id in required_ids)
     listeners = "input.addEventListener(&#x27;input&#x27;, update)" in simulator
     check(
         "Interactive README entry",
-        linked and controls and listeners,
-        "bilingual live links and three slider listeners present"
-        if linked and controls and listeners
-        else f"linked={linked}; controls={controls}; listeners={listeners}",
+        linked and animated and controls and listeners,
+        "bilingual GIF/live links and three slider listeners present"
+        if linked and animated and controls and listeners
+        else f"linked={linked}; animated={animated}; controls={controls}; listeners={listeners}",
     )
 
 
