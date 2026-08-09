@@ -14,7 +14,7 @@
 - i18n: single-language built product — Spanish status labels, SI/PSI units as specified; source identifiers and documentation in English
 - Installed base: fresh prototype; no released firmware, users, migration, or stored user data
 - Design system: existing approved baseline — `docs/UI_DESIGN.md` and `docs/design/references/`
-- Keel portability: lock + embedded v5.3.2 in `.claude/skills/keel/` and `.agents/skills/keel/`
+- Keel portability: lock + embedded v5.13.0 in `.claude/skills/keel/` and `.agents/skills/keel/`; lock refresh pending reconciliation
 - Assistant config: rules (tools: Codex); permissions and Git hook deferred by D-008
 - Models: n/a — Codex has no project markdown subagents; checks run inline
 - Keel baseline: v5.3.2
@@ -22,6 +22,8 @@
 - Client budget: no
 - User guide: deferred until the hardware-validated release candidate
 - Docs theme: n/a until Phase 6
+- Durability: git remote `origin` at `https://github.com/kytos22/esp32-s3-civic-oil-gauge.git`
+- Branches: integration branch `develop` / current work branch `develop`; reconciliation changes remain local until the autonomy decision is recorded
 - Chaining: off
 
 ## Phase status
@@ -43,7 +45,8 @@
   safety-gated work.
 
 ## Open items
-- Unresolved user questions: exact sensor pinouts/curves, installed connector identities, and final hardware route A vs B
+- Unresolved user questions: exact sensor pinouts/curves, installed connector identities, final hardware route A vs B, and the Keel v5.13.0 reconciliation choices (autonomy, forge issue duties, issue capture, and test-first policy)
+- Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
 - Open Design Requests: none
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
@@ -93,4 +96,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-04 — Sprint 4 noncommercial license published and verified
+Last updated: 2026-08-10 — Keel v5.13.0 installed; reconciliation pending while the safety-critical sensor connection plan is clarified

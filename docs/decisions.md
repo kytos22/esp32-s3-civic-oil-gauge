@@ -314,3 +314,10 @@
   likely to omit important grants, notices or remedies.
 - Supersedes: D-001, D-024 and the technical-plan license status only where they
   record that no public distribution license had yet been selected.
+
+## D-029 — Update Keel copies before deferred reconciliation
+- Date / phase: 2026-08-10 / Phase 5 maintenance of project workflow
+- Decision: Update the installed and both embedded Keel copies from v5.3.2 to v5.13.0, keep the project baseline at v5.3.2, and record the required post-update reconciliation as pending until the new user-choice rows are answered in one batch.
+- Why: Keel's update check found v5.13.0. Its mandatory reconciliation introduces user-owned choices that must not be inferred, while the immediate sensor-wiring question is safety-critical and can be answered read-only without connecting hardware.
+- Alternatives rejected (and why): Silently infer the new choices; they control pushes and public issue activity. Block the electrical safety guidance; withholding it would increase the risk of an unsafe direct connection.
+- Supersedes: none.
