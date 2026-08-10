@@ -14,4 +14,19 @@ menu "Civic Oil Gauge"
         help
             Initial AMOLED brightness used for the bench graphics demo.
 
+    config OIL_GAUGE_DEMO_WARNING_AUDIO
+        bool "Play warning sound during the synthetic demo"
+        depends on OIL_GAUGE_DEMO_MODE
+        default y
+        help
+            Use the onboard ES8311 codec and integrated speaker to play one
+            non-blocking double beep when the demo enters pressure warning.
+
+    config OIL_GAUGE_WARNING_AUDIO_VOLUME_PERCENT
+        int "Warning speaker volume (%)"
+        range 5 100
+        default 35
+        help
+            Codec output volume for the synthetic warning double beep.
+
 endmenu

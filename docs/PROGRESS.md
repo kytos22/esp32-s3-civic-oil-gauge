@@ -33,16 +33,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprint 1 in progress; Sprints 2–4 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 4](sprints/sprint-4-noncommercial-license.md) repository licensing |
+| 5 Development | Sprint 5 in progress; Sprint 1 physical judgment remains open; Sprints 2–4 complete | [Sprint 5](sprints/sprint-5-warning-audio.md) onboard warning audio; [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
-- Next action: review the corrected 60 FPS demo physically on the target display.
-  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
-  safety-gated work.
+- Phase: 5 — Development  Step: Sprint 5 onboard warning audio
+- Next action: after separate authorization, flash the exact board and verify the
+  double beep plus consecutive completed-frame FPS windows. Keep demo mode enabled;
+  sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
@@ -58,6 +58,10 @@
   source found equates that document's sensor explicitly with P/N `12-0074`.
 - Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
 - Open Design Requests: none
+- Sprint 5 software result: the warning-entry gate failed first with `Expected
+  TRUE Was FALSE`, then the 15/15 native suite passed. The full ESP-IDF 6.0.2
+  firmware builds with demo warning audio enabled at 35%; physical sound and
+  post-change FPS remain unverified because no flash was authorized.
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
   demo mode, 16 MB flash, 8 MB PSRAM, 480×480 display/touch initialization, and more
@@ -106,4 +110,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-10 — Keel v5.13.0 installed; reconciliation pending while the safety-critical sensor connection plan is clarified
+Last updated: 2026-08-11 — Sprint 5 warning audio complete in software; physical proof awaits separate flash authorization

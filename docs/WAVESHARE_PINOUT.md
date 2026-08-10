@@ -1,7 +1,7 @@
 # Verified Pinout — ESP32-S3-Touch-AMOLED-2.16
 
-Source: official Waveshare schematic, silkscreen, and Arduino example reviewed
-on 2026-07-28.
+Source: official Waveshare schematic, silkscreen, and pinned BSP 2.0.1 source,
+reviewed again on 2026-08-11.
 
 ## Exposed pads
 
@@ -63,3 +63,18 @@ PCB must not add another strong pair.
 - native USB: GPIO19, 20.
 
 Do not reassign these pins without reviewing the schematic.
+
+## Integrated audio output
+
+| Function | GPIO / bus |
+|---|---:|
+| ES8311 control | shared I²C on SDA 15 / SCL 14 |
+| I²S data out to ES8311 | 8 |
+| I²S bit clock | 9 |
+| I²S master clock | 42 |
+| I²S left/right clock | 45 |
+| Speaker power-amplifier enable | 46 |
+
+The firmware uses `bsp_audio_codec_speaker_init()` and `esp_codec_dev`; GPIO46
+is only the amplifier-enable line and is not driven as if the speaker were a
+passive buzzer. The microphone data input on GPIO10 is not used by the gauge.

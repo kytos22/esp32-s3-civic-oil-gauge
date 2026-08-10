@@ -4,6 +4,7 @@
 
 #include "gauge_core.h"
 #include "demo_sequence.h"
+#include "warning_tone_gate.h"
 
 using namespace oilgauge;
 
@@ -221,6 +222,16 @@ void test_demo_sequence_hits_scenes_and_wraps() {
   TEST_ASSERT_EQUAL_UINT32(0, wrapped.rpm);
 }
 
+void test_warning_tone_gate_triggers_once_and_rearms() {
+  WarningToneGate gate;
+
+  TEST_ASSERT_FALSE(gate.update(false));
+  TEST_ASSERT_TRUE(gate.update(true));
+  TEST_ASSERT_FALSE(gate.update(true));
+  TEST_ASSERT_FALSE(gate.update(false));
+  TEST_ASSERT_TRUE(gate.update(true));
+}
+
 }  // namespace
 
 void setUp() {}
@@ -242,5 +253,6 @@ int main(int, char**) {
   RUN_TEST(test_display_state_warning_motion_and_bars);
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
+  RUN_TEST(test_warning_tone_gate_triggers_once_and_rearms);
   return UNITY_END();
 }

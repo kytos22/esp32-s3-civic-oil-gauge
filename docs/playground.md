@@ -1,6 +1,11 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Last verified: 2026-08-04 — the GitHub Pages simulator is published from
+Last software verification: 2026-08-11 — the warning-audio entry gate passes
+15/15 native tests and the complete ESP-IDF 6.0.2 firmware builds with demo
+mode and onboard warning audio enabled. Physical sound and post-change FPS have
+not been run because this slice has not been authorized for flashing.
+
+Earlier deployed/physical evidence: 2026-08-04 — the GitHub Pages simulator is published from
 `main:/docs`; its 47,509-byte deployed HTML is byte-identical to the approved
 source. Firmware fix commit `9b806cc` passed 12/12 native tests, project
 consistency, and a complete ESP-IDF 6.0.2 build. The resulting 669,824-byte app

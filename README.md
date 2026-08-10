@@ -32,7 +32,7 @@ hosted by GitHub Pages.
   background.
 - 24 px Spanish semantic states, centered main values, nine-pixel bars and a
   blinking low-pressure warning.
-- Fourteen hardware-independent Unity tests pass.
+- Fifteen hardware-independent Unity tests pass.
 - Direct sensor calibration, the reversible Innovate adapter and vehicle
   validation remain intentionally incomplete.
 
@@ -45,6 +45,8 @@ The detailed development position and remaining safety gates are maintained in
 - Explicit cold, warming, optimal, hot and very-hot temperature states.
 - Engine-state-gated low-pressure warning; a stopped engine does not trigger a
   false alarm.
+- One non-blocking double beep through the integrated speaker when the demo
+  enters low-pressure warning; it does not repeat while warning remains active.
 - Temperature display shows `<50` below the sensor's useful lower range instead
   of inventing precision.
 - Warning meaning never relies on colour alone.

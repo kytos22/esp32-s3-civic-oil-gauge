@@ -45,6 +45,8 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Estados explícitos de frío, calentando, óptimo, caliente y muy caliente.
 - El aviso de presión baja depende del estado del motor; un motor parado no
   genera una falsa alarma.
+- Un doble pitido no bloqueante por el altavoz integrado cuando la demo entra
+  en aviso de presión baja; no se repite mientras el aviso siga activo.
 - Por debajo del rango útil del sensor se muestra `<50` en lugar de inventar
   precisión.
 - El significado de los avisos nunca depende únicamente del color.

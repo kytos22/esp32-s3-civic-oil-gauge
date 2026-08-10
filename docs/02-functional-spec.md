@@ -177,6 +177,10 @@ See `docs/03-technical-plan.md`.
   unmodified PolyForm Noncommercial License 1.0.0 plus a required copyright
   notice; both READMEs state that improvements and redistribution are permitted
   only for noncommercial purposes and that third-party licenses remain separate.
+- **AC-32:** In demo mode, each transition from non-warning to the engine-running
+  pressure-warning state requests exactly one non-blocking double beep through the
+  onboard ES8311 speaker path; remaining in warning does not retrigger it, leaving
+  warning re-arms it, and audio failure never stops the visual gauge.
 
 ## Estimate
 

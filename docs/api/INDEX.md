@@ -30,5 +30,6 @@
 | `faultName()` | function | `include/gauge_core.h` | progressive backfill | Stable diagnostic name for a fault |
 | `pressureStateName()` | function | `include/gauge_core.h` | `docs/api/display-state.md` | Stable pressure-state diagnostic name |
 | `temperatureStateName()` | function | `include/gauge_core.h` | `docs/api/display-state.md` | Stable temperature-state diagnostic name |
+| `WarningToneGate` | class | `include/warning_tone_gate.h` | [warning tone gate](warning-tone-gate.md) | Rising-edge gate for one warning tone request per warning episode |
 
 Full per-surface documentation is created when a surface is next changed. Until then this index is the complete lookup layer.

@@ -14,6 +14,8 @@
 #include "demo_sequence.h"
 #include "gauge_core.h"
 #include "oil_gauge_ui.h"
+#include "warning_audio.h"
+#include "warning_tone_gate.h"
 
 namespace {
 
@@ -22,17 +24,27 @@ using namespace oilgauge;
 constexpr char kTag[] = "oil_gauge";
 constexpr std::uint64_t kUiFramePeriodUs = 15'000;
 constexpr std::uint64_t kFpsLogPeriodUs = 2'000'000;
+WarningToneGate gWarningToneGate;
 
 void renderDemoFrame(std::uint64_t nowUs) {
   const DemoFrame frame = demoFrameAt(nowUs);
   const bool blinkPhaseOn = ((nowUs / 500'000U) % 2U) == 0U;
+  const ConvertedValue pressure{frame.pressurePsi, Fault::none};
+  const ConvertedValue temperature{frame.temperatureC, Fault::none};
+  const EngineState engine{true, frame.rpm};
 
   updateOilGaugeUi(
-      {frame.pressurePsi, Fault::none},
-      {frame.temperatureC, Fault::none},
-      EngineState{true, frame.rpm},
+      pressure,
+      temperature,
+      engine,
       blinkPhaseOn,
       false);
+
+  const bool warningActive =
+      evaluatePressureState(pressure, engine) == PressureState::warning;
+  if (gWarningToneGate.update(warningActive)) {
+    requestWarningTone();
+  }
 }
 
 void renderCalibrationGate() {
@@ -60,6 +72,13 @@ extern "C" void app_main(void) {
 
   ESP_ERROR_CHECK(
       bsp_display_brightness_set(CONFIG_OIL_GAUGE_BRIGHTNESS_PERCENT));
+
+  if (CONFIG_OIL_GAUGE_DEMO_MODE &&
+      CONFIG_OIL_GAUGE_DEMO_WARNING_AUDIO) {
+    if (!initWarningAudio()) {
+      ESP_LOGW(kTag, "Demo will continue without warning audio");
+    }
+  }
 
   const esp_err_t initialLockResult = esp_lv_adapter_lock(-1);
   if (initialLockResult != ESP_OK) {

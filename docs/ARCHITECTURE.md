@@ -111,6 +111,20 @@ an RS-232 adapter and must not be connected directly to MTX-D OUT.
 This path is calibration equipment only. Production oil measurements use the
 ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 
+## Onboard warning audio
+
+The synthetic demo uses the display board's existing ES8311 codec, I²S output
+and integrated speaker. A renderer-independent rising-edge gate requests one
+double beep when pressure state changes into `warning`; a dedicated FreeRTOS
+task performs the blocking PCM writes so the 15 ms UI loop never waits for
+audio. The codec remains muted between cues. Initialization or write failure is
+logged and degrades to a silent visual gauge rather than stopping the display.
+
+The current pattern is approximately 2.2 kHz, 120 ms on, 90 ms off and 120 ms
+on at 35% codec volume. It is enabled only for the calibration-safe demo. A
+future calibrated vehicle alarm policy must be safety-reviewed separately; this
+slice does not claim physical loudness, cabin audibility or post-change FPS.
+
 ## Power
 
 ### Bench

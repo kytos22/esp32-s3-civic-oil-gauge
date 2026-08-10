@@ -4,6 +4,8 @@ idf_component_register(
         "demo_sequence.cpp"
         "gauge_core.cpp"
         "oil_gauge_ui.cpp"
+        "warning_audio.cpp"
+        "warning_tone_gate.cpp"
         "fonts/oil_font_ui_12.c"
         "fonts/oil_font_ui_16.c"
         "fonts/oil_font_ui_24.c"
@@ -12,5 +14,6 @@ idf_component_register(
         "."
         "../include"
     PRIV_REQUIRES
+        esp_codec_dev
         esp_timer
 )

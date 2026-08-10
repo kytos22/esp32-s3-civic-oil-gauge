@@ -19,8 +19,9 @@
 | 2026-08-04 | Phase 5 / Sprint 3 README simulator and GIF | Codex session model | 45000 | 13000 | estimated, rounded up from Pages deployment, HTML integrity verification, 205-frame rendering, visual inspection and documentation; environment exposes no exact counter | Published the approved simulator through GitHub Pages, linked both README previews, then replaced the stepped preview with a 50 FPS smooth-step GIF rendered from real HTML states while preserving the live simulator destination |
 | 2026-08-04 | Phase 5 / Sprint 4 noncommercial license | Codex session model | 8000 | 3000 | estimated, rounded up from official-license research, exact-text comparison, bilingual summaries and repository verification; environment exposes no exact counter | Selected PolyForm Noncommercial 1.0.0 so improvements and redistribution are permitted for noncommercial purposes while commercial use remains excluded; added the official terms and required notice |
 | 2026-08-10 | Phase 5 / Keel update and sensor-connection review | Codex session model | 60000 | 12000 | estimated, rounded up from the full Keel v5.13.0 update/reconciliation references and safety-document review; environment exposes no exact counter | Updated all Keel copies, audited the pending reconciliation delta, and reviewed the staged Route A/Route B sensor connection evidence without authorizing a hardware connection |
+| 2026-08-11 | Phase 5 / Sprint 5 warning audio | Codex session model | 50000 | 12000 | estimated, rounded up from Keel/reference inspection, pinned BSP audio-source review, red-first native testing, full firmware rebuild and documentation; environment exposes no exact counter | Added a one-shot warning-entry gate and non-blocking ES8311/I²S double-beep worker, passed 15/15 native tests and the full ESP-IDF build, and stopped before flash/physical sound proof |
 
-Running total: approximately 726000 input / 191000 output.
+Running total: approximately 776000 input / 203000 output.
 
 ## Final reconciliation
 

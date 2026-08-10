@@ -334,3 +334,19 @@
   calibration equipment and would require retaining the powered MTX-D.
 - Supersedes: the embedded Route B option in the prior architecture; laptop MTS
   remains a non-production calibration reference.
+
+## D-031 — Use a non-blocking entry cue for demo pressure warning
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5
+- Decision: Use the Waveshare board's ES8311 codec and integrated speaker to play
+  one 2.2 kHz double beep (120 ms on, 90 ms off, 120 ms on) when the demo enters
+  the pressure-warning state. Re-arm only after warning clears, run playback in a
+  separate FreeRTOS task, and treat audio initialization failure as silent degraded
+  operation rather than blocking the display.
+- Why: Marcos requested an audible indication when the demo passes through warning;
+  an entry-only cue exercises the speaker without continuously alarming during the
+  synthetic warning scene or disturbing the measured 60 FPS renderer path.
+- Alternatives rejected (and why): Continuous tone; too intrusive for a demo.
+  Blocking PCM writes in the UI loop; they would stall rendering. Driving GPIO46
+  as a buzzer; it is the power-amplifier enable, while audio data belongs on the
+  onboard ES8311/I²S path.
+- Supersedes: none.
