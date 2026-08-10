@@ -45,7 +45,13 @@
   safety-gated work.
 
 ## Open items
-- Unresolved user questions: exact sensor pinouts/curves, installed connector identities, final hardware route A vs B, and the Keel v5.13.0 reconciliation choices (autonomy, forge issue duties, issue capture, and test-first policy)
+- Unresolved user questions: exact pressure excitation/signal pin assignment,
+  both sensor curves and electrical ranges, installed connector identities,
+  final hardware route A vs B, and the Keel v5.13.0 reconciliation choices
+  (autonomy, forge issue duties, issue capture, and test-first policy). The
+  user-supplied MTX-D diagram confirms only the physical topology: two
+  temperature conductors (gauge and ground) and three pressure conductors (two
+  gauge and ground).
 - Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
 - Open Design Requests: none
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified

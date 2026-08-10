@@ -19,19 +19,34 @@ Switched vehicle 12 V
   ├── 2 A fuse near ACC
   ├── automotive TVS + reverse-polarity protection
   └── wide-input 5 V buck, at least 3 A
-        ├── Waveshare VBUS
-        └── pressure-sensor excitation (value still unknown)
+        └── Waveshare VBUS
+
+Protected power ── characterized pressure excitation circuit
+                  (voltage and implementation still unknown)
 
 Waveshare 3V3 ── ADS1115 (bench module first; Q1 part on final PCB)
 GPIO15 SDA ───── ADS1115 SDA
 GPIO14 SCL ───── ADS1115 SCL
 Star ground ──── ESP32 + ADC + sensors
 
-Pressure signal ── divider/protection/RC ── A0
-Thermistor ─────── selectable pull-up/RC ── A1
-Pressure excitation monitor /2 ──────────── A2
+Pressure signal conductor ── divider/protection/RC ── A0
+Temperature gauge conductor ── selectable pull-up/RC ── A1
+Pressure excitation monitor ── divider/protection/RC ── A2
 Protected 12 V lighting input ───────────── A3
 ```
+
+The supplied MTX-D diagram confirms a two-terminal temperature circuit and a
+three-terminal pressure circuit. After characterization and only when the
+MTX-D is removed, the temperature gauge conductor will connect to A1 at the
+known precision pull-up node and its other conductor to star ground. The
+pressure sensor will connect to the separately characterized excitation,
+star ground, and A0 signal front end; A2 will monitor the excitation through
+its own protected divider. Until measurements identify the two pressure
+conductors, neither may be connected to excitation or an ADC channel.
+
+While the MTX-D remains connected for characterization, do not add the new
+temperature pull-up or any other bias source in parallel. Measure its existing
+bias and the pressure excitation with a high-impedance meter first.
 
 ### Why an external ADC
 
@@ -59,9 +74,10 @@ These values support characterization only; they are not a final PCB design.
 | A2 | 33 kΩ / 33 kΩ, 0.1%, 100 nF | Excitation monitoring |
 | A3 | 150 kΩ / 22 kΩ, 0.1%, 100 nF, clamp | Lighting detection |
 
-Measure A0 minimum/maximum before connecting it. Measure thermistor resistance
-only while disconnected. Select the pull-up from evidence so the useful range
-uses the ADC well without excessive self-heating.
+Measure the pressure signal minimum/maximum before connecting A0. Measure the
+temperature sensor resistance only while unpowered and disconnected. Select
+the pull-up from evidence so the useful range uses the ADC well without
+excessive self-heating.
 
 ### Grounding
 

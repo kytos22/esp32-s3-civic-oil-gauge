@@ -21,11 +21,32 @@ new electronics power the sensors directly.
 
 ## 1. Inventory and photographs
 
+The MTX-D wiring diagram supplied by Marcos on 2026-08-10 confirms the
+following physical topology:
+
+- oil temperature has two conductors: one gauge-side conductor and one
+  dedicated ground conductor;
+- oil pressure has three conductors: two gauge-side conductors and one
+  dedicated ground conductor.
+
+This is connector-topology evidence only. It does not identify which of the
+two pressure conductors is excitation or signal, nor prove the excitation
+voltage, signal range, thermistor type, or either conversion curve. The diagram
+shows colours, but functions must still be assigned from measurements.
+
+The MTX-D switched-12-V feed is not a sensor signal and must never reach the
+ESP32 or ADS1115. It is still relevant during characterization because the
+gauge derives the temperature bias and pressure excitation from its supply.
+Record the MTX-D supply, sensor bias, and excitation with ignition on/engine
+stopped and again while charging, so the replacement can reproduce only the
+regulated sensor-side electrical conditions.
+
 With the vehicle off:
 
-1. Photograph MTX-D rear label and every connector.
-2. Capture both sides, latch/keying, and wire colors.
-3. Identify the main ground and additional pressure-sensor ground by evidence.
+1. Photograph MTX-D rear label and every physical connector face.
+2. Capture both sides, latch/keying, pin numbering, and wire colors.
+3. Confirm the main ground and both documented sensor-ground conductors by
+   continuity evidence while the circuit is unpowered and disconnected.
 4. With sensors disconnected, check threaded-body continuity to their wires.
 5. Locate Innovate 38400 and USB-RS232 adapters.
 
