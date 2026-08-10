@@ -46,13 +46,16 @@
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
-  both sensor curves and electrical ranges, installed connector identities,
+  confirmed pressure transfer function, temperature curve/electrical range,
+  installed connector identities,
   and the Keel v5.13.0 reconciliation choices
   (autonomy, forge issue duties, issue capture, and test-first policy). The
   user-supplied MTX-D diagram confirms only the physical topology: two
   temperature conductors (gauge and ground) and three pressure conductors (two
   gauge and ground). Route A/ADS1115 is selected for the gauge; MTX-D serial is
-  laptop-only calibration equipment.
+  laptop-only calibration equipment. Innovate `11-0161A` makes 5 V excitation
+  and 0.5–4.5 V for 0–150 PSI the leading pressure hypothesis, but no official
+  source found equates that document's sensor explicitly with P/N `12-0074`.
 - Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
 - Open Design Requests: none
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified

@@ -1,6 +1,6 @@
 # Research and Sources
 
-Evidence cutoff: **2026-07-30**. Current purchasing/status information can drift;
+Evidence cutoff: **2026-08-10**. Current purchasing/status information can drift;
 reverify before ordering.
 
 ## Confirmed facts
@@ -20,11 +20,25 @@ reverify before ordering.
   pump/switch where pulsation is severe.
 - OUT supports MTS/LogWorks logging.
 
+### Pressure transfer-function evidence
+
+- The official `12-0074` product page confirms only P/N, 0–150 PSI / 10 bar,
+  and MTX-D/ECF-1 compatibility in its public text.
+- Innovate document `11-0161A` describes a separate "10 BAR (150 PSI)
+  Pressure Sensor with SSI-4 PLUS Adapter": red to the SSI-4 PLUS 5 V terminal,
+  black to ground, white to channel positive, and a three-pin sensor connector.
+  It gives `0 PSI = 0.5 V` and `150 PSI = 4.5 V`.
+- No consulted official source explicitly states that the sensor in `11-0161A`
+  is P/N `12-0074`, that both use the same internal transducer, or which physical
+  pins/08-0256C colours carry excitation and signal. The matching range makes
+  `5 V / 0.5–4.5 V` the leading hypothesis, not a confirmed 12-0074 calibration.
+
 Sources:
 
 - [MTX-D product](https://www.innovatemotorsports.com/mtx-d-oil-pressure-temperature.html)
 - [MTX-D manual](https://www.innovatemotorsports.com/wp/content/uploads/2022/05/MTX-D-Oil-Press-Temp.pdf)
 - [Pressure sensor](https://www.innovatemotorsports.com/sensor-pressure-0-150-psi-10-bar-for-mtx-d-ecf-1.html)
+- [11-0161A 10 bar sensor with SSI-4 PLUS adapter](https://www.innovatemotorsports.com/wp/content/uploads/2022/05/11-0161A-10-BAR-Pressure-Sensor_2pg.pdf)
 - [Programming cable](https://www.innovatemotorsports.com/program-cable-mtx-series-gauges-lm-2-lc-2-scg-1-psb-1-and-psn-1.html)
 - [LogWorks manual](https://www.innovatemotorsports.com/wp/content/uploads/2022/08/LogWorks3_Manual.pdf)
 
@@ -69,8 +83,9 @@ Sources:
 
 ## Open measurements
 
-1. Real P/N 12-0074 pinout and excitation.
-2. Pressure transfer function.
+1. Real P/N 12-0074 pinout and excitation; test the official adjacent-sensor
+   `5 V` hypothesis without assigning pins from colour.
+2. Confirm or reject the candidate `0.5–4.5 V = 0–150 PSI` transfer function.
 3. P/N 15-0049 R/T curve and tolerance.
 4. Exact installed harness connectors.
 5. MTX-D MTS channel content/order.

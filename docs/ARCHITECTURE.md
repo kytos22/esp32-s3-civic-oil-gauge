@@ -76,6 +76,12 @@ These values support characterization only; they are not a final PCB design.
 | A2 | 33 kΩ / 33 kΩ, 0.1%, 100 nF | Excitation monitoring |
 | A3 | 150 kΩ / 22 kΩ, 0.1%, 100 nF, clamp | Lighting detection |
 
+For the candidate 0.5–4.5 V pressure hypothesis, the equal 33 kΩ / 33 kΩ
+divider maps the nominal signal to 0.25–2.25 V. That intentionally gives the
+16-bit ADC more voltage headroom than a 10 kΩ / 20 kΩ divider, whose output
+would reach 3.333 V at a 5 V input and leave effectively no tolerance margin at
+3.3 V VDD. The divider is still provisional until the real range is measured.
+
 Measure the pressure signal minimum/maximum before connecting A0. Measure the
 temperature sensor resistance only while unpowered and disconnected. Select
 the pull-up from evidence so the useful range uses the ADC well without

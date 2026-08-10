@@ -3,7 +3,7 @@
 ## Why this is mandatory
 
 Innovate identifies pressure sensor `12-0074` (0–150 PSI) and thermistor
-`15-0049`, but the public manual does not publish:
+`15-0049`, but the public MTX-D/12-0074 material does not publish:
 
 - excitation voltage;
 - transducer pin order;
@@ -12,6 +12,11 @@ Innovate identifies pressure sensor `12-0074` (0–150 PSI) and thermistor
 
 Assuming a common 0.5–4.5 V sensor or 10 kΩ NTC can create false readings or
 damage the ADC. Calibrated output remains disabled until this procedure passes.
+
+Innovate's separate `11-0161A` instructions for a 10 bar sensor with SSI-4 PLUS
+adapter specify 5 V excitation and 0.5–4.5 V for 0–150 PSI. No consulted
+official source equates that sensor explicitly with P/N `12-0074`; therefore
+those values are the leading test hypothesis rather than installed-sensor proof.
 
 ## Core rule
 
@@ -65,6 +70,20 @@ With MTX-D powered on a bench or in the vehicle and engine stopped:
 Record every value. Never assign function by color.
 
 ## 3. Pressure curve
+
+### Candidate model to verify
+
+If measurements prove that this installed `12-0074` receives 5 V and produces
+0.5 V at 0 PSI and 4.5 V at 150 PSI, the candidate linear conversions are:
+
+```text
+PSI = (V_sensor - 0.5) × 37.5
+bar = (V_sensor - 0.5) × 2.5
+```
+
+With equal 33 kΩ / 33 kΩ dividers on A0 and A2, `V_sensor = 2 × V_A0` and
+`V_excitation = 2 × V_A2`. Do not compile these equations as valid calibration
+until measured points across the operating range pass the residual/error gates.
 
 ### Minimum installed-sensor method
 
