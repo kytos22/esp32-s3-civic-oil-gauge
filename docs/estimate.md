@@ -53,6 +53,7 @@ Planning assumption: subscription/seat access, therefore no separate marginal to
 
 - Waveshare board and bought parts are not yet physically available.
 - PlatformIO currently cannot run in WSL.
-- Direct sensor calibration may fail and leave Route B as the practical solution.
+- Direct sensor calibration may fail; in that case the original MTX-D remains
+  installed and the replacement gauge does not enter service.
 - Final automotive PCB/enclosure certification is excluded.
 - The CAN/OBD display is excluded and planned separately.

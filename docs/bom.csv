@@ -1,7 +1,5 @@
 phase,quantity,item,reference,priority,note
 bench,1,ADS1115 breakout ADC,Adafruit 1085,high,Not the final automotive-qualified part
-bench,1,3.3V RS232 to TTL,MAX3232E or TRS3232E,high,Do not use a 5V MAX232
-bench,1,DB9 screw-terminal breakout,Gender to be confirmed,high,For Innovate 38400 cable
 bench,1,0-100kohm decade box,0.1 percent preferred,high,Characterize temperature input
 bench,1,Precision resistor kit,0.1 percent 1k-150k,high,Dividers and pull-ups
 bench,1,X7R capacitor kit,100nF 1uF 10uF,high,Filtering and decoupling
@@ -21,4 +19,3 @@ optional,1,MTX programming cable,Innovate 38400,high,Should be included with kit
 optional,1,Spare thermistor,Innovate 15-0049,low,Calibration without removing installed sensor
 optional,1,Pressure sensor cable,Innovate 08-0256C,low,Reversible adapter
 final-pcb,1,Automotive ADC,TI ADS1115-Q1 DGS,wait,Buy after schematic is frozen
-final-pcb,1,MTS transceiver,TI TRS3232E-Q1,wait,Only if MTS route is adopted

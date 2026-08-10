@@ -2,15 +2,17 @@
 
 ## Decision
 
-Two reversible routes are retained; **Route A** is the target.
+**Route A is the selected gauge implementation.** MTS remains available only
+as a laptop-side calibration reference; no RS-232 level converter will be
+installed in the ESP32 gauge.
 
 | Route | Retained hardware | Added hardware | Advantage | Cost/risk |
 |---|---|---|---|---|
 | A. Direct sensors | Sensors and installed wiring | ADS1115 + protected analog conditioning | MTX-D can be removed | Both sensor interfaces must be characterized |
-| B. MTS | Sensors and hidden MTX-D electronics | 3.3 V RS-232 receiver | Retains Innovate's conversions | MTX-D body remains powered/hidden; MTS must be decoded |
+| B. Laptop MTS reference | Sensors and existing MTX-D | Innovate serial cable + laptop RS-232 interface | Independent calibration reference | Not part of the replacement gauge |
 
-Route B is also a development reference. If MTS exposes synchronized pressure
-and temperature, it can validate Route A independently of visual readings.
+If laptop MTS capture exposes synchronized pressure and temperature, it can
+validate Route A independently of visual readings.
 
 ## Route A — direct acquisition
 
@@ -85,24 +87,23 @@ Innovate requires the pressure sensor's additional black wire to share the
 gauge ground. Use a star point for sensor, ADC, ESP32, and converter input,
 away from ignition, fuel pump, radio, alternator, and audio grounds.
 
-## Route B — MTX-D as the conditioner
+## Laptop-only MTS calibration reference
 
 ```text
 Sensors ── MTX-D OUT ── Innovate 38400 cable ── RS-232
                                                    │
                                                    ▼
-                                      MAX3232E-Q1 / TRS3232E-Q1
-                                                   │ 3.3 V UART
-                                                   ▼
-                                      Waveshare GPIO44 RX
+                                      Laptop RS-232 port or
+                                      proper USB-to-RS-232 adapter
 ```
 
 Public MTS documentation suggests 19200 baud, 8N1, big-endian 16-bit words.
-Treat that as a hypothesis. Capture this MTX-D's frames and compare with
-LogWorks. Start RX-only so the ESP32 cannot send accidental commands.
+Treat that as a hypothesis. Capture this MTX-D's frames on the laptop and
+compare with LogWorks. A TTL UART adapter such as FTDI, CP2102, or CH340 is not
+an RS-232 adapter and must not be connected directly to MTX-D OUT.
 
-If stable, Route B does not need ADS1115 for oil values, but the powered 52 mm
-MTX-D body must remain hidden.
+This path is calibration equipment only. Production oil measurements use the
+ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 
 ## Power
 
@@ -131,7 +132,6 @@ Select only after real current and signal measurements:
 - `ADS1115-Q1` VSSOP-10.
 - 60/65 V automotive buck such as `LM76003-Q1`/`LM65635-Q1`.
 - `SLD8S24A` TVS coordinated with fuse and converter.
-- `TRS3232E-Q1` only if MTS is adopted.
 
 ## Mechanical concept
 

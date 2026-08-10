@@ -48,7 +48,9 @@
 - Outputs: calibration coefficients or tables, residual/error report, cutover decision.
 - Preconditions: reversible high-impedance harness; MTX-D remains connected.
 - Postconditions: direct acquisition is enabled only after the acceptance limits pass.
-- Errors: inconclusive/nonlinear data keeps Route A disabled and leaves Route B/MTX-D as fallback.
+- Errors: inconclusive/nonlinear data keeps direct acquisition disabled and the
+  original MTX-D remains installed; laptop MTS may provide evidence but is not
+  an embedded fallback.
 
 ### F-06 — Automotive power and wiring safety
 
@@ -87,7 +89,7 @@ unless introduced by a recorded scope change.
 |---|---|---|---|
 | ADS1115 | I²C 0x48 at 3.3 V | Inputs must never exceed VDD + 0.3 V; board bus already has pull-ups | Explicit ADC-missing/raw-only state |
 | MTX-D direct sensors | protected analog front end | Curves and pins are unknown until measured | Calibration remains invalid |
-| MTX-D MTS | RS-232 through MAX3232-class receiver to GPIO44 | Initial baud/channel order is a hypothesis; ESP32 starts RX-only | Reject malformed/unidentified frames |
+| MTX-D MTS | Innovate cable to laptop RS-232/USB-to-RS-232 | Calibration reference only; initial baud/channel order is a hypothesis | Reject malformed/unidentified frames |
 | LogWorks | PC-side reference logging | External software and serial adapter required | `HARDWARE` guided leg |
 | Vehicle RPM state | source not yet selected | Must be evidence-backed; may come from CAN/WiCAN or another protected input | Pressure warning remains unarmed if engine state is unknown; show fault/pending state |
 

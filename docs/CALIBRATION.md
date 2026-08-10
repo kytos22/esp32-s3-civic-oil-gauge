@@ -120,9 +120,10 @@ Keep original points and validate with points excluded from fitting.
 3. Export timestamped reference data.
 4. Capture ESP32 raw channels in parallel.
 5. Align streams using a clear ignition/start event.
-6. Observe RS-232 through MAX3232 initially in RX-only mode.
+6. If useful, capture MTS on the laptop through the Innovate cable and a real
+   RS-232 or USB-to-RS-232 interface.
 
-Never connect RS-232 voltage directly to GPIO44.
+Never connect RS-232 voltage directly to a GPIO or TTL-UART adapter.
 
 ## 6. MTX-D removal gate
 

@@ -321,3 +321,16 @@
 - Why: Keel's update check found v5.13.0. Its mandatory reconciliation introduces user-owned choices that must not be inferred, while the immediate sensor-wiring question is safety-critical and can be answered read-only without connecting hardware.
 - Alternatives rejected (and why): Silently infer the new choices; they control pushes and public issue activity. Block the electrical safety guidance; withholding it would increase the risk of an unsafe direct connection.
 - Supersedes: none.
+
+## D-030 — Use ADS1115 only in the replacement gauge
+- Date / phase: 2026-08-10 / Phase 5 direct-sensor characterization
+- Decision: Implement production oil acquisition through the ADS1115 only. Do
+  not include MAX3232E/TRS3232E or an embedded MTX-D serial receiver. If MTS is
+  useful during calibration, connect the existing MTX-D to the laptop through
+  its Innovate cable and a real RS-232 or USB-to-RS-232 interface.
+- Why: Marcos will use the laptop for any serial capture and wants the new gauge
+  to acquire the installed sensors directly.
+- Alternatives rejected (and why): An embedded RS-232 receiver; it duplicates
+  calibration equipment and would require retaining the powered MTX-D.
+- Supersedes: the embedded Route B option in the prior architecture; laptop MTS
+  remains a non-production calibration reference.

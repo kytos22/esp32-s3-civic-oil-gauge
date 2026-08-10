@@ -129,5 +129,8 @@ accuracy than the MTX-D without traceable calibration.
 
 ## Open questions
 
-- Exact sensor pinout, excitation, transfer functions, connector types, MTS channel order, board current draw, enclosure temperature, and final Route A/Route B decision are deliberately unknown until measured.
+- Exact sensor pinout, excitation, transfer functions, connector types, MTS
+  channel order, board current draw, and enclosure temperature remain unknown
+  until measured. D-030 resolves the architecture choice: ADS1115-only in the
+  gauge, with MTS available only as a laptop calibration reference.
 - The current empty `.git` directory is not a valid repository; initialization remains an explicit structural action.

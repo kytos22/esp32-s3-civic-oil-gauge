@@ -20,7 +20,7 @@ on 2026-07-28.
 Project use:
 
 - ADS1115: P2, P3, P6, P7.
-- Optional MTS: P3 and P9 through an RS-232 receiver.
+- MTS is laptop-only calibration equipment; it is not connected to a board pin.
 - Vehicle power: regulated 5 V to P1/GND, never 12 V.
 
 ## Display and touch

@@ -7,8 +7,6 @@ Purchasing is staged so no final PCB is built around sensor curves that remain u
 | Qty | Item | Recommended reference | Purpose |
 |---:|---|---|---|
 | 1 | Bench ADS1115 ADC | Adafruit Product 1085 or a reputable module with genuine TI ADS1115 | Capture direct sensor signals |
-| 1 | 3.3 V RS-232↔TTL converter | MAX3232E/TRS3232E module, **not a 5 V MAX232** | Capture MTX-D MTS |
-| 1 | DB9 breakout | Gender confirmed against P/N 38400 first | Reversible RS-232 connection |
 | 1 | 0–100 kΩ decade box | 0.1% preferred; 1% acceptable for discovery | Map thermistor input |
 | 1 lot | 0.1%, ≤25 ppm/°C resistors | 1 k, 2.49 k, 4.99 k, 10 k, 22 k, 33 k, 47 k, 100 k, 150 k | Dividers and pull-ups |
 | 1 lot | X7R capacitors | 100 nF, 1 µF, 10 µF | Filtering and decoupling |
@@ -35,7 +33,9 @@ Verify before ordering:
 | Thermistor | 15-0049 | Already installed |
 
 If the computer has no native RS-232 port, use Innovate USB-serial P/N 37330
-or a quality compatible adapter.
+or a quality compatible **USB-to-RS-232** adapter. Do not substitute a
+TTL-UART FTDI/CP2102/CH340 adapter. The laptop serial path is calibration
+equipment and no MAX3232E/TRS3232E is required in the ESP32 gauge.
 
 ## Vehicle-prototype power
 

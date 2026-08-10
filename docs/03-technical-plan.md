@@ -42,13 +42,14 @@ flowchart LR
   S2["Innovate thermistor"] --> AF
   AF --> A["ADS1115 at 0x48, 3.3 V"]
   A -->|GPIO15 SDA / GPIO14 SCL| W
-  M["MTX-D OUT / MTS"] --> R["RS-232 to 3.3 V receiver"]
-  R -->|RX-only GPIO44 during discovery| W
+  M["MTX-D OUT / MTS"] --> R["Laptop RS-232 calibration capture"]
+  R -.->|reference data only| A
   C["Engine/RPM state"] --> W
 ```
 
-- Route A: direct protected sensors → ADS1115 → conversion/filter/state → display.
-- Route B: MTX-D retains sensor conditioning → MTS RS-232 receiver → display.
+- Production: direct protected sensors → ADS1115 → conversion/filter/state → display.
+- Calibration reference: MTX-D MTS → laptop RS-232 capture; it is not connected
+  to the ESP32 gauge.
 - No runtime persistence exists; calibration is compile-time and invalid by default.
 - CAN/OBD belongs to the separate second display. Only an evidence-backed engine-running/RPM signal may cross into this project.
 
