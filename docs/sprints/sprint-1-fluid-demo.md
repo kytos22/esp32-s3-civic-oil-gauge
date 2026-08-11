@@ -6,7 +6,7 @@
   50/50 geometry, icons, thresholds, or calibration safety gate.
 - Acceptance:
   - demo values interpolate continuously between all seven existing scenes;
-  - application updates and LVGL refresh are scheduled every 14 ms;
+  - application updates and LVGL refresh are scheduled every 13 ms;
   - the adapter logs completed display FPS over one-second windows;
   - sustained hardware evidence reports at least 60 FPS, or the slice remains open
     with the measured bottleneck recorded honestly;
@@ -20,7 +20,7 @@
 
 | Slice | Status | Test point result | Notes |
 |---|---|---|---|
-| 1.1 Continuous deterministic demo | complete | software and completed-frame cadence pass | Linear interpolation at a 14 ms cadence with fractional-pixel bar edges |
+| 1.1 Continuous deterministic demo | complete | software and completed-frame cadence pass | Linear interpolation at a 13 ms cadence with fractional-pixel bar edges |
 | 1.2 Larger semantic labels | pending | pending | 24 px, right-aligned, physical check required |
 | 1.3 Real FPS instrumentation | complete | eight consecutive windows at 65–67 FPS | Exact-board app `3e0298a`; passing bounded log retained |
 | 1.4 Hardware proof and close-out | in progress | exact-board flash/boot/FPS pass | Straight-on visual judgment remains before Sprint close |

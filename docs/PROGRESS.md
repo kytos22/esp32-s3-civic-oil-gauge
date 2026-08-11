@@ -40,7 +40,7 @@
 
 ## Current position
 - Phase: 5 — Development  Step: Sprint 5 onboard warning audio
-- Next action: rebuild and reflash the already-authorized exact board with D-033,
+- Next action: rebuild and reflash the already-authorized exact board with D-034,
   then verify the double beep plus consecutive completed-frame FPS windows. Keep demo mode enabled;
   sensor calibration and vehicle cutover remain separate safety-gated work.
 
@@ -63,9 +63,10 @@
   flashed with all four regions hash-verified and booted with demo warning audio
   enabled at 35%. The first bounded run was stable but periodic audio-load windows
   measured 58–59 FPS. D-032 improved the first two warning entries to 61–64 FPS,
-  but a longer run found a third 58 FPS window. D-033 pins 512-sample audio work
-  to CPU1 pending rebuild, reflash, and physical retest. Audible confirmation
-  remains pending.
+  but a longer run found a third 58 FPS window. D-033 pinned 512-sample audio work
+  to CPU1 and improved that repeated-warning window to 59 FPS, still below target.
+  D-034 sets 13 ms pending rebuild, reflash, and physical retest. Audible
+  confirmation remains pending.
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
   demo mode, 16 MB flash, 8 MB PSRAM, 480×480 display/touch initialization, and more
@@ -114,4 +115,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-11 — 14 ms alone still exposed a 58 FPS warning window; CPU1 audio isolation pending retest
+Last updated: 2026-08-11 — CPU1 isolation still exposed a 59 FPS warning window; 13 ms cadence pending retest

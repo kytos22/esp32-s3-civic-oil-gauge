@@ -23,7 +23,8 @@
 - The first bounded run initialized the ES8311 successfully and was stable, but
   periodic audio-load windows fell to 58–59 completed FPS. D-032 records the
   14 ms remediation. Its longer retest still exposed one 58 FPS window at the
-  third warning entry; D-033 isolates larger PCM writes on CPU1 pending retest.
+  third warning entry. D-033 CPU1 isolation improved that window to 59 FPS but
+  still failed; D-034 sets 13 ms pending another long retest.
 
 ## Slices
 

@@ -7,7 +7,7 @@
 
 namespace oilgauge {
 
-inline constexpr std::uint32_t kUiFramePeriodMs = 14;
+inline constexpr std::uint32_t kUiFramePeriodMs = 13;
 
 void createOilGaugeUi(lv_obj_t* screen);
 

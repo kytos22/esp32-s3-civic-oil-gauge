@@ -380,3 +380,16 @@
   it is the accepted Sprint 5 behavior.
 - Supersedes: D-031 only for worker affinity and PCM chunk size; its tone, timing,
   entry gate, volume policy, and silent-degradation behavior remain active.
+
+## D-034 — Use a 13 ms cadence for repeated warning headroom
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Schedule application updates and LVGL refresh every 13 ms while
+  retaining D-033 audio isolation and every approved visual/audio behavior.
+- Why: The first long D-033 exact-board run completed three tones. Normal windows
+  were 65–72 FPS, but the third tone still produced one 59 FPS window. A 13 ms
+  cadence raises nominal headroom to about 77 completed frames per second.
+- Alternatives rejected (and why): Accept 59 FPS as measurement noise; the explicit
+  requirement is a measured minimum of 60. Jump directly to 12 ms; 13 ms should
+  provide sufficient margin with less constant display work and must be measured.
+- Supersedes: D-032 for the active cadence only; D-032 remains the evidence-backed
+  record of why 15 ms and then 14 ms were attempted.

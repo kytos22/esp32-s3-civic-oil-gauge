@@ -24,7 +24,7 @@ and alarm math remains isolated so it can run natively without hardware.
 
 Budgets:
 
-- UI refresh: 14 ms application and LVGL cadence; Sprint 1 requires at least 60
+- UI refresh: 13 ms application and LVGL cadence; Sprint 1 requires at least 60
   completed physical display FPS, measured by the pinned adapter rather than
   inferred from the scheduler.
 - No valid input may exceed 3.3 V at the ADC/ESP32 boundary.
