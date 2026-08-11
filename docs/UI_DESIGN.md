@@ -96,7 +96,7 @@ characterized and compared against the MTX-D.
 ## Firmware implementation
 
 - Fixed-coordinate LVGL renderer: `src/oil_gauge_ui.cpp`.
-- Board/display startup and 15 ms continuous demo sequence: `src/main.cpp` and
+- Board/display startup and 14 ms continuous demo sequence: `src/main.cpp` and
   `src/demo_sequence.cpp`.
 - Embedded Montserrat subsets: `src/fonts/`.
 - Framework: ESP-IDF 6.0.2, official Waveshare BSP 2.0.1, LVGL 9.5.0.

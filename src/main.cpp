@@ -22,7 +22,7 @@ namespace {
 using namespace oilgauge;
 
 constexpr char kTag[] = "oil_gauge";
-constexpr std::uint64_t kUiFramePeriodUs = 15'000;
+constexpr std::uint64_t kUiFramePeriodUs = kUiFramePeriodMs * 1'000U;
 constexpr std::uint64_t kFpsLogPeriodUs = 2'000'000;
 WarningToneGate gWarningToneGate;
 

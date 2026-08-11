@@ -116,7 +116,7 @@ ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 The synthetic demo uses the display board's existing ES8311 codec, I²S output
 and integrated speaker. A renderer-independent rising-edge gate requests one
 double beep when pressure state changes into `warning`; a dedicated FreeRTOS
-task performs the blocking PCM writes so the 15 ms UI loop never waits for
+task performs the blocking PCM writes so the 14 ms UI loop never waits for
 audio. The codec remains muted between cues. Initialization or write failure is
 logged and degrades to a silent visual gauge rather than stopping the display.
 

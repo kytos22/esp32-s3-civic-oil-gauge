@@ -44,7 +44,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
 | bar.thickness | `9 px` | both bars |
 | warning.period | `1000 ms`, step-end | 1 Hz flash |
-| refresh.period | `15 ms` | application and LVGL target cadence with margin above 60 FPS |
+| refresh.period | `14 ms` | application and LVGL target cadence with audio-load margin above 60 FPS |
 | state.font | `Montserrat 24 px` | pressure/temperature semantic state |
 
 Temperature colors are linearly interpolated between:
@@ -104,7 +104,7 @@ Temperature colors are linearly interpolated between:
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
 | temperature below 50 | render `<50`, empty temperature bar | valid sample |
-| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 15 ms |
+| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 14 ms |
 
 ## 6. Asset map
 

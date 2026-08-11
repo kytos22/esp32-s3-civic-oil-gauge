@@ -40,8 +40,8 @@
 
 ## Current position
 - Phase: 5 — Development  Step: Sprint 5 onboard warning audio
-- Next action: after separate authorization, flash the exact board and verify the
-  double beep plus consecutive completed-frame FPS windows. Keep demo mode enabled;
+- Next action: rebuild and reflash the already-authorized exact board with D-032,
+  then verify the double beep plus consecutive completed-frame FPS windows. Keep demo mode enabled;
   sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
@@ -59,9 +59,11 @@
 - Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
 - Open Design Requests: none
 - Sprint 5 software result: the warning-entry gate failed first with `Expected
-  TRUE Was FALSE`, then the 15/15 native suite passed. The full ESP-IDF 6.0.2
-  firmware builds with demo warning audio enabled at 35%; physical sound and
-  post-change FPS remain unverified because no flash was authorized.
+  TRUE Was FALSE`, then the 15/15 native suite passed. Exact-board app `0c33fe6`
+  flashed with all four regions hash-verified and booted with demo warning audio
+  enabled at 35%. The first bounded run was stable but periodic audio-load windows
+  measured 58–59 FPS, so D-032 changes application/LVGL cadence to 14 ms pending
+  rebuild, reflash, and physical retest. Audible confirmation remains pending.
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
   demo mode, 16 MB flash, 8 MB PSRAM, 480×480 display/touch initialization, and more
@@ -110,4 +112,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-11 — Sprint 5 warning audio complete in software; physical proof awaits separate flash authorization
+Last updated: 2026-08-11 — Sprint 5 exact-board audio build exposed a 58–59 FPS regression; 14 ms remediation pending retest

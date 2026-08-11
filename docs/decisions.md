@@ -350,3 +350,17 @@
   as a buzzer; it is the power-amplifier enable, while audio data belongs on the
   onboard ES8311/I²S path.
 - Supersedes: none.
+
+## D-032 — Add refresh headroom for warning-audio playback
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Schedule both application updates and LVGL refreshes every 14 ms while
+  retaining one software draw unit, the existing seven-scene timing, and the
+  approved visual behavior.
+- Why: The first exact-board audio build normally measured 62–67 completed FPS,
+  but periodic warning entries produced 58–59 FPS windows. Fourteen milliseconds
+  adds headroom for codec playback without altering the gauge states or layout.
+- Alternatives rejected (and why): Accept the average; Marcos requires a measured
+  minimum of 60 FPS. Restore parallel draw units; D-020 records physical glyph
+  corruption. Remove the audio cue; it is the accepted Sprint 5 behavior.
+- Supersedes: D-022 only for its 15 ms cadence. Its fractional-pixel bars, linear
+  interpolation, measured minimum, and single-draw-unit constraints remain active.

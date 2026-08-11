@@ -1,5 +1,7 @@
 #include "oil_gauge_ui.h"
 
+#include "sdkconfig.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -11,6 +13,9 @@
 #include "sdkconfig.h"
 
 namespace oilgauge {
+
+static_assert(CONFIG_LV_DEF_REFR_PERIOD == kUiFramePeriodMs,
+              "LVGL and application refresh periods must match");
 
 namespace {
 

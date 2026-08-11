@@ -16,6 +16,14 @@
     authorizes flashing the exact board.
 - Status: in progress — explicitly requested by Marcos on 2026-08-11
 
+## Hardware verification log
+
+- Exact-board app `0c33fe6` flashed on 2026-08-11; all four regions passed
+  esptool hash verification and the app booted with demo audio at 35%.
+- The first bounded run initialized the ES8311 successfully and was stable, but
+  periodic audio-load windows fell to 58–59 completed FPS. D-032 records the
+  14 ms remediation; physical retest is pending.
+
 ## Slices
 
 | Slice | Status | Test point result | Notes |
