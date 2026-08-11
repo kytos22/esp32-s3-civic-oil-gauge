@@ -364,3 +364,19 @@
   corruption. Remove the audio cue; it is the accepted Sprint 5 behavior.
 - Supersedes: D-022 only for its 15 ms cadence. Its fractional-pixel bars, linear
   interpolation, measured minimum, and single-draw-unit constraints remain active.
+
+## D-033 — Isolate warning-audio work from UI state updates
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Pin the warning-audio worker to CPU1 at priority 4 and write PCM in
+  512-sample chunks. Keep the application/UI update loop on its configured CPU0
+  and retain LVGL's higher priority 6 worker.
+- Why: D-032 improved two warning entries to 61–64 FPS, but a longer exact-board
+  run exposed a third 58 FPS window. The unpinned priority-4 audio task could run
+  on CPU0 ahead of the priority-1 application loop; isolating it removes that
+  contention while preserving the non-blocking double beep.
+- Alternatives rejected (and why): Keep reducing the global refresh period; that
+  raises constant display load instead of isolating a periodic task. Lower audio
+  to priority 1 without affinity; it can still time-slice on CPU0. Remove audio;
+  it is the accepted Sprint 5 behavior.
+- Supersedes: D-031 only for worker affinity and PCM chunk size; its tone, timing,
+  entry gate, volume policy, and silent-degradation behavior remain active.

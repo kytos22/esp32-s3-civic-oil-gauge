@@ -22,7 +22,8 @@
   esptool hash verification and the app booted with demo audio at 35%.
 - The first bounded run initialized the ES8311 successfully and was stable, but
   periodic audio-load windows fell to 58–59 completed FPS. D-032 records the
-  14 ms remediation; physical retest is pending.
+  14 ms remediation. Its longer retest still exposed one 58 FPS window at the
+  third warning entry; D-033 isolates larger PCM writes on CPU1 pending retest.
 
 ## Slices
 

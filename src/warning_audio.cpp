@@ -22,7 +22,9 @@ constexpr std::uint32_t kSampleRate = 22'050;
 constexpr std::uint32_t kBeepDurationMs = 120;
 constexpr std::uint32_t kGapDurationMs = 90;
 constexpr std::uint32_t kFadeSamples = 110;
-constexpr std::size_t kChunkSamples = 128;
+constexpr std::size_t kChunkSamples = 512;
+constexpr UBaseType_t kAudioTaskPriority = 4;
+constexpr BaseType_t kAudioTaskCore = 1;
 constexpr std::array<std::int16_t, 10> kWave{
     0, 4114, 6657, 6657, 4114, 0, -4114, -6657, -6657, -4114};
 
@@ -83,6 +85,8 @@ void warningAudioTask(void*) {
     const int muteResult = esp_codec_dev_set_out_mute(gSpeaker, true);
     if (!played || muteResult != ESP_CODEC_DEV_OK) {
       ESP_LOGE(kTag, "Warning tone did not complete cleanly");
+    } else {
+      ESP_LOGI(kTag, "Warning tone completed");
     }
   }
 }
@@ -125,13 +129,14 @@ bool initWarningAudio() {
     return false;
   }
 
-  const BaseType_t taskResult = xTaskCreate(
+  const BaseType_t taskResult = xTaskCreatePinnedToCore(
       warningAudioTask,
       "warning_audio",
       4096,
       nullptr,
-      4,
-      &gAudioTask);
+      kAudioTaskPriority,
+      &gAudioTask,
+      kAudioTaskCore);
   if (taskResult != pdPASS) {
     ESP_LOGW(kTag, "Unable to create warning-audio worker");
     esp_codec_dev_close(gSpeaker);
