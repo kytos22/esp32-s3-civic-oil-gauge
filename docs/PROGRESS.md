@@ -33,16 +33,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprint 5 in progress; Sprint 1 physical judgment remains open; Sprints 2–4 complete | [Sprint 5](sprints/sprint-5-warning-audio.md) onboard warning audio; [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment |
+| 5 Development | Sprints 2–5 complete; Sprint 1 physical judgment remains open | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 5 onboard warning audio
-- Next action: obtain Marcos's physical confirmation that the double beep is
-  audible, then close Sprint 5 if accepted. Keep demo mode enabled;
-  sensor calibration and vehicle cutover remain separate safety-gated work.
+- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
+- Next action: obtain a straight-on powered-screen photo and judge the full 50/50
+  demo for glyph integrity, clipping, overlap, and distance readability. Keep demo
+  mode enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
@@ -68,7 +68,8 @@
   D-034 app `bf5c932` at 13 ms passes exact-board runtime verification: all four
   regions hash-verified; the retained bounded log contains three completed tone
   paths and 29 consecutive 66–77 FPS windows with no panic, watchdog, or audio
-  error. Audible confirmation remains pending from Marcos.
+  error. Marcos confirmed the physical double beep is audible, completing AC-32
+  and Sprint 5 on 2026-08-11.
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
   demo mode, 16 MB flash, 8 MB PSRAM, 480×480 display/touch initialization, and more
@@ -117,4 +118,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-11 — bf5c932 passes repeated warning FPS at 66–77; physical audibility awaits Marcos
+Last updated: 2026-08-11 — Sprint 5 and AC-32 complete after audible double-beep confirmation

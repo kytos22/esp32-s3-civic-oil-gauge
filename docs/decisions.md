@@ -393,3 +393,16 @@
   provide sufficient margin with less constant display work and must be measured.
 - Supersedes: D-032 for the active cadence only; D-032 remains the evidence-backed
   record of why 15 ms and then 14 ms were attempted.
+
+## D-035 — Accept the exact-board warning-audio result
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 acceptance
+- Decision: Accept app `bf5c932` as the completed Sprint 5 warning-audio result
+  and close AC-32 after Marcos confirmed the integrated-speaker double beep is
+  physically audible.
+- Why: All four flash regions were hash-verified, the retained bounded log records
+  three completed tone paths and 29 consecutive 66–77 FPS windows without a panic,
+  watchdog, or audio error, and the remaining physical judgment is now confirmed.
+- Alternatives rejected (and why): Keep Sprint 5 open; no acceptance criterion
+  remains outstanding. Treat this as calibrated vehicle-alarm proof; sensor curves
+  and vehicle alarm semantics remain separately safety-gated.
+- Supersedes: none.

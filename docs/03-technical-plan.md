@@ -166,7 +166,7 @@ flowchart LR
   application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions
   verified; the retained bounded log records three completed tone paths and 29
   consecutive completed-frame windows at 66–77 FPS with no panic, watchdog, or
-  audio error. Physical audibility remains `HARDWARE/JUDGMENT` pending Marcos.
+  audio error. Marcos confirmed the physical double beep is audible on 2026-08-11.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

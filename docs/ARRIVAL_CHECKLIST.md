@@ -40,6 +40,8 @@
   consecutive windows at 65–67 FPS on the locally recorded exact board).
 - [x] Save a bounded warning-audio/FPS log (app `bf5c932`, 2026-08-11; three
   completed tone paths and 29 consecutive windows at 66–77 FPS).
+- [x] Confirm the integrated-speaker double beep is physically audible (Marcos,
+  2026-08-11).
 - [ ] Save the I²C scan.
 - [ ] Confirm built-in peripheral addresses and no conflict at 0x48.
 - [ ] Connect ADS1115 only to 3V3/GND/SDA15/SCL14.

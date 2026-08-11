@@ -14,7 +14,7 @@
   - native tests and the complete ESP-IDF firmware build pass;
   - physical sound and post-change FPS remain `HARDWARE` until Marcos separately
     authorizes flashing the exact board.
-- Status: in progress — explicitly requested by Marcos on 2026-08-11
+- Status: complete — accepted by Marcos on 2026-08-11
 
 ## Hardware verification log
 
@@ -26,13 +26,13 @@
   third warning entry. D-033 CPU1 isolation improved that window to 59 FPS but
   still failed. D-034 exact-board app `bf5c932` passes: all four regions verified,
   and the retained bounded log records three completed tone paths plus 29
-  consecutive 66–77 FPS windows with no runtime fault. Marcos must still confirm
-  that the integrated speaker was physically audible.
+  consecutive 66–77 FPS windows with no runtime fault. Marcos then confirmed
+  that the integrated speaker's double beep was physically audible.
 
 ## Slices
 
 | Slice | Status | Test point result | Notes |
 |---|---|---|---|
 | 5.1 Warning-entry gate | complete | red observed, then native 15/15 pass | Pure state transition logic |
-| 5.2 ES8311 playback worker | complete in software | complete ESP-IDF 6.0.2 build pass | Non-blocking double beep; silent degradation on error |
-| 5.3 Physical proof | pending | `HARDWARE` | Separate flash authorization required |
+| 5.2 ES8311 playback worker | complete | complete ESP-IDF 6.0.2 build pass | Non-blocking double beep; silent degradation on error |
+| 5.3 Physical proof | complete | exact-board 66–77 FPS and audible double beep | Accepted by Marcos on 2026-08-11 |
