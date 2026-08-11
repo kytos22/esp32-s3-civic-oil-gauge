@@ -24,7 +24,10 @@
   periodic audio-load windows fell to 58–59 completed FPS. D-032 records the
   14 ms remediation. Its longer retest still exposed one 58 FPS window at the
   third warning entry. D-033 CPU1 isolation improved that window to 59 FPS but
-  still failed; D-034 sets 13 ms pending another long retest.
+  still failed. D-034 exact-board app `bf5c932` passes: all four regions verified,
+  and the retained bounded log records three completed tone paths plus 29
+  consecutive 66–77 FPS windows with no runtime fault. Marcos must still confirm
+  that the integrated speaker was physically audible.
 
 ## Slices
 

@@ -40,8 +40,8 @@
 
 ## Current position
 - Phase: 5 — Development  Step: Sprint 5 onboard warning audio
-- Next action: rebuild and reflash the already-authorized exact board with D-034,
-  then verify the double beep plus consecutive completed-frame FPS windows. Keep demo mode enabled;
+- Next action: obtain Marcos's physical confirmation that the double beep is
+  audible, then close Sprint 5 if accepted. Keep demo mode enabled;
   sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
@@ -65,8 +65,10 @@
   measured 58–59 FPS. D-032 improved the first two warning entries to 61–64 FPS,
   but a longer run found a third 58 FPS window. D-033 pinned 512-sample audio work
   to CPU1 and improved that repeated-warning window to 59 FPS, still below target.
-  D-034 sets 13 ms pending rebuild, reflash, and physical retest. Audible
-  confirmation remains pending.
+  D-034 app `bf5c932` at 13 ms passes exact-board runtime verification: all four
+  regions hash-verified; the retained bounded log contains three completed tone
+  paths and 29 consecutive 66–77 FPS windows with no panic, watchdog, or audio
+  error. Audible confirmation remains pending from Marcos.
 - Unverified external steps/assets: corrected commit `8e4c24e` was written and verified
   on the locally recorded exact board. A bounded boot capture proved ESP-IDF 6.0.2,
   demo mode, 16 MB flash, 8 MB PSRAM, 480×480 display/touch initialization, and more
@@ -115,4 +117,4 @@
 - Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-11 — CPU1 isolation still exposed a 59 FPS warning window; 13 ms cadence pending retest
+Last updated: 2026-08-11 — bf5c932 passes repeated warning FPS at 66–77; physical audibility awaits Marcos
