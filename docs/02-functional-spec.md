@@ -130,7 +130,7 @@ See `docs/03-technical-plan.md`.
 - **AC-03:** Missing ADS1115 is visible and never yields a retained last-known or fabricated value.
 - **AC-04:** Invalid ADC/thermistor input returns an explicit fault and cannot become an engineering-unit value.
 - **AC-05:** Engine stopped/RPM zero never triggers low-pressure warning.
-- **AC-06:** At engine-running state and 0–10 PSI, the pressure warning text/icon/bar flash at 1 Hz while the numeric value remains stable; reduced motion uses fixed red.
+- **AC-06:** At engine-running state and 0–10 PSI, the pressure warning text/icon/bar use a binary 2 Hz flash (250 ms fully visible, 250 ms fully transparent) while the numeric value remains stable; reduced motion uses fixed red.
 - **AC-07:** Pressure 15–80 PSI maps to the approved amber OK state; 11–14 and >80 remain explicitly provisional until threshold validation.
 - **AC-08:** Temperature below 50 °C renders `<50 °C`, starts at blue, and does not show a precise number.
 - **AC-09:** Temperature color interpolation follows the approved stops at 50, 57, 75, 89, 94, 100, and 138 °C.

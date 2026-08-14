@@ -62,3 +62,20 @@
   direct initial adapter lock plus an unlock call.
 - Rule for next time: inspect the exact implementation and return type of vendor
   synchronization wrappers before relying on their API comments.
+
+## L-006 — Low-opacity blink-off frames look dotted on the AMOLED
+- Symptom: the pressure warning looked as though it were made from dots during the
+  attenuated half of its blink on the physical display.
+- Cause: the renderer deliberately mapped the off phase to `LV_OPA_20`, leaving a
+  sparse-looking 20% composite instead of switching the warning pixels off.
+- Fix: map the off phase to full transparency and use a binary 250 ms on / 250 ms
+  off cycle; keep the numeric pressure continuously visible.
+- Where: Phase 5, Sprint 1 slice 1.5; `src/oil_gauge_ui.cpp` and the editable HTML
+  reference.
+- What failed first: `scripts/keel-verify` reported 0/6 hard 2 Hz firmware/simulator
+  invariants against the former 1 Hz, 20%-opacity implementation.
+- Check added: the native AC-06 boundary regression checks every 250 ms transition;
+  `scripts/keel-verify` requires full transparency and 2 Hz timing in firmware and
+  both simulator representations.
+- Rule for next time: warning-off states on this panel are binary; never substitute
+  low opacity without a new physical acceptance check.

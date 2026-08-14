@@ -253,7 +253,7 @@
   #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-icon,
   #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-state,
   #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-fill {
-    animation: ogr-pressure-warning-blink 1s step-end infinite;
+    animation: ogr-pressure-warning-blink 0.5s step-end infinite;
   }
 
   @keyframes ogr-pressure-warning-blink {
@@ -264,7 +264,7 @@
 
     50%,
     100% {
-      opacity: 0.14;
+      opacity: 0;
     }
   }
 

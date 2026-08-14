@@ -163,8 +163,14 @@ flowchart LR
   verification pass; eight consecutive completed-frame windows measure 65–67 FPS.
   The current 13 ms app `bf5c932` retains that renderer and adds the accepted audio
   path. A user-supplied 28.423-second 60 FPS physical cycle reviewed on 2026-08-14
-  confirms enlarged-label readability, intact glyphs, centered values, intentional
-  warning blink, and no clipping or overlap, closing AC-20 and AC-23 indoors.
+  confirms enlarged-label readability, intact glyphs, centered values, and no
+  clipping or overlap. The low-opacity warning phase was later rejected as
+  dotted-looking; Sprint 1 is reopened for a binary 2 Hz correction and new capture.
+- Current Sprint 1 correction result: the AC-06 contract failed first at 0/6, then
+  passes 6/6; the deterministic 250 ms boundary regression passes in the 16/16
+  native suite. The complete 724,336-byte ESP-IDF 6.0.2 demo image builds with
+  SHA-256 `da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+  Exact-board flash and physical appearance remain `HARDWARE/JUDGMENT`.
 - Current Sprint 5 runtime result: exact-board app `bf5c932` uses a 13 ms
   application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions
   verified; the retained bounded log records three completed tone paths and 29

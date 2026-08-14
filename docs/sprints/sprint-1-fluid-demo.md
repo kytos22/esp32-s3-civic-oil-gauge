@@ -14,8 +14,8 @@
     remain right-aligned, and do not overlap or clip on the physical 480×480 panel;
   - native tests and the complete ESP-IDF firmware build pass;
   - demo mode remains enabled and no sensor, ADC, 12 V, or vehicle path is enabled.
-- Status: complete — accepted from exact-board runtime evidence and the
-  user-supplied physical photo/video on 2026-08-14
+- Status: reopened — software correction complete; new physical warning capture
+  remains required after a separately authorized flash
 
 ## Slices
 
@@ -25,6 +25,7 @@
 | 1.2 Larger semantic labels | complete | physical visual pass | Every short and long state is readable, right-aligned, unclipped, and free of overlap in the supplied 60 FPS video |
 | 1.3 Real FPS instrumentation | complete | eight consecutive windows at 65–67 FPS | Exact-board app `3e0298a`; passing bounded log retained |
 | 1.4 Hardware proof and close-out | complete | exact-board flash/boot/FPS and physical visual pass | Full demo cycle reviewed; warning blink is intentional and numeric values remain continuously visible |
+| 1.5 Hard 2 Hz warning blink | software complete; physical pending | red-first 0/6, then 16/16 native + 6/6 contract + full build pass | Dotted 20% phase removed; 250 ms on/off timing implemented; new separately authorized physical capture remains |
 
 ## Physical close-out evidence
 
@@ -36,7 +37,9 @@
 - The complete physical demo cycle shows `DEMO`, `<50`, every pressure and
   temperature semantic label, centered values, intact Spanish accents, the exact
   50/50 split, and the black AMOLED background without glyph corruption, clipping,
-  or overlap. Warning-off frames are the intended 1 Hz blink; the pressure number
-  remains visible throughout.
-- This evidence closes indoor physical fidelity and handheld-distance readability.
+  or overlap. It also exposed a dotted-looking low-opacity warning phase, so it no
+  longer closes the corrected warning animation; the pressure number remains visible
+  throughout.
+- This evidence retains indoor fidelity and handheld-distance readability for all
+  non-warning-animation elements. The corrected warning needs a new physical check.
   Daylight, night, glare, and in-vehicle motion remain separate pre-vehicle checks.

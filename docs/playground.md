@@ -3,9 +3,16 @@
 Last hardware-assisted verification: 2026-08-14 — a user-supplied 28.423-second,
 1920×1080/60 FPS physical demo video and companion photo confirm the indoor 480×480
 visual match. Every semantic state is readable at handheld distance with intact
-Spanish glyphs, centered values, no clipping or overlap, and an intentional 1 Hz
-warning blink. This closes AC-20, AC-23, and Sprint 1. The video SHA-256 is
+Spanish glyphs, centered values, no clipping or overlap. It also exposed the
+dotted-looking low-opacity phase of the former 1 Hz warning blink. AC-06 and Sprint 1
+are therefore reopened for a binary 2 Hz correction and new physical proof. The video SHA-256 is
 `f27838f6ffb06107d2663e3cd1fef015730935794a4293358aedceede95f749b`.
+
+Current software correction: the AC-06 renderer contract failed first at 0/6 and
+then passes 6/6; the native suite passes 16/16 including the exact 250 ms boundaries.
+The complete ESP-IDF 6.0.2 demo image builds at 724,336 bytes with SHA-256
+`da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+No flash or physical validation was performed for this correction.
 
 Earlier hardware evidence: 2026-08-11 — the warning-audio entry gate passes 15/15
 native tests; exact-board app `bf5c932` and every flash region verified. A retained

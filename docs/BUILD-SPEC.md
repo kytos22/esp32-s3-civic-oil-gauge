@@ -43,7 +43,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | pressure.normal | `#FFB020` | normal icon/bar; contrast 11.48:1 |
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
 | bar.thickness | `9 px` | both bars |
-| warning.period | `1000 ms`, step-end | 1 Hz flash |
+| warning.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
 | refresh.period | `13 ms` | application and LVGL target cadence with repeated-audio margin above 60 FPS |
 | state.font | `Montserrat 24 px` | pressure/temperature semantic state |
 
@@ -67,7 +67,7 @@ Temperature colors are linearly interpolated between:
 |---|---|---|---|---|
 | engine unknown | engine state unavailable | pending/fault cue | non-alarming | implemented/tested |
 | engine stopped | known RPM = 0 | `MOTOR PARADO` | amber, fixed | implemented/tested |
-| warning | running and 0–10 PSI | `WARNING` | red, 1 Hz; reduced motion fixed | implemented/tested |
+| warning | running and 0–10 PSI | `WARNING` | red, binary 2 Hz; reduced motion fixed | implemented/tested; physical recheck pending |
 | low | running and 11–14 PSI | `PRESIÓN BAJA` | provisional amber | implemented/tested |
 | OK | 15–80 PSI | `OK` | `#FFB020` | implemented/tested |
 | high | >80 PSI | `PRESIÓN ALTA` | provisional amber | implemented/tested |

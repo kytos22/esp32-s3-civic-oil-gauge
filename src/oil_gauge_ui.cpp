@@ -522,7 +522,7 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
 
   const bool warning = state.pressure == PressureState::warning;
   const lv_opa_t attentionOpacity =
-      warning && !state.pressureAttentionVisible ? LV_OPA_20 : LV_OPA_COVER;
+      warning && !state.pressureAttentionVisible ? LV_OPA_TRANSP : LV_OPA_COVER;
   if (gUi.pressureAttentionOpacity != attentionOpacity) {
     lv_obj_set_style_opa(gUi.pressureIcon, attentionOpacity, 0);
     lv_obj_set_style_text_opa(gUi.pressureState, attentionOpacity, 0);

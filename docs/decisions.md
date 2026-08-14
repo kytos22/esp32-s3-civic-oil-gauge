@@ -422,3 +422,18 @@
   remains intact. Treat the desk capture as daylight/night or vehicle-motion proof;
   those environmental judgments were not exercised and remain open.
 - Supersedes: none.
+
+## D-037 — Use a hard 2 Hz pressure-warning blink
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 visual correction
+- Decision: The pressure warning icon, label, and bar use a binary 2 Hz blink:
+  250 ms fully visible and 250 ms fully transparent. The numeric pressure remains
+  continuously visible. Reduced-motion mode remains fixed red.
+- Why: Marcos observed that the former low-opacity phase looks dotted on the
+  physical AMOLED and requested a faster, cleaner warning animation. A fully
+  transparent off phase avoids panel/dithering artifacts instead of presenting a
+  dimmed warning as intentional content.
+- Alternatives rejected (and why): Keep the 20% opacity phase; it is the reported
+  visual defect. Keep the 1 Hz cycle; Marcos explicitly selected 2 Hz. Blink the
+  numeric value; it would reduce the continuously readable measurement.
+- Supersedes: D-007 for warning frequency and D-036 only for acceptance of the
+  former warning-off appearance; their other safety and visual conclusions remain.

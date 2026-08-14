@@ -222,6 +222,16 @@ void test_demo_sequence_hits_scenes_and_wraps() {
   TEST_ASSERT_EQUAL_UINT32(0, wrapped.rpm);
 }
 
+void test_ac06_warning_blink_is_binary_two_hertz() {
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(0));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(249'999));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(250'000));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(499'999));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(500'000));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(750'000));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(1'000'000));
+}
+
 void test_warning_tone_gate_triggers_once_and_rearms() {
   WarningToneGate gate;
 
@@ -253,6 +263,7 @@ int main(int, char**) {
   RUN_TEST(test_display_state_warning_motion_and_bars);
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
+  RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
   RUN_TEST(test_warning_tone_gate_triggers_once_and_rearms);
   return UNITY_END();
 }

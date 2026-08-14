@@ -40,7 +40,7 @@ Provisional visual scale: 0–150 PSI.
 | Condition | State label | Color/behavior |
 |---|---|---|
 | RPM = 0 | `MOTOR PARADO` | No alarm |
-| 0–10 PSI and RPM > 0 | `WARNING` | Red, flash at 1 Hz |
+| 0–10 PSI and RPM > 0 | `WARNING` | Red, binary flash at 2 Hz |
 | 11–14 PSI and RPM > 0 | `PRESIÓN BAJA` | Provisional, validate |
 | 15–80 PSI | `OK` | Yellow/amber |
 | >80 PSI | `PRESIÓN ALTA` | Provisional, validate |
@@ -48,8 +48,9 @@ Provisional visual scale: 0–150 PSI.
 Normal icon/bar color: `rgb(255, 176, 32)`.
 Alarm color: `rgb(255, 57, 72)`.
 
-During `WARNING`, icon, text, and bar flash; the numeric value remains fixed
-and readable. With reduced motion, those elements remain fixed red.
+During `WARNING`, icon, text, and bar alternate between fully visible and fully
+transparent every 250 ms; the numeric value remains fixed and readable. No dimmed
+intermediate state is allowed. With reduced motion, those elements remain fixed red.
 
 ## Oil temperature
 

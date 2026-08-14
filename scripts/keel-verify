@@ -263,6 +263,27 @@ def approved_geometry() -> None:
     check("Approved reference geometry", all(conditions), f"{sum(conditions)}/{len(conditions)} invariants")
 
 
+def warning_animation_contract() -> None:
+    demo_sequence = text("src/demo_sequence.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    standalone = text("docs/design/references/oil-gauge-design.html")
+    conditions = [
+        "kWarningBlinkHalfPeriodUs = 250'000U" in demo_sequence,
+        "warning && !state.pressureAttentionVisible ? LV_OPA_TRANSP : LV_OPA_COVER"
+        in renderer,
+        "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in fragment,
+        "opacity: 0;" in fragment,
+        "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in standalone,
+        "opacity: 0;" in standalone,
+    ]
+    check(
+        "AC-06 warning animation",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} hard 2 Hz firmware/simulator invariants",
+    )
+
+
 def marked_existing_paths() -> None:
     plan = text("docs/03-technical-plan.md")
     missing: list[str] = []
@@ -415,6 +436,7 @@ def main() -> int:
     code_fences()
     safety_invariants()
     approved_geometry()
+    warning_animation_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")

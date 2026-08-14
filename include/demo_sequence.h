@@ -12,4 +12,7 @@ struct DemoFrame {
 
 [[nodiscard]] DemoFrame demoFrameAt(std::uint64_t nowUs);
 
+/** Return the on/off phase for the binary 2 Hz pressure-warning blink. */
+[[nodiscard]] bool warningBlinkPhaseOn(std::uint64_t nowUs);
+
 }  // namespace oilgauge

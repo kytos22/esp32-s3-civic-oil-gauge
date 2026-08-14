@@ -33,15 +33,15 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; sensor-input slice not yet authorized | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
+| 5 Development | Sprint 1 reopened for warning-animation correction; Sprints 2–5 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) in progress; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: all planned Sprints 1–5 complete
-- Next action: complete the pending Keel v5.13.0 reconciliation choices, then plan
-  and explicitly authorize a protected ADS1115 bench-input slice. Keep demo mode
+- Phase: 5 — Development  Step: Sprint 1 slice 1.5, hard 2 Hz warning blink
+- Next action: request separate authorization to flash the software-verified binary
+  and capture the corrected binary 2 Hz warning on the exact display. Keep demo mode
   enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
@@ -57,6 +57,13 @@
   and 0.5–4.5 V for 0–150 PSI the leading pressure hypothesis, but no official
   source found equates that document's sensor explicitly with P/N `12-0074`.
 - Keel reconciliation: pending v5.3.2 → v5.13.0. Embedded copies are updated and byte-identical; the lock refresh, full conformance sweep, card additions, red-first migration, and verifier changes await one batched user decision.
+- Sprint 1 warning correction: the renderer-contract check failed first at 0/6,
+  then the new 250 ms boundary regression passed in the 16/16 native suite and
+  `keel-verify` passed 6/6 warning invariants. The complete ESP-IDF 6.0.2 build
+  produced a 724,336-byte demo image, SHA-256
+  `da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+  The icon, label, and bar now switch from full red to full transparency; the
+  numeric pressure stays visible. Exact-board flash and physical judgment are open.
 - Open Design Requests: none
 - Sprint 5 software result: the warning-entry gate failed first with `Expected
   TRUE Was FALSE`, then the 15/15 native suite passed. Exact-board app `0c33fe6`
@@ -93,8 +100,9 @@
   log records a clean ESP-IDF 6.0.2/demo boot and eight consecutive completed-frame
   windows of 65–67 FPS. The user-supplied 28.423-second 60 FPS video and photo were
   reviewed on 2026-08-14: all semantic states, Spanish accents, centered values,
-  icons, bars, black background, warning blink, and 50/50 geometry pass without
-  corruption, clipping, or overlap, closing AC-20, AC-23, and Sprint 1.
+  icons, bars, black background, and 50/50 geometry pass without corruption,
+  clipping, or overlap. The same evidence exposed the warning's dotted low-opacity
+  phase; AC-06 and Sprint 1 now await the binary 2 Hz correction and new physical proof.
 - Forge issues in progress: none
 - Repository publication: Marcos selected public visibility for
   `kytos22/esp32-s3-civic-oil-gauge` on 2026-08-04. The public repository is live
@@ -122,4 +130,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — indoor physical UI review closes AC-20, AC-23, and Sprint 1
+Last updated: 2026-08-14 — binary 2 Hz warning passes software; physical proof pending

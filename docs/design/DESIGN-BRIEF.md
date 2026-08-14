@@ -43,7 +43,8 @@
 - Geometry: 480×480, equal 240 px regions, values centered at x=240, 9 px bars.
 - Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
   reference. They are path geometry, not external image assets.
-- Motion: pressure warning flashes at 1 Hz; reduced-motion mode holds the warning red.
+- Motion: pressure warning uses a binary 2 Hz flash (250 ms fully visible, 250 ms
+  fully transparent); reduced-motion mode holds the warning red.
 
 ## 3. Screen inventory
 

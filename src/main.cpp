@@ -28,7 +28,7 @@ WarningToneGate gWarningToneGate;
 
 void renderDemoFrame(std::uint64_t nowUs) {
   const DemoFrame frame = demoFrameAt(nowUs);
-  const bool blinkPhaseOn = ((nowUs / 500'000U) % 2U) == 0U;
+  const bool blinkPhaseOn = warningBlinkPhaseOn(nowUs);
   const ConvertedValue pressure{frame.pressurePsi, Fault::none};
   const ConvertedValue temperature{frame.temperatureC, Fault::none};
   const EngineState engine{true, frame.rpm};
