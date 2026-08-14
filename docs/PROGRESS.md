@@ -40,9 +40,9 @@
 
 ## Current position
 - Phase: 5 — Development  Step: Sprint 1 slice 1.5, hard 2 Hz warning blink
-- Next action: request separate authorization to flash the software-verified binary
-  and capture the corrected binary 2 Hz warning on the exact display. Keep demo mode
-  enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
+- Next action: obtain Marcos's physical judgment that the flashed 2 Hz warning has
+  no dotted phase and keeps the numeric pressure visible. Keep demo mode enabled;
+  sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
@@ -63,7 +63,12 @@
   produced clean app `002581d`, a 724,336-byte demo image with SHA-256
   `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
   The icon, label, and bar now switch from full red to full transparency; the
-  numeric pressure stays visible. Exact-board flash and physical judgment are open.
+  numeric pressure stays visible. The exact authorized board now runs app `002581d`:
+  all regions passed write-time verification, immutable regions passed post-boot
+  verification, and the retained log SHA-256
+  `6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`
+  records a clean demo boot, two warning tones, and 16 consecutive 64–77 FPS windows.
+  Only Marcos's physical appearance judgment remains open for this slice.
 - Open Design Requests: none
 - Sprint 5 software result: the warning-entry gate failed first with `Expected
   TRUE Was FALSE`, then the 15/15 native suite passed. Exact-board app `0c33fe6`
@@ -130,4 +135,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — binary 2 Hz warning passes software; physical proof pending
+Last updated: 2026-08-14 — app 002581d flashed and stable; physical judgment pending

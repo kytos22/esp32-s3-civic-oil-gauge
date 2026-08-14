@@ -12,7 +12,12 @@ Current software correction: the AC-06 renderer contract failed first at 0/6 and
 then passes 6/6; the native suite passes 16/16 including the exact 250 ms boundaries.
 The clean ESP-IDF 6.0.2 app `002581d` builds at 724,336 bytes with SHA-256
 `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
-No flash or physical validation was performed for this correction.
+It is now flashed on the exact authorized board. All four regions passed write-time
+verification; immutable regions pass after boot. Retained capture
+`.artifacts/hardware/2026-08-14/warning-2hz-002581d.typescript`, SHA-256
+`6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`,
+records a clean demo boot, two warning tones, and 16 consecutive 64–77 FPS windows.
+Marcos's visual judgment of the corrected blink remains open.
 
 Earlier hardware evidence: 2026-08-11 — the warning-audio entry gate passes 15/15
 native tests; exact-board app `bf5c932` and every flash region verified. A retained

@@ -79,3 +79,19 @@
   both simulator representations.
 - Rule for next time: warning-off states on this panel are binary; never substitute
   low opacity without a new physical acceptance check.
+
+## L-007 — OTA selection data changes on the first boot
+- Symptom: post-boot `verify-flash` matched bootloader, partition table, and app but
+  reported a digest mismatch for `ota_data_initial.bin`.
+- Cause: `ota_data_initial.bin` is an empty initialization image; the bootloader
+  updates the mutable `otadata` partition when it selects app0 on first boot.
+- Fix: require write-time verification for all four images, then verify the immutable
+  bootloader, partition table, and app after boot. Record the expected `otadata`
+  mutation instead of reflashing it in a loop.
+- Where: Phase 5, Sprint 1 slice 1.5 exact-board flash.
+- What failed first: a post-boot four-region comparison after every region had
+  already passed esptool's write-time hash verification.
+- Check added: the AC-06/AC-22 evidence rows now distinguish write-time verification
+  from post-boot immutable-region verification.
+- Rule for next time: never use an initial OTA-data blob as an immutable post-boot
+  reference.

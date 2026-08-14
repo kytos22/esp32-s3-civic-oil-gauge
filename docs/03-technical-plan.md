@@ -171,7 +171,11 @@ flowchart LR
   native suite. Clean app `002581d` builds as a complete 724,336-byte ESP-IDF 6.0.2
   demo image with SHA-256
   `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
-  Exact-board flash and physical appearance remain `HARDWARE/JUDGMENT`.
+  Exact-board app `002581d` passes identity-gated flash, write-time region
+  verification, post-boot immutable-region verification, clean demo boot, and 16
+  consecutive 64–77 FPS windows through two warning entries. The retained log
+  SHA-256 is `6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`.
+  Corrected physical appearance remains `JUDGMENT`.
 - Current Sprint 5 runtime result: exact-board app `bf5c932` uses a 13 ms
   application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions
   verified; the retained bounded log records three completed tone paths and 29
