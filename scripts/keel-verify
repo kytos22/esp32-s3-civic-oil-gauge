@@ -326,7 +326,7 @@ def sprint6_physical_revision_contract() -> None:
     fragment = text("docs/design/references/oil-gauge-design.fragment.html")
     conditions = [
         "DataSource::sensors" in settings,
-        'nvs_set_u8(handle, "source"' in store,
+        re.search(r'nvs_set_u8\(\s*handle,\s*"source"', store) is not None,
         "gSettings.dataSource == DataSource::demo" in main,
         "kFullScreenWarningHalfPeriodUs = 1'000'000U" in demo,
         '"PELIGRO"' in renderer,
