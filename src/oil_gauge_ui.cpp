@@ -63,6 +63,9 @@ struct UiWidgets {
   BarWidgets pressureBar{};
   lv_obj_t* temperatureState = nullptr;
   lv_obj_t* temperatureValue = nullptr;
+  lv_obj_t* temperatureUnit = nullptr;
+  lv_obj_t* temperatureOptimalReference = nullptr;
+  lv_obj_t* temperatureHotReference = nullptr;
   lv_obj_t* temperatureIcon = nullptr;
   lv_obj_t* brightnessSlider = nullptr;
   lv_obj_t* soundSwitch = nullptr;
@@ -71,6 +74,8 @@ struct UiWidgets {
   lv_obj_t* sensorsButton = nullptr;
   lv_obj_t* unitPsiButton = nullptr;
   lv_obj_t* unitBarButton = nullptr;
+  lv_obj_t* unitCelsiusButton = nullptr;
+  lv_obj_t* unitFahrenheitButton = nullptr;
   lv_obj_t* warningElementsButton = nullptr;
   lv_obj_t* warningScreenButton = nullptr;
   lv_obj_t* warningFixedButton = nullptr;
@@ -85,6 +90,7 @@ struct UiWidgets {
   GaugeSettings settings{};
   GaugeSettings defaults{};
   PressureUnit renderedUnit = PressureUnit::psi;
+  TemperatureUnit renderedTemperatureUnit = TemperatureUnit::celsius;
   OilGaugeUiActions pendingActions{};
   lv_opa_t pressureAttentionOpacity = LV_OPA_TRANSP;
   bool pressureColorSet = false;
@@ -93,6 +99,7 @@ struct UiWidgets {
   bool menuDirty = false;
   bool warningActive = false;
   bool unitRendered = false;
+  bool temperatureUnitRendered = false;
   bool actionsPending = false;
   bool created = false;
 };
@@ -205,6 +212,11 @@ void refreshMenuControls() {
       gUi.unitPsiButton, gUi.settings.pressureUnit == PressureUnit::psi);
   setChoiceSelected(
       gUi.unitBarButton, gUi.settings.pressureUnit == PressureUnit::bar);
+  setChoiceSelected(gUi.unitCelsiusButton,
+                    gUi.settings.temperatureUnit == TemperatureUnit::celsius);
+  setChoiceSelected(
+      gUi.unitFahrenheitButton,
+      gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit);
   setChoiceSelected(
       gUi.demoButton, gUi.settings.dataSource == DataSource::demo);
   setChoiceSelected(
@@ -291,6 +303,15 @@ void unitEvent(lv_event_t* event) {
       lv_event_get_target_obj(event) == gUi.unitBarButton
           ? PressureUnit::bar
           : PressureUnit::psi;
+  refreshMenuControls();
+  queueSettingsApply();
+}
+
+void temperatureUnitEvent(lv_event_t* event) {
+  gUi.settings.temperatureUnit =
+      lv_event_get_target_obj(event) == gUi.unitFahrenheitButton
+          ? TemperatureUnit::fahrenheit
+          : TemperatureUnit::celsius;
   refreshMenuControls();
   queueSettingsApply();
 }
@@ -438,7 +459,7 @@ void createSettingsMenu(lv_obj_t* screen) {
   lv_obj_t* content = lv_obj_create(gUi.menu);
   lv_obj_remove_style_all(content);
   lv_obj_set_pos(content, 0, 0);
-  lv_obj_set_size(content, kCanvasWidth, 930);
+  lv_obj_set_size(content, kCanvasWidth, 1050);
   lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
 
   createLabel(content,
@@ -502,33 +523,42 @@ void createSettingsMenu(lv_obj_t* screen) {
 
   createLabel(content, "UNIDADES", 28, 552, 220, 24, &oil_font_ui_16,
               color(kSecondary), LV_TEXT_ALIGN_LEFT);
+  createLabel(content, "PRESIÓN", 28, 584, 150, 20, &oil_font_ui_12,
+              color(kPrimary), LV_TEXT_ALIGN_LEFT);
   gUi.unitPsiButton = createMenuButton(
-      content, "PSI", 28, 590, 150, 50, unitEvent);
+      content, "PSI", 28, 610, 150, 50, unitEvent);
   gUi.unitBarButton = createMenuButton(
-      content, "BAR", 194, 590, 150, 50, unitEvent);
+      content, "BAR", 194, 610, 150, 50, unitEvent);
 
-  createLabel(content, "PARPADEO WARNING", 28, 682, 300, 24,
+  createLabel(content, "TEMPERATURA", 28, 676, 180, 20, &oil_font_ui_12,
+              color(kPrimary), LV_TEXT_ALIGN_LEFT);
+  gUi.unitCelsiusButton = createMenuButton(
+      content, "°C", 28, 702, 150, 50, temperatureUnitEvent);
+  gUi.unitFahrenheitButton = createMenuButton(
+      content, "°F", 194, 702, 150, 50, temperatureUnitEvent);
+
+  createLabel(content, "PARPADEO WARNING", 28, 794, 300, 24,
               &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
   gUi.warningElementsButton = createMenuButton(
-      content, "ELEMENTOS", 28, 720, 136, 50, warningModeEvent);
+      content, "ELEMENTOS", 28, 832, 136, 50, warningModeEvent);
   gUi.warningScreenButton = createMenuButton(
-      content, "PANTALLA", 172, 720, 136, 50, warningModeEvent);
+      content, "PANTALLA", 172, 832, 136, 50, warningModeEvent);
   gUi.warningFixedButton = createMenuButton(
-      content, "FIJO", 316, 720, 136, 50, warningModeEvent);
+      content, "FIJO", 316, 832, 136, 50, warningModeEvent);
 
-  createLabel(content, "SISTEMA", 28, 812, 220, 24, &oil_font_ui_16,
+  createLabel(content, "SISTEMA", 28, 924, 220, 24, &oil_font_ui_16,
               color(kSecondary), LV_TEXT_ALIGN_LEFT);
   createLabel(content,
               "DEMO · DISPLAY OK · TOUCH OK · AUDIO",
               28,
-              848,
+              960,
               424,
               20,
               &oil_font_ui_12,
               color(kPrimary),
               LV_TEXT_ALIGN_LEFT);
   createMenuButton(
-      content, "RESTABLECER", 28, 882, 190, 48, resetRequestEvent);
+      content, "RESTABLECER", 28, 994, 190, 48, resetRequestEvent);
 
   gUi.resetConfirm = createSolid(screen, 30, 125, 420, 230, 18);
   lv_obj_set_style_bg_color(gUi.resetConfirm, color(kPanel), 0);
@@ -846,38 +876,38 @@ void createOilGaugeUi(lv_obj_t* screen,
                                      color(kPrimary),
                                      LV_TEXT_ALIGN_CENTER);
   lv_obj_set_style_text_letter_space(gUi.temperatureValue, -5, 0);
-  createLabel(gUi.gaugeRoot,
-              "°C",
-              340,
-              359,
-              70,
-              32,
-              &lv_font_montserrat_24,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  gUi.temperatureUnit = createLabel(gUi.gaugeRoot,
+                                    "°C",
+                                    340,
+                                    359,
+                                    70,
+                                    32,
+                                    &lv_font_montserrat_24,
+                                    color(kSecondary),
+                                    LV_TEXT_ALIGN_LEFT);
 
   static constexpr double kTemperatureTicks[] = {
       0.080, 0.284, 0.455, 0.500, 0.568};
   gUi.temperatureBar = createBar(
       gUi.gaugeRoot, 424, kTemperatureTicks, std::size(kTemperatureTicks));
-  createLabel(gUi.gaugeRoot,
-              "Óptimo desde 75 °C",
-              kContentX,
-              441,
-              200,
-              16,
-              &oil_font_ui_12,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
-  createLabel(gUi.gaugeRoot,
-              ">94 °C caliente",
-              252,
-              441,
-              190,
-              16,
-              &oil_font_ui_12,
-              color(kSecondary),
-              LV_TEXT_ALIGN_RIGHT);
+  gUi.temperatureOptimalReference = createLabel(gUi.gaugeRoot,
+                                                 "Óptimo desde 75 °C",
+                                                 kContentX,
+                                                 441,
+                                                 200,
+                                                 16,
+                                                 &oil_font_ui_12,
+                                                 color(kSecondary),
+                                                 LV_TEXT_ALIGN_LEFT);
+  gUi.temperatureHotReference = createLabel(gUi.gaugeRoot,
+                                             ">94 °C caliente",
+                                             252,
+                                             441,
+                                             190,
+                                             16,
+                                             &oil_font_ui_12,
+                                             color(kSecondary),
+                                             LV_TEXT_ALIGN_RIGHT);
 
   createSettingsMenu(screen);
   createFullScreenWarning(screen);
@@ -935,6 +965,19 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     gUi.renderedUnit = gUi.settings.pressureUnit;
     gUi.unitRendered = true;
   }
+  if (!gUi.temperatureUnitRendered ||
+      gUi.renderedTemperatureUnit != gUi.settings.temperatureUnit) {
+    const bool fahrenheit =
+        gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit;
+    lv_label_set_text(gUi.temperatureUnit, fahrenheit ? "°F" : "°C");
+    lv_label_set_text(gUi.temperatureOptimalReference,
+                      fahrenheit ? "Óptimo desde 167 °F"
+                                 : "Óptimo desde 75 °C");
+    lv_label_set_text(gUi.temperatureHotReference,
+                      fahrenheit ? ">201 °F caliente" : ">94 °C caliente");
+    gUi.renderedTemperatureUnit = gUi.settings.temperatureUnit;
+    gUi.temperatureUnitRendered = true;
+  }
   setLabelTextIfChanged(gUi.pressureState,
                         gUi.pressureStateText,
                         sensorsPending ? "SIN DATOS"
@@ -980,12 +1023,19 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   if (!temperature.valid()) {
     std::snprintf(temperatureText, sizeof(temperatureText), "--");
   } else if (state.showTemperatureBelowRange) {
-    std::snprintf(temperatureText, sizeof(temperatureText), "<50");
+    std::snprintf(temperatureText,
+                  sizeof(temperatureText),
+                  "%s",
+                  gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit
+                      ? "<122"
+                      : "<50");
   } else {
+    const double displayedTemperature = temperatureForDisplay(
+        temperature.value, gUi.settings.temperatureUnit);
     std::snprintf(temperatureText,
                   sizeof(temperatureText),
                   "%d",
-                  static_cast<int>(std::lround(temperature.value)));
+                  static_cast<int>(std::lround(displayedTemperature)));
   }
   setLabelTextIfChanged(
       gUi.temperatureValue, gUi.temperatureValueText, temperatureText);

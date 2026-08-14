@@ -57,3 +57,9 @@ Planning assumption: subscription/seat access, therefore no separate marginal to
   installed and the replacement gauge does not enter service.
 - Final automotive PCB/enclosure certification is excluded.
 - The CAN/OBD display is excluded and planned separately.
+
+## Scope amendment — 2026-08-15
+
+Persistent Fahrenheit presentation plus the BAR decimal-font regression adds an
+estimated 0.5–1.0 AI working hour and no additional hardware assembly time. Physical
+AMOLED confirmation is folded into the already pending Sprint 6 exact-board pass.

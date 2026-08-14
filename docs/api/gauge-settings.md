@@ -16,14 +16,22 @@ enabled.
 
 ### `GaugeSettings`
 
-Carries brightness, warning sound enable/volume, pressure unit, warning visual mode,
-and data source. `sanitizeGaugeSettings()` clamps percentages to 5–100 and replaces
-invalid enum representations with safe demo defaults.
+Carries brightness, warning sound enable/volume, pressure unit, temperature unit,
+warning visual mode, and data source. `sanitizeGaugeSettings()` clamps percentages
+to 5–100 and replaces invalid enum representations with safe demo defaults.
 
 ### `pressureForDisplay()`
 
 Converts canonical PSI to PSI or bar for display only. It never changes thresholds,
 bar fractions, calibration, or alarm evaluation.
+
+### `TemperatureUnit` and `temperatureForDisplay()`
+
+`celsius` and `fahrenheit` select presentation only.
+`temperatureForDisplay(temperatureC, unit)` returns the canonical Celsius input
+unchanged or applies `°F = °C × 9/5 + 32`. Temperature states, colors, bar fractions,
+calibration, and alarms always consume the original Celsius value. The renderer maps
+the validated lower floor to `<50 °C` or `<122 °F`.
 
 ## Warning presentation
 

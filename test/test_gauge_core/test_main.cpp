@@ -249,6 +249,7 @@ void test_settings_are_sanitized_to_safe_ranges() {
   settings.brightnessPercent = 0;
   settings.warningVolumePercent = 255;
   settings.pressureUnit = static_cast<PressureUnit>(99);
+  settings.temperatureUnit = static_cast<TemperatureUnit>(99);
   settings.warningVisualMode = static_cast<WarningVisualMode>(99);
   settings.dataSource = static_cast<DataSource>(99);
 
@@ -257,6 +258,8 @@ void test_settings_are_sanitized_to_safe_ranges() {
   TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
   TEST_ASSERT_EQUAL_INT(static_cast<int>(PressureUnit::psi),
                         static_cast<int>(sanitized.pressureUnit));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureUnit::celsius),
+                        static_cast<int>(sanitized.temperatureUnit));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningVisualMode::elementsBlink),
                         static_cast<int>(sanitized.warningVisualMode));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::demo),
@@ -291,6 +294,19 @@ void test_pressure_units_convert_only_the_display_value() {
       1e-9, 61.0, pressureForDisplay(61.0, PressureUnit::psi));
   TEST_ASSERT_DOUBLE_WITHIN(
       1e-6, 4.205802, pressureForDisplay(61.0, PressureUnit::bar));
+}
+
+void test_temperature_units_convert_only_the_display_value() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 50.0, temperatureForDisplay(50.0, TemperatureUnit::celsius));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 122.0, temperatureForDisplay(50.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 167.0, temperatureForDisplay(75.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 201.2, temperatureForDisplay(94.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 212.0, temperatureForDisplay(100.0, TemperatureUnit::fahrenheit));
 }
 
 void test_full_screen_warning_never_hides_pressure_number() {
@@ -340,6 +356,7 @@ int main(int, char**) {
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);
   RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);
   RUN_TEST(test_pressure_units_convert_only_the_display_value);
+  RUN_TEST(test_temperature_units_convert_only_the_display_value);
   RUN_TEST(test_full_screen_warning_never_hides_pressure_number);
   return UNITY_END();
 }

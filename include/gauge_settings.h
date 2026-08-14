@@ -9,6 +9,11 @@ enum class PressureUnit : std::uint8_t {
   bar = 1,
 };
 
+enum class TemperatureUnit : std::uint8_t {
+  celsius = 0,
+  fahrenheit = 1,
+};
+
 enum class WarningVisualMode : std::uint8_t {
   elementsBlink = 0,
   fullScreenBlink = 1,
@@ -25,6 +30,7 @@ struct GaugeSettings {
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   PressureUnit pressureUnit = PressureUnit::psi;
+  TemperatureUnit temperatureUnit = TemperatureUnit::celsius;
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
   DataSource dataSource = DataSource::demo;
 };
@@ -38,6 +44,8 @@ struct WarningPresentation {
 [[nodiscard]] GaugeSettings sanitizeGaugeSettings(GaugeSettings settings);
 [[nodiscard]] double pressureForDisplay(double pressurePsi,
                                         PressureUnit unit);
+[[nodiscard]] double temperatureForDisplay(double temperatureC,
+                                           TemperatureUnit unit);
 [[nodiscard]] WarningPresentation evaluateWarningPresentation(
     WarningVisualMode mode,
     bool warningActive,

@@ -560,3 +560,21 @@
   authorization.
 - Supersedes: D-043 only where it described per-tone codec mute/unmute; its required
   zero-amplitude tone edges and all other menu/warning decisions remain unchanged.
+
+## D-045 — Add Fahrenheit as a display unit and repair the BAR decimal glyph
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 review extension
+- Decision: Add a persistent Celsius/Fahrenheit temperature-unit preference. Keep
+  acquisition, state bands, colors, bar normalization, thresholds, and alarms in
+  canonical degrees Celsius; convert only the displayed temperature, unit, reference
+  labels, and simulator readout. Below the validated 50 °C floor, Fahrenheit mode
+  displays `<122 °F`. Regenerate the 96 px numeric font with the decimal-point glyph
+  required by one-decimal BAR values so LVGL never substitutes its missing-glyph box.
+- Why: Marcos requested Fahrenheit mode and reported a visible rectangle between the
+  BAR digits on the prior physical build. Inspection found that the renderer emits a
+  decimal point while the dedicated numeric font contains `-`, digits, and `<` but no
+  U+002E glyph.
+- Alternatives rejected (and why): Convert internal temperature thresholds to
+  Fahrenheit; it would duplicate safety logic and introduce rounding boundaries.
+  Draw the decimal with a smaller fallback font; it would not match the baseline or
+  preserve centered numeric typography.
+- Supersedes: none.

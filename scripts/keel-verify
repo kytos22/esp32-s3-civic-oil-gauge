@@ -268,6 +268,42 @@ def approved_geometry() -> None:
     check("Approved reference geometry", all(conditions), f"{sum(conditions)}/{len(conditions)} invariants")
 
 
+def bar_decimal_glyph_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    value_font = text("src/fonts/oil_font_value_96.c")
+    conditions = [
+        '"%.1f"' in renderer,
+        '/* U+002E "." */' in value_font,
+    ]
+    check(
+        "BAR decimal glyph regression",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} renderer/font invariants",
+    )
+
+
+def temperature_units_contract() -> None:
+    settings_header = text("include/gauge_settings.h")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    conditions = [
+        "enum class TemperatureUnit" in settings_header,
+        "temperatureForDisplay(" in settings,
+        '"temp_unit"' in store,
+        "TemperatureUnit::fahrenheit" in renderer,
+        '"°F"' in renderer,
+        'id="ogrTemperatureUnitInput"' in fragment,
+        "grados Fahrenheit" in fragment,
+    ]
+    check(
+        "Temperature unit presentation",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} model/store/renderer/simulator invariants",
+    )
+
+
 def warning_animation_contract() -> None:
     demo_sequence = text("src/demo_sequence.cpp")
     renderer = text("src/oil_gauge_ui.cpp")
@@ -497,6 +533,8 @@ def main() -> int:
     code_fences()
     safety_invariants()
     approved_geometry()
+    bar_decimal_glyph_contract()
+    temperature_units_contract()
     warning_animation_contract()
     settings_menu_contract()
     sprint6_physical_revision_contract()

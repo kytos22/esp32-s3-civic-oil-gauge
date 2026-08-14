@@ -39,12 +39,13 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 physical-review corrections complete in software
-- Next action: request explicit authorization to flash the revised image, then verify
-  selectable/persisted no-data `SENSORES`, a menu that remains open, the atomic 0.5 Hz
-  full-screen danger warning, puff-free audio edges, and sustained completed-frame
-  FPS. NVS reboot persistence is already physically confirmed. Keep compile-time
-  demo support enabled; sensor calibration and vehicle cutover remain separate
+- Phase: 5 — Sprint 6 review extension complete in software
+- Next action: after new explicit flash authorization, verify on the exact AMOLED
+  that BAR renders a clean decimal point and that the persistent °C/°F control,
+  including `<122` below-range Fahrenheit presentation, behaves as specified.
+  Recheck the previously pending full-screen warning, menu, thermometer, audio-edge,
+  and FPS observations in that same bounded demo-only run. Keep compile-time demo
+  support enabled; sensor calibration and vehicle cutover remain separate
   safety-gated work.
 
 ## Open items
@@ -182,4 +183,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — Sprint 6 exact-board runtime passed; guided touch/visual/persistence proof pending
+Last updated: 2026-08-15 — Sprint 6 review extension complete in software; no flash authorized

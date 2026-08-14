@@ -69,7 +69,7 @@ runtime changes only its hidden flag and never reorders or rebuilds it.
 
 The MTX-D display starts near 49 °C. Until a wider direct curve is validated:
 
-- below 50 °C render `<50 °C`;
+- below 50 °C render `<50 °C`, or `<122 °F` when Fahrenheit is selected;
 - keep icon blue and bar empty below 50 °C;
 - never show a precise number below the validated range.
 
@@ -105,7 +105,7 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 - warning sound enabled, volume 5–100%, and the real double-beep test;
 - selectable `DEMO` and `SENSORES`; the latter shows `--`, `SIN DATOS`, and
   `CALIBRACIÓN PENDIENTE` in neutral gray without enabling acquisition;
-- PSI/bar units;
+- separate PSI/bar pressure units and °C/°F temperature units;
 - warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
 - read-only diagnostics and a confirmation-protected settings reset;
 - `VOLVER`; there is no inactivity timeout.
@@ -114,6 +114,14 @@ An active pressure warning closes the menu immediately. Safe preferences persist
 in NVS when the menu closes; missing/corrupt NVS falls back to compile-time defaults.
 The source choice persists, but `SENSORES` remains an explicit no-data calibration
 gate until a separately validated acquisition path exists.
+
+Unit conversion is presentation-only. Temperature states, colors, bar position,
+and warnings always use canonical degrees Celsius. The large numeric font must
+contain `-`, `.`, digits, and `<`; BAR's decimal point uses the same 96 px face and
+must never fall back to a missing-glyph rectangle.
+
+This review extension is recorded in [DR-002](design/design-requests/DR-002.md)
+and D-045.
 
 ## Browser controls
 

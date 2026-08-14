@@ -104,6 +104,11 @@ extern "C" void app_main(void) {
   const GaugeSettings defaults = compileTimeDefaults();
   const bool settingsStoreAvailable = initSettingsStore();
   gSettings = settingsStoreAvailable ? loadGaugeSettings(defaults) : defaults;
+  ESP_LOGI(kTag,
+           "Settings loaded: pressure_unit=%u temperature_unit=%u source=%u",
+           static_cast<unsigned>(gSettings.pressureUnit),
+           static_cast<unsigned>(gSettings.temperatureUnit),
+           static_cast<unsigned>(gSettings.dataSource));
 
   lv_display_t* display = bsp_display_start();
   if (display == nullptr) {

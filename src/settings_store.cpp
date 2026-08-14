@@ -51,6 +51,9 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "unit", value)) {
     settings.pressureUnit = static_cast<PressureUnit>(value);
   }
+  if (readU8(handle, "temp_unit", value)) {
+    settings.temperatureUnit = static_cast<TemperatureUnit>(value);
+  }
   if (readU8(handle, "warning", value)) {
     settings.warningVisualMode = static_cast<WarningVisualMode>(value);
   }
@@ -79,6 +82,10 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(handle, "unit", static_cast<std::uint8_t>(settings.pressureUnit));
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "temp_unit", static_cast<std::uint8_t>(settings.temperatureUnit));
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(

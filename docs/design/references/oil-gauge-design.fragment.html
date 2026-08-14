@@ -50,7 +50,7 @@
           <path class="ogr-wave" d="M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0" />
         </svg>
         <span class="ogr-value" id="ogrTemperatureValue">92</span>
-        <span class="ogr-unit">°C</span>
+        <span class="ogr-unit" id="ogrTemperatureUnit">°C</span>
       </div>
       <div class="ogr-scale" aria-hidden="true">
         <span class="ogr-fill" id="ogrTemperatureFill"></span>
@@ -61,8 +61,8 @@
         <i style="left:56.8%"></i>
       </div>
       <div class="ogr-context">
-        <span>Óptimo desde 75 °C</span>
-        <span>&gt;94 °C caliente</span>
+        <span id="ogrTemperatureOptimalReference">Óptimo desde 75 °C</span>
+        <span id="ogrTemperatureHotReference">&gt;94 °C caliente</span>
       </div>
     </section>
     <div class="ogr-full-warning" id="ogrFullWarning" aria-hidden="true">
@@ -86,10 +86,17 @@
       <input class="form-range" id="ogrTemperatureInput" type="range" min="0" max="138" value="92">
     </label>
     <label class="form-label" for="ogrUnitInput">
-      Unidades
+      Unidades de presión
       <select id="ogrUnitInput">
         <option value="psi">PSI</option>
         <option value="bar">BAR</option>
+      </select>
+    </label>
+    <label class="form-label" for="ogrTemperatureUnitInput">
+      Unidades de temperatura
+      <select id="ogrTemperatureUnitInput">
+        <option value="celsius">°C</option>
+        <option value="fahrenheit">°F</option>
       </select>
     </label>
     <label class="form-label" for="ogrWarningModeInput">
@@ -408,13 +415,17 @@
     const rpmInput = document.getElementById('ogrRpmInput');
     const temperatureInput = document.getElementById('ogrTemperatureInput');
     const unitInput = document.getElementById('ogrUnitInput');
+    const temperatureUnitInput = document.getElementById('ogrTemperatureUnitInput');
     const warningModeInput = document.getElementById('ogrWarningModeInput');
     const pressureValue = document.getElementById('ogrPressureValue');
     const temperatureValue = document.getElementById('ogrTemperatureValue');
     const fullWarningValue = document.getElementById('ogrFullWarningValue');
     const pressureUnit = document.getElementById('ogrPressureUnit');
+    const temperatureUnit = document.getElementById('ogrTemperatureUnit');
     const pressureLowReference = document.getElementById('ogrPressureLowReference');
     const pressureOkReference = document.getElementById('ogrPressureOkReference');
+    const temperatureOptimalReference = document.getElementById('ogrTemperatureOptimalReference');
+    const temperatureHotReference = document.getElementById('ogrTemperatureHotReference');
     const pressureState = document.getElementById('ogrPressureState');
     const temperatureState = document.getElementById('ogrTemperatureState');
     const pressureFill = document.getElementById('ogrPressureFill');
@@ -482,8 +493,12 @@
       const [temperatureKey, temperatureLabel] = getTemperatureState(temperature);
       const pressureColor = pressureKey === 'warning' ? toRgb(red) : toRgb(yellow);
       const currentTemperatureColor = temperatureColor(temperature);
-      const temperatureDisplay = temperature < 50 ? '<50' : String(temperature);
       const bar = unitInput.value === 'bar';
+      const fahrenheit = temperatureUnitInput.value === 'fahrenheit';
+      const displayedTemperature = fahrenheit ? (temperature * 9 / 5) + 32 : temperature;
+      const temperatureDisplay = temperature < 50
+        ? (fahrenheit ? '<122' : '<50')
+        : String(Math.round(displayedTemperature));
       const pressureDisplay = bar ? (psi * 0.0689475729).toFixed(1) : String(psi);
 
       screen.dataset.warningMode = warningModeInput.value;
@@ -494,8 +509,15 @@
       pressureValue.textContent = pressureDisplay;
       fullWarningValue.textContent = pressureDisplay;
       pressureUnit.textContent = bar ? 'BAR' : 'PSI';
+      temperatureUnit.textContent = fahrenheit ? '°F' : '°C';
       pressureLowReference.textContent = bar ? 'Alerta ≤0,7 BAR' : 'Alerta ≤10 PSI';
       pressureOkReference.textContent = bar ? 'OK: 1,0–5,5 BAR' : 'OK: 15–80 PSI';
+      temperatureOptimalReference.textContent = fahrenheit
+        ? 'Óptimo desde 167 °F'
+        : 'Óptimo desde 75 °C';
+      temperatureHotReference.textContent = fahrenheit
+        ? '>201 °F caliente'
+        : '>94 °C caliente';
       temperatureValue.textContent = temperatureDisplay;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
@@ -503,17 +525,17 @@
       temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
       pressureControlValue.textContent = `${pressureDisplay} ${bar ? 'BAR' : 'PSI'}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
-      temperatureControlValue.textContent = `${temperature} °C`;
+      temperatureControlValue.textContent = `${Math.round(displayedTemperature)} ${fahrenheit ? '°F' : '°C'}`;
       pressureHalf.setAttribute('aria-label', `Presión de aceite ${pressureDisplay} ${bar ? 'bar' : 'PSI'}, ${pressureLabel}, motor a ${rpm} RPM`);
       temperatureHalf.setAttribute(
         'aria-label',
         temperature < 50
-          ? `Temperatura de aceite por debajo de 50 grados Celsius, ${temperatureLabel}`
-          : `Temperatura de aceite ${temperature} grados Celsius, ${temperatureLabel}`
+          ? `Temperatura de aceite por debajo de ${fahrenheit ? '122 grados Fahrenheit' : '50 grados Celsius'}, ${temperatureLabel}`
+          : `Temperatura de aceite ${Math.round(displayedTemperature)} grados ${fahrenheit ? 'Fahrenheit' : 'Celsius'}, ${temperatureLabel}`
       );
     };
 
-    [pressureInput, rpmInput, temperatureInput, unitInput, warningModeInput].forEach((input) => {
+    [pressureInput, rpmInput, temperatureInput, unitInput, temperatureUnitInput, warningModeInput].forEach((input) => {
       input.addEventListener('input', update);
     });
 

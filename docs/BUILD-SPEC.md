@@ -115,8 +115,9 @@ Temperature colors are linearly interpolated between:
 | pressure warning while menu open | close settings immediately and show warning | warning active |
 | data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
-| units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
-| temperature below 50 | render `<50`, empty temperature bar | valid sample |
+| pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
+| temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
+| temperature below 50 | render `<50` in Celsius or `<122` in Fahrenheit, with an empty temperature bar | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 13 ms |
 
 ## 6. Asset map

@@ -31,6 +31,7 @@ original instrument is removed.
 | Fail-safe acquisition | Reads raw channels but withholds engineering units until calibrated | Developer/driver | must | safety | No invented curves |
 | Pressure state | Distinguishes engine stopped, warning, low, OK, and high | Driver | must | engine protection | RPM is internal only |
 | Temperature state | Shows `<50`, cold, warming, optimal, hot, and very hot | Driver | must | engine protection | Continuous approved colors |
+| Display units | Selects PSI/bar and °C/°F without changing canonical safety logic | Driver | must | readable regional preference | Presentation conversion only |
 | Sensor fault state | Exposes missing ADC, missing calibration, open/short/out-of-range, or math failure | Driver/developer | must | fail-safe baseline | Never substitute a plausible value |
 | Calibration workflow | Captures ADC/MTS/MTX-D reference pairs | Developer | must | unpublished curves | Reversible harness and reference instrument retained |
 | Dimming input | Adapts brightness for vehicle lighting | Driver | should | competitor baseline | Protected 12 V input; not yet validated |
@@ -89,7 +90,8 @@ accuracy than the MTX-D without traceable calibration.
 
 ## Internationalization & output language
 
-- Built product: single-language, Spanish semantic state labels with numeric PSI and °C.
+- Built product: single-language, Spanish semantic state labels with selectable
+  numeric PSI/bar and °C/°F units.
 - Source identifiers/comments and all maintained documentation: English.
 - A later public/multilingual release requires a recorded i18n mechanism; none is claimed now.
 

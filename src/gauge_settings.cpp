@@ -12,6 +12,11 @@ bool validPressureUnit(PressureUnit unit) {
   return unit == PressureUnit::psi || unit == PressureUnit::bar;
 }
 
+bool validTemperatureUnit(TemperatureUnit unit) {
+  return unit == TemperatureUnit::celsius ||
+         unit == TemperatureUnit::fahrenheit;
+}
+
 bool validWarningVisualMode(WarningVisualMode mode) {
   return mode == WarningVisualMode::elementsBlink ||
          mode == WarningVisualMode::fullScreenBlink ||
@@ -32,6 +37,9 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
   if (!validPressureUnit(settings.pressureUnit)) {
     settings.pressureUnit = PressureUnit::psi;
   }
+  if (!validTemperatureUnit(settings.temperatureUnit)) {
+    settings.temperatureUnit = TemperatureUnit::celsius;
+  }
   if (!validWarningVisualMode(settings.warningVisualMode)) {
     settings.warningVisualMode = WarningVisualMode::elementsBlink;
   }
@@ -43,6 +51,12 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
 
 double pressureForDisplay(double pressurePsi, PressureUnit unit) {
   return unit == PressureUnit::bar ? pressurePsi * kBarPerPsi : pressurePsi;
+}
+
+double temperatureForDisplay(double temperatureC, TemperatureUnit unit) {
+  return unit == TemperatureUnit::fahrenheit
+             ? temperatureC * 9.0 / 5.0 + 32.0
+             : temperatureC;
 }
 
 WarningPresentation evaluateWarningPresentation(WarningVisualMode mode,

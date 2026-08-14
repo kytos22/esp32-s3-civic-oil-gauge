@@ -83,7 +83,7 @@ No personal data exists. The device persists only sanitized gauge preferences.
 | Calibration | kind, coefficients/table, valid flag, source dataset, validation error | explicit valid flag; finite values; evidence reference |
 | ConvertedSample | pressure PSI, temperature °C, engine state, faults, timestamp | range and fault state carried with values |
 | DisplayState | pressure state, temperature state, blink phase, reduced-motion flag | deterministic mapping from sample |
-| GaugeSettings | brightness, warning audio/volume, units, warning presentation, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
+| GaugeSettings | brightness, warning audio/volume, pressure unit, temperature unit, warning presentation, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
 
 Calibration values are compile-time constants today. Persistent calibration storage is out of v1
 unless introduced by a recorded scope change.
@@ -211,6 +211,13 @@ See `docs/03-technical-plan.md`.
   from the upper oil wave in native and editable geometry.
 - **AC-38:** An active pressure warning closes settings immediately. Diagnostics are
   read-only, sound test uses the real double beep, and reset requires confirmation.
+- **AC-39:** Celsius/Fahrenheit changes only the displayed temperature value, unit,
+  and temperature reference labels from canonical degrees Celsius. It never changes
+  calibration, state boundaries, colors, bar fraction, thresholds, or alarms. The
+  below-range presentation is `<50 °C` or `<122 °F`.
+- **AC-40:** Every character emitted by the large numeric renderer exists in its
+  96 px font. In particular, one-decimal BAR values use a real U+002E decimal-point
+  glyph and never LVGL's missing-glyph rectangle.
 
 ## Estimate
 
