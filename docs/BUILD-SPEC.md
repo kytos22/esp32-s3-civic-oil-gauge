@@ -44,7 +44,8 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | pressure.normal | `#FFB020` | normal icon/bar; contrast 11.48:1 |
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
 | bar.thickness | `9 px` | both bars |
-| warning.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
+| warning.elements.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
+| warning.screen.period | `2 s`, step-end | 0.5 Hz complete cycle; 1 s normal / 1 s opaque red |
 | refresh.period | `13 ms` | application and LVGL target cadence with repeated-audio margin above 60 FPS |
 | state.font | `Montserrat 24 px` | pressure/temperature semantic state |
 
@@ -91,7 +92,8 @@ Temperature colors are linearly interpolated between:
 - All semantic states include text, not color alone.
 - Pressure numeric text never blinks.
 - Full-screen warning redraws the pressure number in white above the opaque red
-  field; neither warning phase may hide it.
+  field together with `PELIGRO` and `PRESIÓN MUY BAJA`; neither warning phase may
+  hide the number. The prebuilt layer changes visibility only and is not reordered.
 - Reduced motion holds the warning icon, label, and bar red.
 - All specified foreground tokens exceed 4.5:1 against black.
 - Indoor physical fidelity, text integrity, warning motion, and handheld-distance
@@ -109,9 +111,10 @@ Temperature colors are linearly interpolated between:
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
 | 700 ms stationary hold | open full-screen settings | gauge visible; no active warning |
-| menu idle for 10 s or `VOLVER` | save changed settings and return to gauge | settings visible |
+| `VOLVER` | save changed settings and return to gauge | settings visible |
 | pressure warning while menu open | close settings immediately and show warning | warning active |
-| warning mode `PANTALLA 2 HZ` | alternate opaque red field and normal gauge; redraw pressure above red | warning active |
+| data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
+| warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | temperature below 50 | render `<50`, empty temperature bar | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 13 ms |

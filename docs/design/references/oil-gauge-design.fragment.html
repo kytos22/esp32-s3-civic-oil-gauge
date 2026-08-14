@@ -67,6 +67,8 @@
     </section>
     <div class="ogr-full-warning" id="ogrFullWarning" aria-hidden="true">
       <span class="ogr-full-warning-value" id="ogrFullWarningValue">61</span>
+      <span class="ogr-full-warning-title">PELIGRO</span>
+      <span class="ogr-full-warning-message">PRESIÓN MUY BAJA</span>
     </div>
   </div>
 
@@ -94,7 +96,7 @@
       Warning
       <select id="ogrWarningModeInput">
         <option value="elements">Elementos 2 Hz</option>
-        <option value="screen">Pantalla 2 Hz</option>
+        <option value="screen">Pantalla 0,5 Hz</option>
         <option value="fixed">Fijo</option>
       </select>
     </label>
@@ -299,7 +301,7 @@
   #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="screen"]
     .ogr-pressure[data-state="warning"] ~ .ogr-full-warning {
     display: block;
-    animation: ogr-full-screen-warning-blink 0.5s step-end infinite;
+    animation: ogr-full-screen-warning-blink 2s step-end infinite;
   }
 
   #oilGaugeRefinedIcons .ogr-full-warning-value {
@@ -312,6 +314,27 @@
     font-weight: 500;
     line-height: 0.86;
     letter-spacing: -0.07em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-title,
+  #oilGaugeRefinedIcons .ogr-full-warning-message {
+    position: absolute;
+    left: 8%;
+    width: 84%;
+    color: var(--ogr-white);
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-title {
+    top: 45.4%;
+    font-size: clamp(20px, 5vw, 30px);
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-message {
+    top: 55.4%;
+    font-size: clamp(18px, 4.4vw, 26px);
   }
 
   @keyframes ogr-pressure-warning-blink {

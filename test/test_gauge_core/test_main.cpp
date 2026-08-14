@@ -250,6 +250,7 @@ void test_settings_are_sanitized_to_safe_ranges() {
   settings.warningVolumePercent = 255;
   settings.pressureUnit = static_cast<PressureUnit>(99);
   settings.warningVisualMode = static_cast<WarningVisualMode>(99);
+  settings.dataSource = static_cast<DataSource>(99);
 
   const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
   TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
@@ -258,6 +259,31 @@ void test_settings_are_sanitized_to_safe_ranges() {
                         static_cast<int>(sanitized.pressureUnit));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningVisualMode::elementsBlink),
                         static_cast<int>(sanitized.warningVisualMode));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::demo),
+                        static_cast<int>(sanitized.dataSource));
+}
+
+void test_sensor_source_can_be_selected_without_enabling_fake_values() {
+  GaugeSettings settings;
+  settings.dataSource = DataSource::sensors;
+
+  const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::sensors),
+                        static_cast<int>(sanitized.dataSource));
+}
+
+void test_full_screen_warning_uses_an_independent_half_hertz_cycle() {
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(0));
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(999'999));
+  TEST_ASSERT_FALSE(fullScreenWarningPhaseOn(1'000'000));
+  TEST_ASSERT_FALSE(fullScreenWarningPhaseOn(1'999'999));
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(2'000'000));
+
+  const WarningPresentation red = evaluateWarningPresentation(
+      WarningVisualMode::fullScreenBlink, true, false, true);
+  TEST_ASSERT_TRUE(red.attentionVisible);
+  TEST_ASSERT_TRUE(red.fullScreenRedVisible);
+  TEST_ASSERT_TRUE(red.pressureValueVisible);
 }
 
 void test_pressure_units_convert_only_the_display_value() {
@@ -270,18 +296,18 @@ void test_pressure_units_convert_only_the_display_value() {
 void test_full_screen_warning_never_hides_pressure_number() {
   for (const bool phaseOn : {false, true}) {
     const WarningPresentation presentation = evaluateWarningPresentation(
-        WarningVisualMode::fullScreenBlink, true, phaseOn);
+        WarningVisualMode::fullScreenBlink, true, true, phaseOn);
     TEST_ASSERT_TRUE(presentation.pressureValueVisible);
     TEST_ASSERT_EQUAL(phaseOn, presentation.fullScreenRedVisible);
   }
 
   const WarningPresentation elementsOff = evaluateWarningPresentation(
-      WarningVisualMode::elementsBlink, true, false);
+      WarningVisualMode::elementsBlink, true, false, true);
   TEST_ASSERT_FALSE(elementsOff.attentionVisible);
   TEST_ASSERT_TRUE(elementsOff.pressureValueVisible);
 
   const WarningPresentation fixed = evaluateWarningPresentation(
-      WarningVisualMode::fixed, true, false);
+      WarningVisualMode::fixed, true, false, false);
   TEST_ASSERT_TRUE(fixed.attentionVisible);
   TEST_ASSERT_FALSE(fixed.fullScreenRedVisible);
   TEST_ASSERT_TRUE(fixed.pressureValueVisible);
@@ -311,6 +337,8 @@ int main(int, char**) {
   RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
   RUN_TEST(test_warning_tone_gate_triggers_once_and_rearms);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
+  RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);
+  RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);
   RUN_TEST(test_pressure_units_convert_only_the_display_value);
   RUN_TEST(test_full_screen_warning_never_hides_pressure_number);
   return UNITY_END();

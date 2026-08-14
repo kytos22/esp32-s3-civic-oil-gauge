@@ -15,12 +15,18 @@ enum class WarningVisualMode : std::uint8_t {
   fixed = 2,
 };
 
+enum class DataSource : std::uint8_t {
+  demo = 0,
+  sensors = 1,
+};
+
 struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   PressureUnit pressureUnit = PressureUnit::psi;
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
+  DataSource dataSource = DataSource::demo;
 };
 
 struct WarningPresentation {
@@ -35,6 +41,7 @@ struct WarningPresentation {
 [[nodiscard]] WarningPresentation evaluateWarningPresentation(
     WarningVisualMode mode,
     bool warningActive,
-    bool blinkPhaseOn);
+    bool elementsBlinkPhaseOn,
+    bool fullScreenBlinkPhaseOn);
 
 }  // namespace oilgauge

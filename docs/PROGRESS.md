@@ -39,12 +39,12 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 guided exact-board acceptance in progress
-- Next action: with Marcos at the flashed exact display, validate the 700 ms
-  hold/menu flow, corrected icon geometry, all three warning modes, sound controls,
-  and NVS persistence across a controlled reboot. Automated exact-board runtime and
-  sustained ≥60 FPS already pass.
-  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
+- Phase: 5 — Sprint 6 physical-review corrections complete in software
+- Next action: request explicit authorization to flash the revised image, then verify
+  selectable/persisted no-data `SENSORES`, a menu that remains open, the atomic 0.5 Hz
+  full-screen danger warning, puff-free audio edges, and sustained completed-frame
+  FPS. NVS reboot persistence is already physically confirmed. Keep compile-time
+  demo support enabled; sensor calibration and vehicle cutover remain separate
   safety-gated work.
 
 ## Open items
@@ -74,8 +74,9 @@
   Marcos confirmed that the current warning looks clean without the dotted phase,
   closing AC-06, AC-23, slice 1.5, and Sprint 1 on 2026-08-14.
 - Open Design Requests: none. [DR-001](design/design-requests/DR-001.md) is answered
-  and consolidated. In full-screen 2 Hz mode the opaque red phase redraws the white
-  pressure number above it; the number is never hidden.
+  and consolidated through D-043. In full-screen 0.5 Hz mode the prebuilt opaque-red
+  phase contains the white pressure number and danger message; the number is never
+  hidden.
 - Sprint 6 software result: the new settings tests first failed at link time because
   the model did not exist, then the native suite passed 19/19. The firmware now has
   a 700 ms full-screen settings menu, live/persisted safe settings, runtime warning
@@ -92,8 +93,21 @@
   `78391016db981bda1f6284d51b4b56260c8ccf5b9e86232fb01ad22d2a430da8`, records
   one completed warning tone and 24 consecutive 63–76 FPS windows, with no window
   below 60 and no panic, watchdog, reset, or runtime error. Physical touch,
-  geometry, all three warning appearances, sound-volume judgment, and reboot
-  persistence remain in the guided hardware pass.
+  geometry, all three warning appearances, and sound-volume judgment remain in the
+  guided hardware pass; Marcos subsequently confirmed reboot persistence.
+- Sprint 6 physical review: Marcos confirmed that settings survive a reboot. He
+  requested selectable `SENSORES` with an explicit no-data screen, no automatic menu
+  timeout, a tearing-free 0.5 Hz full-screen warning that adds `PELIGRO` / `PRESIÓN
+  MUY BAJA` while retaining the pressure number, and removal of the speaker puff at
+  tone start/end. D-043 records the exact revision; the current flashed app remains
+  the evidence baseline and will not be overwritten without new authorization.
+- Sprint 6 physical-review software correction: the new source/cadence regressions
+  first failed to compile because `DataSource` and the independent full-screen phase
+  did not exist; the source/menu/warning/audio contract then failed 0/12. The revised
+  implementation now passes 21/21 native tests, 9/9 menu invariants, 11/11 warning
+  invariants, 12/12 physical-review invariants, and a complete ESP-IDF 6.0.2 build.
+  `SENSORES` persists but renders `--` / `SIN DATOS`; no ADS1115 path or calibration
+  is enabled. Exact-board proof remains pending new flash authorization.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination

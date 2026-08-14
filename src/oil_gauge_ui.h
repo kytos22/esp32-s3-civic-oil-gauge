@@ -24,10 +24,9 @@ void createOilGaugeUi(lv_obj_t* screen,
 void updateOilGaugeUi(const ConvertedValue& pressure,
                       const ConvertedValue& temperature,
                       const EngineState& engine,
-                      bool blinkPhaseOn,
+                      bool elementsBlinkPhaseOn,
+                      bool fullScreenBlinkPhaseOn,
                       const GaugeSettings& settings);
-
-void tickOilGaugeUi(std::uint32_t nowMs);
 [[nodiscard]] bool takeOilGaugeUiActions(OilGaugeUiActions& actions);
 
 }  // namespace oilgauge

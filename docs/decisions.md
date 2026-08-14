@@ -518,3 +518,45 @@
 - Safety boundary: Demo mode stays enabled; `SENSORES` remains disabled as
   `CALIBRACIÓN PENDIENTE`; no ADS1115, Innovate harness, 12 V, or vehicle action is
   authorized by this decision.
+
+## D-043 — Revise the physical Sprint 6 menu, full-screen warning, and audio edges
+- Date / phase: 2026-08-14 / Phase 5, Sprint 6 physical review
+- Decision: Allow `SENSORES` to be selected before acquisition/calibration, but show
+  an explicit no-data state and no numeric oil values. Keep the settings menu open
+  until the user closes it or a warning interrupts it; remove the inactivity
+  timeout. Change only `PANTALLA` warning mode to a 0.5 Hz complete cycle: one second
+  of the normal gauge and one second of a solid red warning carrying the always-
+  visible pressure number plus `PELIGRO` / `PRESIÓN MUY BAJA`. Present the red phase
+  as one prebuilt atomic overlay to remove the observed transition tearing. Ramp the
+  warning audio waveform to and from digital zero before muting/unmuting the codec
+  so the physical speaker does not produce the reported start/end puff.
+- Why: Marcos physically tested app `65ebbfa` and reported that sensor mode cannot be
+  selected, the menu appears to close on inactivity, the full-screen warning is too
+  sparse and tears during entry, and the speaker pops at both tone edges. He also
+  confirmed that settings persist across reboot.
+- Safety boundary: Selecting `SENSORES` does not enable ADS1115 acquisition, assumed
+  calibration, or real-looking values. It is an explicit unavailable-data screen.
+  Element-only warning remains the already accepted clean 2 Hz behavior.
+- Alternatives rejected (and why): Continue disabling `SENSORES`; Marcos explicitly
+  requested an off/demo state now. Keep the 10-second menu timeout; it conflicts with
+  the physical preference. Blink the complete red warning at 2 Hz or show only the
+  number; Marcos selected 0.5 Hz and requested the danger message. Hide the pressure
+  number; D-041 and the current request both require continuous visibility.
+- Supersedes: D-038/D-042 for the locked sensor selector, D-040/DR-001 for automatic
+  menu exit, and D-041 for full-screen warning cadence/content only. D-041's
+  continuously visible pressure invariant remains.
+
+## D-044 — Keep the codec active between warning tones
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 physical-review correction
+- Decision: Open and settle the ES8311 output once during audio initialization,
+  leave it unmuted at digital zero, and wrap every double beep with 40 ms zero-filled
+  segments in addition to the existing sample envelope. Do not toggle codec mute at
+  the start or end of an individual warning tone.
+- Why: The physical puff coincided with the former per-tone mute/unmute transitions.
+  A continuous zero-level stream avoids abrupt analogue state changes while keeping
+  the non-blocking warning worker and one-shot gate unchanged.
+- Verification boundary: The source contract and complete firmware build pass, but
+  absence of the physical puff still requires the exact board and explicit flash
+  authorization.
+- Supersedes: D-043 only where it described per-tone codec mute/unmute; its required
+  zero-amplitude tone edges and all other menu/warning decisions remain unchanged.

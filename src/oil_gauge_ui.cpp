@@ -32,7 +32,6 @@ constexpr std::uint32_t kLine = 0x262728;
 constexpr std::uint32_t kPanel = 0x151719;
 constexpr std::uint32_t kPanelSelected = 0x394047;
 constexpr std::uint32_t kWarningRed = 0xFF3948;
-constexpr std::uint32_t kMenuTimeoutMs = 10'000;
 
 struct BarWidgets {
   lv_obj_t* track = nullptr;
@@ -68,6 +67,8 @@ struct UiWidgets {
   lv_obj_t* brightnessSlider = nullptr;
   lv_obj_t* soundSwitch = nullptr;
   lv_obj_t* volumeSlider = nullptr;
+  lv_obj_t* demoButton = nullptr;
+  lv_obj_t* sensorsButton = nullptr;
   lv_obj_t* unitPsiButton = nullptr;
   lv_obj_t* unitBarButton = nullptr;
   lv_obj_t* warningElementsButton = nullptr;
@@ -85,7 +86,6 @@ struct UiWidgets {
   GaugeSettings defaults{};
   PressureUnit renderedUnit = PressureUnit::psi;
   OilGaugeUiActions pendingActions{};
-  std::uint32_t lastInteractionMs = 0;
   lv_opa_t pressureAttentionOpacity = LV_OPA_TRANSP;
   bool pressureColorSet = false;
   bool temperatureColorSet = false;
@@ -181,10 +181,6 @@ void setLabelTextIfChanged(lv_obj_t* label,
   std::snprintf(previous, Size, "%s", text);
 }
 
-void markMenuInteraction() {
-  gUi.lastInteractionMs = lv_tick_get();
-}
-
 void setChoiceSelected(lv_obj_t* button, bool selected) {
   lv_obj_set_style_bg_color(
       button, color(selected ? kPanelSelected : kPanel), 0);
@@ -209,6 +205,10 @@ void refreshMenuControls() {
       gUi.unitPsiButton, gUi.settings.pressureUnit == PressureUnit::psi);
   setChoiceSelected(
       gUi.unitBarButton, gUi.settings.pressureUnit == PressureUnit::bar);
+  setChoiceSelected(
+      gUi.demoButton, gUi.settings.dataSource == DataSource::demo);
+  setChoiceSelected(
+      gUi.sensorsButton, gUi.settings.dataSource == DataSource::sensors);
   setChoiceSelected(
       gUi.warningElementsButton,
       gUi.settings.warningVisualMode == WarningVisualMode::elementsBlink);
@@ -251,7 +251,6 @@ void openMenu() {
   lv_obj_clear_flag(gUi.menu, LV_OBJ_FLAG_HIDDEN);
   lv_obj_move_foreground(gUi.menu);
   gUi.menuVisible = true;
-  markMenuInteraction();
 }
 
 void gaugeLongPressEvent(lv_event_t* event) {
@@ -261,16 +260,10 @@ void gaugeLongPressEvent(lv_event_t* event) {
 }
 
 void backEvent(lv_event_t*) {
-  markMenuInteraction();
   closeMenu(true);
 }
 
-void menuPressEvent(lv_event_t*) {
-  markMenuInteraction();
-}
-
 void sliderEvent(lv_event_t* event) {
-  markMenuInteraction();
   lv_obj_t* target = lv_event_get_target_obj(event);
   if (target == gUi.brightnessSlider) {
     gUi.settings.brightnessPercent = static_cast<std::uint8_t>(
@@ -283,20 +276,17 @@ void sliderEvent(lv_event_t* event) {
 }
 
 void soundSwitchEvent(lv_event_t*) {
-  markMenuInteraction();
   gUi.settings.warningSoundEnabled =
       lv_obj_has_state(gUi.soundSwitch, LV_STATE_CHECKED);
   queueSettingsApply();
 }
 
 void testSoundEvent(lv_event_t*) {
-  markMenuInteraction();
   gUi.pendingActions.testSound = true;
   gUi.actionsPending = true;
 }
 
 void unitEvent(lv_event_t* event) {
-  markMenuInteraction();
   gUi.settings.pressureUnit =
       lv_event_get_target_obj(event) == gUi.unitBarButton
           ? PressureUnit::bar
@@ -305,8 +295,16 @@ void unitEvent(lv_event_t* event) {
   queueSettingsApply();
 }
 
+void dataSourceEvent(lv_event_t* event) {
+  gUi.settings.dataSource =
+      lv_event_get_target_obj(event) == gUi.sensorsButton
+          ? DataSource::sensors
+          : DataSource::demo;
+  refreshMenuControls();
+  queueSettingsApply();
+}
+
 void warningModeEvent(lv_event_t* event) {
-  markMenuInteraction();
   lv_obj_t* target = lv_event_get_target_obj(event);
   if (target == gUi.warningScreenButton) {
     gUi.settings.warningVisualMode = WarningVisualMode::fullScreenBlink;
@@ -320,18 +318,15 @@ void warningModeEvent(lv_event_t* event) {
 }
 
 void resetRequestEvent(lv_event_t*) {
-  markMenuInteraction();
   lv_obj_clear_flag(gUi.resetConfirm, LV_OBJ_FLAG_HIDDEN);
   lv_obj_move_foreground(gUi.resetConfirm);
 }
 
 void resetCancelEvent(lv_event_t*) {
-  markMenuInteraction();
   lv_obj_add_flag(gUi.resetConfirm, LV_OBJ_FLAG_HIDDEN);
 }
 
 void resetConfirmEvent(lv_event_t*) {
-  markMenuInteraction();
   gUi.settings = sanitizeGaugeSettings(gUi.defaults);
   refreshMenuControls();
   queueSettingsApply();
@@ -439,7 +434,6 @@ void createSettingsMenu(lv_obj_t* screen) {
   lv_obj_add_flag(gUi.menu, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_scroll_dir(gUi.menu, LV_DIR_VER);
   lv_obj_set_scrollbar_mode(gUi.menu, LV_SCROLLBAR_MODE_AUTO);
-  lv_obj_add_event_cb(gUi.menu, menuPressEvent, LV_EVENT_PRESSED, nullptr);
 
   lv_obj_t* content = lv_obj_create(gUi.menu);
   lv_obj_remove_style_all(content);
@@ -492,14 +486,12 @@ void createSettingsMenu(lv_obj_t* screen) {
 
   createLabel(content, "FUENTE DE DATOS", 28, 400, 260, 24, &oil_font_ui_16,
               color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  lv_obj_t* demoButton = createMenuButton(
-      content, "DEMO", 28, 438, 130, 50, menuPressEvent);
-  setChoiceSelected(demoButton, true);
-  lv_obj_t* sensorsButton = createMenuButton(
-      content, "SENSORES", 174, 438, 140, 50, menuPressEvent);
-  lv_obj_add_state(sensorsButton, LV_STATE_DISABLED);
+  gUi.demoButton = createMenuButton(
+      content, "DEMO", 28, 438, 130, 50, dataSourceEvent);
+  gUi.sensorsButton = createMenuButton(
+      content, "SENSORES", 174, 438, 140, 50, dataSourceEvent);
   createLabel(content,
-              "CALIBRACIÓN PENDIENTE",
+              "SIN DATOS · CALIBRACIÓN PENDIENTE",
               28,
               497,
               424,
@@ -582,6 +574,24 @@ void createFullScreenWarning(lv_obj_t* screen) {
                                              color(kPrimary),
                                              LV_TEXT_ALIGN_CENTER);
   lv_obj_set_style_text_letter_space(gUi.fullScreenPressureValue, -5, 0);
+  createLabel(gUi.fullScreenWarning,
+              "PELIGRO",
+              38,
+              218,
+              404,
+              34,
+              &oil_font_ui_24,
+              color(kPrimary),
+              LV_TEXT_ALIGN_CENTER);
+  createLabel(gUi.fullScreenWarning,
+              "PRESIÓN MUY BAJA",
+              38,
+              266,
+              404,
+              34,
+              &oil_font_ui_24,
+              color(kPrimary),
+              LV_TEXT_ALIGN_CENTER);
   lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -878,7 +888,8 @@ void createOilGaugeUi(lv_obj_t* screen,
 void updateOilGaugeUi(const ConvertedValue& pressure,
                       const ConvertedValue& temperature,
                       const EngineState& engine,
-                      bool blinkPhaseOn,
+                      bool elementsBlinkPhaseOn,
+                      bool fullScreenBlinkPhaseOn,
                       const GaugeSettings& settings) {
   if (!gUi.created) {
     return;
@@ -888,7 +899,12 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   const bool reducedMotion =
       gUi.settings.warningVisualMode == WarningVisualMode::fixed;
   const DisplayState state = evaluateDisplayState(
-      pressure, temperature, engine, blinkPhaseOn, reducedMotion);
+      pressure, temperature, engine, elementsBlinkPhaseOn, reducedMotion);
+  const bool sensorsPending = gUi.settings.dataSource == DataSource::sensors;
+  const RgbColor pressureColorValue =
+      sensorsPending ? RgbColor{154, 164, 175} : state.pressureColor;
+  const RgbColor temperatureColorValue =
+      sensorsPending ? RgbColor{154, 164, 175} : state.temperatureColor;
   char pressureText[8];
   if (pressure.valid()) {
     const double displayed =
@@ -921,13 +937,14 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   }
   setLabelTextIfChanged(gUi.pressureState,
                         gUi.pressureStateText,
-                        pressureLabel(state.pressure));
+                        sensorsPending ? "SIN DATOS"
+                                       : pressureLabel(state.pressure));
   if (!gUi.pressureColorSet ||
-      !sameColor(gUi.pressureColor, state.pressureColor)) {
-    const lv_color_t pressureColor = color(state.pressureColor);
+      !sameColor(gUi.pressureColor, pressureColorValue)) {
+    const lv_color_t pressureColor = color(pressureColorValue);
     lv_obj_set_style_text_color(gUi.pressureState, pressureColor, 0);
     setIconColor(gUi.pressureIcon, pressureColor);
-    gUi.pressureColor = state.pressureColor;
+    gUi.pressureColor = pressureColorValue;
     gUi.pressureColorSet = true;
   }
 
@@ -937,7 +954,10 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     closeMenu(true);
   }
   const WarningPresentation presentation = evaluateWarningPresentation(
-      gUi.settings.warningVisualMode, warning, blinkPhaseOn);
+      gUi.settings.warningVisualMode,
+      warning,
+      elementsBlinkPhaseOn,
+      fullScreenBlinkPhaseOn);
   const lv_opa_t attentionOpacity =
       presentation.attentionVisible ? LV_OPA_COVER : LV_OPA_TRANSP;
   if (gUi.pressureAttentionOpacity != attentionOpacity) {
@@ -947,12 +967,11 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   }
   updateBar(gUi.pressureBar,
             state.pressureBarFraction,
-            state.pressureColor,
+            pressureColorValue,
             attentionOpacity);
 
   if (presentation.fullScreenRedVisible) {
     lv_obj_clear_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_foreground(gUi.fullScreenWarning);
   } else {
     lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
   }
@@ -972,30 +991,21 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
       gUi.temperatureValue, gUi.temperatureValueText, temperatureText);
   setLabelTextIfChanged(gUi.temperatureState,
                         gUi.temperatureStateText,
-                        temperatureLabel(state.temperature));
+                        sensorsPending ? "SIN DATOS"
+                                       : temperatureLabel(state.temperature));
   if (!gUi.temperatureColorSet ||
-      !sameColor(gUi.temperatureColor, state.temperatureColor)) {
-    const lv_color_t temperatureColorValue = color(state.temperatureColor);
+      !sameColor(gUi.temperatureColor, temperatureColorValue)) {
+    const lv_color_t temperatureLvColor = color(temperatureColorValue);
     lv_obj_set_style_text_color(
-        gUi.temperatureState, temperatureColorValue, 0);
-    setIconColor(gUi.temperatureIcon, temperatureColorValue);
-    gUi.temperatureColor = state.temperatureColor;
+        gUi.temperatureState, temperatureLvColor, 0);
+    setIconColor(gUi.temperatureIcon, temperatureLvColor);
+    gUi.temperatureColor = temperatureColorValue;
     gUi.temperatureColorSet = true;
   }
   updateBar(gUi.temperatureBar,
             state.temperatureBarFraction,
-            state.temperatureColor,
+            temperatureColorValue,
             LV_OPA_COVER);
-}
-
-void tickOilGaugeUi(std::uint32_t nowMs) {
-  if (!gUi.created || !gUi.menuVisible) {
-    return;
-  }
-  if (static_cast<std::uint32_t>(nowMs - gUi.lastInteractionMs) >=
-      kMenuTimeoutMs) {
-    closeMenu(true);
-  }
 }
 
 bool takeOilGaugeUiActions(OilGaugeUiActions& actions) {

@@ -54,6 +54,9 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "warning", value)) {
     settings.warningVisualMode = static_cast<WarningVisualMode>(value);
   }
+  if (readU8(handle, "source", value)) {
+    settings.dataSource = static_cast<DataSource>(value);
+  }
   nvs_close(handle);
   return sanitizeGaugeSettings(settings);
 }
@@ -80,6 +83,10 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   if (result == ESP_OK) {
     result = nvs_set_u8(
         handle, "warning", static_cast<std::uint8_t>(settings.warningVisualMode));
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "source", static_cast<std::uint8_t>(settings.dataSource));
   }
   if (result == ESP_OK) {
     result = nvs_commit(handle);

@@ -943,6 +943,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;/section&gt;
     &lt;div class=&quot;ogr-full-warning&quot; id=&quot;ogrFullWarning&quot; aria-hidden=&quot;true&quot;&gt;
       &lt;span class=&quot;ogr-full-warning-value&quot; id=&quot;ogrFullWarningValue&quot;&gt;61&lt;/span&gt;
+      &lt;span class=&quot;ogr-full-warning-title&quot;&gt;PELIGRO&lt;/span&gt;
+      &lt;span class=&quot;ogr-full-warning-message&quot;&gt;PRESIÓN MUY BAJA&lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 
@@ -970,7 +972,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       Warning
       &lt;select id=&quot;ogrWarningModeInput&quot;&gt;
         &lt;option value=&quot;elements&quot;&gt;Elementos 2 Hz&lt;/option&gt;
-        &lt;option value=&quot;screen&quot;&gt;Pantalla 2 Hz&lt;/option&gt;
+        &lt;option value=&quot;screen&quot;&gt;Pantalla 0,5 Hz&lt;/option&gt;
         &lt;option value=&quot;fixed&quot;&gt;Fijo&lt;/option&gt;
       &lt;/select&gt;
     &lt;/label&gt;
@@ -1175,7 +1177,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;screen&quot;]
     .ogr-pressure[data-state=&quot;warning&quot;] ~ .ogr-full-warning {
     display: block;
-    animation: ogr-full-screen-warning-blink 0.5s step-end infinite;
+    animation: ogr-full-screen-warning-blink 2s step-end infinite;
   }
 
   #oilGaugeRefinedIcons .ogr-full-warning-value {
@@ -1188,6 +1190,27 @@ html&gt;body{padding:0}&lt;/style&gt;
     font-weight: 500;
     line-height: 0.86;
     letter-spacing: -0.07em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-title,
+  #oilGaugeRefinedIcons .ogr-full-warning-message {
+    position: absolute;
+    left: 8%;
+    width: 84%;
+    color: var(--ogr-white);
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-title {
+    top: 45.4%;
+    font-size: clamp(20px, 5vw, 30px);
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-message {
+    top: 55.4%;
+    font-size: clamp(18px, 4.4vw, 26px);
   }
 
   @keyframes ogr-pressure-warning-blink {

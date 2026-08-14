@@ -189,8 +189,14 @@ flowchart LR
   native suite; the Keel verifier passes 9/9 menu and 11/11 warning invariants.
   Clean app `65ebbfa` is 750,720 bytes with SHA-256
   `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
-  Exact-board touch, visual, NVS reboot, sound-control, and FPS evidence remain
-  `HARDWARE` and were not authorized in this session.
+  Its later authorized exact-board run passed write/boot verification and 24
+  consecutive 63–76 FPS windows; Marcos confirmed NVS reboot persistence and then
+  supplied the physical-review corrections below.
+- Current Sprint 6 physical-review correction: red-first compilation failed on the
+  absent `DataSource` and independent full-screen phase, and the review contract
+  failed 0/12. The implementation now passes 21/21 native tests, 9/9 menu, 11/11
+  split-cadence warning, and 12/12 review invariants plus a complete ESP-IDF 6.0.2
+  build. New exact-board flash/runtime proof is not yet authorized.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

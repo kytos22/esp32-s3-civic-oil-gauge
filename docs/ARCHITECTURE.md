@@ -131,13 +131,16 @@ and integrated speaker. A renderer-independent rising-edge gate requests one
 double beep when pressure state changes into `warning`; a dedicated FreeRTOS
 CPU1-pinned task performs 512-sample blocking PCM writes so the 13 ms CPU0 UI
 loop never waits for
-audio. The codec remains muted between cues. Initialization or write failure is
+audio. The codec is opened and settled once, then remains unmuted at digital zero
+between cues; each enveloped tone is wrapped in 40 ms of zero samples so its edges
+do not toggle the analogue mute path. Initialization or write failure is
 logged and degrades to a silent visual gauge rather than stopping the display.
 
 The current pattern is approximately 2.2 kHz, 120 ms on, 90 ms off and 120 ms
 on at 35% codec volume. It is enabled only for the calibration-safe demo. A
-future calibrated vehicle alarm policy must be safety-reviewed separately; this
-slice does not claim physical loudness, cabin audibility or post-change FPS.
+future calibrated vehicle alarm policy must be safety-reviewed separately; the
+reported edge puff, physical loudness, cabin audibility, and post-change FPS remain
+hardware checks for the revised image.
 
 ## Power
 

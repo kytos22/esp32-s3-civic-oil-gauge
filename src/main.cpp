@@ -39,7 +39,8 @@ GaugeSettings compileTimeDefaults() {
 
 void renderDemoFrame(std::uint64_t nowUs) {
   const DemoFrame frame = demoFrameAt(nowUs);
-  const bool blinkPhaseOn = warningBlinkPhaseOn(nowUs);
+  const bool elementsBlinkPhaseOn = warningBlinkPhaseOn(nowUs);
+  const bool fullScreenBlinkPhaseOn = fullScreenWarningPhaseOn(nowUs);
   const ConvertedValue pressure{frame.pressurePsi, Fault::none};
   const ConvertedValue temperature{frame.temperatureC, Fault::none};
   const EngineState engine{true, frame.rpm};
@@ -48,7 +49,8 @@ void renderDemoFrame(std::uint64_t nowUs) {
       pressure,
       temperature,
       engine,
-      blinkPhaseOn,
+      elementsBlinkPhaseOn,
+      fullScreenBlinkPhaseOn,
       gSettings);
 
   const bool warningActive =
@@ -58,12 +60,14 @@ void renderDemoFrame(std::uint64_t nowUs) {
   }
 }
 
-void renderCalibrationGate() {
+void renderCalibrationGate(std::uint64_t nowUs) {
+  (void)gWarningToneGate.update(false);
   updateOilGaugeUi(
       {0.0, Fault::calibrationMissing},
       {0.0, Fault::calibrationMissing},
       EngineState{false, 0},
-      true,
+      warningBlinkPhaseOn(nowUs),
+      fullScreenWarningPhaseOn(nowUs),
       gSettings);
 }
 
@@ -160,12 +164,12 @@ extern "C" void app_main(void) {
         if (hadBeforeRender && beforeRender.applySettings) {
           gSettings = sanitizeGaugeSettings(beforeRender.settings);
         }
-        if (CONFIG_OIL_GAUGE_DEMO_MODE) {
+        if (CONFIG_OIL_GAUGE_DEMO_MODE &&
+            gSettings.dataSource == DataSource::demo) {
           renderDemoFrame(nowUs);
         } else {
-          renderCalibrationGate();
+          renderCalibrationGate(nowUs);
         }
-        tickOilGaugeUi(static_cast<std::uint32_t>(nowUs / 1'000U));
         OilGaugeUiActions afterRender;
         const bool hadAfterRender = takeOilGaugeUiActions(afterRender);
         esp_lv_adapter_unlock();

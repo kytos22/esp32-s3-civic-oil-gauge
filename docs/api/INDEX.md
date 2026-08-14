@@ -32,5 +32,12 @@
 | `temperatureStateName()` | function | `include/gauge_core.h` | `docs/api/display-state.md` | Stable temperature-state diagnostic name |
 | `WarningToneGate` | class | `include/warning_tone_gate.h` | [warning tone gate](warning-tone-gate.md) | Rising-edge gate for one warning tone request per warning episode |
 | `warningBlinkPhaseOn()` | function | `include/demo_sequence.h` | `docs/api/display-state.md` | Deterministic binary 2 Hz warning phase |
+| `fullScreenWarningPhaseOn()` | function | `include/demo_sequence.h` | [gauge settings](gauge-settings.md) | Deterministic 0.5 Hz full-screen warning phase |
+| `DataSource` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select demo or explicit no-data sensor gate |
+| `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences |
+| `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences and reject invalid enum values |
+| `pressureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical PSI for display only |
+| `WarningPresentation` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Renderer-independent warning visibility decision |
+| `evaluateWarningPresentation()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Apply separate element/full-screen warning phases |
 
 Full per-surface documentation is created when a surface is next changed. Until then this index is the complete lookup layer.

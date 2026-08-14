@@ -279,18 +279,18 @@ def warning_animation_contract() -> None:
         "evaluateWarningPresentation(" in renderer,
         "presentation.pressureValueVisible = true" in settings,
         "gUi.fullScreenPressureValue" in renderer,
-        "lv_obj_move_foreground(gUi.fullScreenWarning)" in renderer,
+        "lv_obj_move_foreground(gUi.fullScreenWarning)" not in renderer,
         "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in fragment,
-        "animation: ogr-full-screen-warning-blink 0.5s step-end infinite" in fragment,
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in fragment,
         'id="ogrFullWarningValue"' in fragment,
         "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in standalone,
-        "animation: ogr-full-screen-warning-blink 0.5s step-end infinite" in standalone,
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in standalone,
         "ogrFullWarningValue" in standalone,
     ]
     check(
         "AC-06 warning animation",
         all(conditions),
-        f"{sum(conditions)}/{len(conditions)} hard 2 Hz and persistent-number invariants",
+        f"{sum(conditions)}/{len(conditions)} split-cadence and persistent-number invariants",
     )
 
 
@@ -300,8 +300,8 @@ def settings_menu_contract() -> None:
     store = text("src/settings_store.cpp")
     conditions = [
         "lv_indev_set_long_press_time(input, 700)" in main,
-        "kMenuTimeoutMs = 10'000" in renderer,
-        '"CALIBRACIÓN PENDIENTE"' in renderer,
+        "kMenuTimeoutMs" not in renderer,
+        '"SIN DATOS · CALIBRACIÓN PENDIENTE"' in renderer,
         "if (warning && gUi.menuVisible)" in renderer,
         "closeMenu(true)" in renderer,
         "nvs_commit(handle)" in store,
@@ -313,6 +313,35 @@ def settings_menu_contract() -> None:
         "AC-33..38 settings menu",
         all(conditions),
         f"{sum(conditions)}/{len(conditions)} interaction and persistence invariants",
+    )
+
+
+def sprint6_physical_revision_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    main = text("src/main.cpp")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    demo = text("src/demo_sequence.cpp")
+    audio = text("src/warning_audio.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    conditions = [
+        "DataSource::sensors" in settings,
+        'nvs_set_u8(handle, "source"' in store,
+        "gSettings.dataSource == DataSource::demo" in main,
+        "kFullScreenWarningHalfPeriodUs = 1'000'000U" in demo,
+        '"PELIGRO"' in renderer,
+        '"PRESIÓN MUY BAJA"' in renderer,
+        "kMenuTimeoutMs" not in renderer,
+        "lv_obj_move_foreground(gUi.fullScreenWarning)" not in renderer,
+        "writeSegment(false, kEdgeSilenceMs)" in audio,
+        "esp_codec_dev_set_out_mute(gSpeaker, false)" not in audio.split("void warningAudioTask", 1)[1].split("}  // namespace", 1)[0],
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in fragment,
+        "PELIGRO" in fragment and "PRESIÓN MUY BAJA" in fragment,
+    ]
+    check(
+        "Sprint 6 physical revisions",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} source/menu/warning/audio invariants",
     )
 
 
@@ -470,6 +499,7 @@ def main() -> int:
     approved_geometry()
     warning_animation_contract()
     settings_menu_contract()
+    sprint6_physical_revision_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")

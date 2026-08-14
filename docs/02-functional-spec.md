@@ -7,12 +7,16 @@
 
 ### F-01 — Safe startup and acquisition mode
 
-- Inputs: boot state, `OIL_GAUGE_DEMO_MODE`, ADS1115 presence, calibration validity.
-- Processing: initialize serial, I²C, display, and ADC; scan the bus; refuse engineering-unit conversion without valid calibration.
-- Outputs: explicit demo, raw-ADC, missing-ADC, or calibrated operating screen.
+- Inputs: boot state, compile-time `OIL_GAUGE_DEMO_MODE`, persisted data-source
+  choice, and calibration validity.
+- Processing: initialize logging, NVS, display/touch, and optional warning audio;
+  sanitize settings; refuse real acquisition and engineering-unit conversion without
+  valid calibration.
+- Outputs: explicit synthetic demo or `--` / `SIN DATOS` sensor-calibration gate.
 - Preconditions: 5 V regulated supply to VBUS/USB-C; all I/O within 3.3 V limits.
 - Postconditions: no uncalibrated voltage is presented as PSI or °C.
-- Errors: display failure, ADC absence, invalid calibration, invalid/out-of-range input, and math errors are visible in logs and/or the display.
+- Errors: display/audio/NVS initialization failures degrade safely; future ADC
+  absence, invalid calibration/input, and math errors must be explicit.
 
 ### F-02 — Oil pressure measurement and state
 
@@ -71,7 +75,7 @@
 
 ## Data model
 
-No persistent user data exists.
+No personal data exists. The device persists only sanitized gauge preferences.
 
 | Entity | Fields | Validation |
 |---|---|---|
@@ -79,6 +83,7 @@ No persistent user data exists.
 | Calibration | kind, coefficients/table, valid flag, source dataset, validation error | explicit valid flag; finite values; evidence reference |
 | ConvertedSample | pressure PSI, temperature °C, engine state, faults, timestamp | range and fault state carried with values |
 | DisplayState | pressure state, temperature state, blink phase, reduced-motion flag | deterministic mapping from sample |
+| GaugeSettings | brightness, warning audio/volume, units, warning presentation, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
 
 Calibration values are compile-time constants today. Persistent calibration storage is out of v1
 unless introduced by a recorded scope change.
@@ -180,20 +185,27 @@ See `docs/03-technical-plan.md`.
 - **AC-32:** In demo mode, each transition from non-warning to the engine-running
   pressure-warning state requests exactly one non-blocking double beep through the
   onboard ES8311 speaker path; remaining in warning does not retrigger it, leaving
-  warning re-arms it, and audio failure never stops the visual gauge.
+  warning re-arms it, and audio failure never stops the visual gauge. The codec is
+  not muted/unmuted at individual tone edges; zero-filled settling segments and the
+  waveform envelope prevent an abrupt output step.
 - **AC-33:** A stationary 700 ms hold opens a full-screen black settings page;
-  ordinary taps, dragging, and scrolling do not. `VOLVER` or 10 seconds without
-  interaction saves changed safe preferences and returns to the gauge.
-- **AC-34:** Brightness, warning-sound enable/volume, units, and warning presentation
+  ordinary taps, dragging, and scrolling do not. The page remains open until
+  `VOLVER` is pressed or an active pressure warning interrupts it; `VOLVER` saves
+  changed safe preferences and returns to the gauge.
+- **AC-34:** Brightness, warning-sound enable/volume, units, warning presentation,
+  and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
-  compile-time defaults. `SENSORES` remains disabled and cannot persist while the
-  calibration gate is incomplete.
+  compile-time defaults. `SENSORES` is selectable and persistable while calibration
+  is incomplete, but it displays `--` and `SIN DATOS`; it cannot start acquisition
+  or create engineering-unit values.
 - **AC-35:** PSI/bar changes only displayed pressure values, units, and reference
   labels from canonical PSI; it never changes calibration, bar fraction, thresholds,
   or alarm evaluation.
-- **AC-36:** `ELEMENTOS 2 HZ`, `PANTALLA 2 HZ`, and `FIJO` are selectable. The
-  full-screen mode alternates opaque red and the normal gauge every 250 ms and
-  redraws the white pressure number above red; the number is always visible.
+- **AC-36:** `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, and `FIJO` are selectable.
+  Full-screen mode uses an independent two-second cycle: one second of the normal
+  gauge and one second of one prebuilt opaque-red layer containing the white
+  pressure number, `PELIGRO`, and `PRESIÓN MUY BAJA`. The number is always visible;
+  the layer is never moved or rebuilt during the transition.
 - **AC-37:** The thermometer stem protrudes at least 3 painted pixels above the
   raised top mark, and the lowest mark retains at least 6 painted pixels of clearance
   from the upper oil wave in native and editable geometry.

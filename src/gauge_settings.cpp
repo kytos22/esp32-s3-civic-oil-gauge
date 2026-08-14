@@ -18,6 +18,10 @@ bool validWarningVisualMode(WarningVisualMode mode) {
          mode == WarningVisualMode::fixed;
 }
 
+bool validDataSource(DataSource source) {
+  return source == DataSource::demo || source == DataSource::sensors;
+}
+
 }  // namespace
 
 GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
@@ -31,6 +35,9 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
   if (!validWarningVisualMode(settings.warningVisualMode)) {
     settings.warningVisualMode = WarningVisualMode::elementsBlink;
   }
+  if (!validDataSource(settings.dataSource)) {
+    settings.dataSource = DataSource::demo;
+  }
   return settings;
 }
 
@@ -40,7 +47,8 @@ double pressureForDisplay(double pressurePsi, PressureUnit unit) {
 
 WarningPresentation evaluateWarningPresentation(WarningVisualMode mode,
                                                 bool warningActive,
-                                                bool blinkPhaseOn) {
+                                                bool elementsBlinkPhaseOn,
+                                                bool fullScreenBlinkPhaseOn) {
   WarningPresentation presentation;
   if (!warningActive) {
     return presentation;
@@ -48,10 +56,10 @@ WarningPresentation evaluateWarningPresentation(WarningVisualMode mode,
 
   switch (mode) {
     case WarningVisualMode::elementsBlink:
-      presentation.attentionVisible = blinkPhaseOn;
+      presentation.attentionVisible = elementsBlinkPhaseOn;
       break;
     case WarningVisualMode::fullScreenBlink:
-      presentation.fullScreenRedVisible = blinkPhaseOn;
+      presentation.fullScreenRedVisible = fullScreenBlinkPhaseOn;
       break;
     case WarningVisualMode::fixed:
       break;

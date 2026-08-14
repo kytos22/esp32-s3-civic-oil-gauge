@@ -22,6 +22,7 @@ constexpr char kTag[] = "warning_audio";
 constexpr std::uint32_t kSampleRate = 22'050;
 constexpr std::uint32_t kBeepDurationMs = 120;
 constexpr std::uint32_t kGapDurationMs = 90;
+constexpr std::uint32_t kEdgeSilenceMs = 40;
 constexpr std::uint32_t kFadeSamples = 110;
 constexpr std::size_t kChunkSamples = 512;
 constexpr UBaseType_t kAudioTaskPriority = 4;
@@ -75,17 +76,13 @@ bool writeSegment(bool audible, std::uint32_t durationMs) {
 void warningAudioTask(void*) {
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    if (esp_codec_dev_set_out_mute(gSpeaker, false) != ESP_CODEC_DEV_OK) {
-      ESP_LOGE(kTag, "Unable to unmute warning speaker");
-      continue;
-    }
-
     const bool played =
+        writeSegment(false, kEdgeSilenceMs) &&
         writeSegment(true, kBeepDurationMs) &&
         writeSegment(false, kGapDurationMs) &&
-        writeSegment(true, kBeepDurationMs);
-    const int muteResult = esp_codec_dev_set_out_mute(gSpeaker, true);
-    if (!played || muteResult != ESP_CODEC_DEV_OK) {
+        writeSegment(true, kBeepDurationMs) &&
+        writeSegment(false, kEdgeSilenceMs);
+    if (!played) {
       ESP_LOGE(kTag, "Warning tone did not complete cleanly");
     } else {
       ESP_LOGI(kTag, "Warning tone completed");
@@ -127,6 +124,13 @@ bool initWarningAudio() {
   }
   if (esp_codec_dev_set_out_mute(gSpeaker, true) != ESP_CODEC_DEV_OK) {
     ESP_LOGW(kTag, "Unable to mute warning speaker at startup");
+    esp_codec_dev_close(gSpeaker);
+    return false;
+  }
+  if (!writeSegment(false, kEdgeSilenceMs) ||
+      esp_codec_dev_set_out_mute(gSpeaker, false) != ESP_CODEC_DEV_OK ||
+      !writeSegment(false, kEdgeSilenceMs)) {
+    ESP_LOGW(kTag, "Unable to settle warning-speaker output");
     esp_codec_dev_close(gSpeaker);
     return false;
   }

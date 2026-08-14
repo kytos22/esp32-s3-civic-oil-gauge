@@ -60,8 +60,10 @@ transparent every 250 ms; the numeric value remains fixed and readable. No dimme
 intermediate state is allowed. With reduced motion, those elements remain fixed red.
 
 The selectable full-screen warning alternates an opaque red 480×480 field and the
-normal black gauge every 250 ms. The red phase redraws the centered pressure number
-in white above the field. The number never blinks or disappears.
+normal black gauge once per second (0.5 complete cycles per second). The red phase
+contains the centered pressure number in white plus `PELIGRO` and `PRESIÓN MUY
+BAJA`. The number never blinks or disappears. This is one prebuilt top-level layer;
+runtime changes only its hidden flag and never reorders or rebuilds it.
 
 ## Oil temperature
 
@@ -101,15 +103,17 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 
 - brightness 5–100%, live preview;
 - warning sound enabled, volume 5–100%, and the real double-beep test;
-- `DEMO` plus a visible disabled `SENSORES — CALIBRACIÓN PENDIENTE` source;
+- selectable `DEMO` and `SENSORES`; the latter shows `--`, `SIN DATOS`, and
+  `CALIBRACIÓN PENDIENTE` in neutral gray without enabling acquisition;
 - PSI/bar units;
-- warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 2 HZ`, or `FIJO`;
+- warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
 - read-only diagnostics and a confirmation-protected settings reset;
-- `VOLVER` and a 10-second inactivity return.
+- `VOLVER`; there is no inactivity timeout.
 
 An active pressure warning closes the menu immediately. Safe preferences persist
 in NVS when the menu closes; missing/corrupt NVS falls back to compile-time defaults.
-The sensor source cannot persist or activate until the calibration safety gate passes.
+The source choice persists, but `SENSORES` remains an explicit no-data calibration
+gate until a separately validated acquisition path exists.
 
 ## Browser controls
 
@@ -135,10 +139,11 @@ characterized and compared against the MTX-D.
   Exact-board flash passes and eight consecutive completed-frame windows measure
   65–67 FPS.
 
-The Sprint 6 extension passes 19/19 native tests, 9/9 settings invariants, 11/11
-warning invariants, and a clean ESP-IDF 6.0.2 build from commit `65ebbfa`. Exact-board
-touch/menu appearance, the revised icon, all warning modes, reboot persistence, and
-post-change FPS remain pending because this image has not been flashed.
+The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
+invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a
+complete ESP-IDF 6.0.2 build. Marcos confirmed NVS persistence on app `65ebbfa`.
+Exact-board proof of the revised no-data source, persistent menu, full-screen
+transition/message, puff-free audio edges, and post-change FPS remains pending.
 
 The approved HTML/SVG geometry was not redesigned. The user-supplied physical
 photo and complete 60 FPS demo video were reviewed on 2026-08-14: the visual match,

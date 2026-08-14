@@ -10,6 +10,7 @@ namespace {
 
 constexpr std::uint64_t kDemoSegmentUs = 4'000'000;
 constexpr std::uint64_t kWarningBlinkHalfPeriodUs = 250'000U;
+constexpr std::uint64_t kFullScreenWarningHalfPeriodUs = 1'000'000U;
 
 constexpr std::array<DemoFrame, 7> kDemoScenes{{
     {0.0, 49.0, 0},
@@ -52,6 +53,10 @@ DemoFrame demoFrameAt(std::uint64_t nowUs) {
 
 bool warningBlinkPhaseOn(std::uint64_t nowUs) {
   return ((nowUs / kWarningBlinkHalfPeriodUs) % 2U) == 0U;
+}
+
+bool fullScreenWarningPhaseOn(std::uint64_t nowUs) {
+  return ((nowUs / kFullScreenWarningHalfPeriodUs) % 2U) == 0U;
 }
 
 }  // namespace oilgauge
