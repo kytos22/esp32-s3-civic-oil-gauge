@@ -168,8 +168,9 @@ flowchart LR
   dotted-looking; Sprint 1 is reopened for a binary 2 Hz correction and new capture.
 - Current Sprint 1 correction result: the AC-06 contract failed first at 0/6, then
   passes 6/6; the deterministic 250 ms boundary regression passes in the 16/16
-  native suite. The complete 724,336-byte ESP-IDF 6.0.2 demo image builds with
-  SHA-256 `da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+  native suite. Clean app `002581d` builds as a complete 724,336-byte ESP-IDF 6.0.2
+  demo image with SHA-256
+  `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
   Exact-board flash and physical appearance remain `HARDWARE/JUDGMENT`.
 - Current Sprint 5 runtime result: exact-board app `bf5c932` uses a 13 ms
   application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions

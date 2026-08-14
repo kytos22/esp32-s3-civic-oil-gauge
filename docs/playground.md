@@ -10,8 +10,8 @@ are therefore reopened for a binary 2 Hz correction and new physical proof. The 
 
 Current software correction: the AC-06 renderer contract failed first at 0/6 and
 then passes 6/6; the native suite passes 16/16 including the exact 250 ms boundaries.
-The complete ESP-IDF 6.0.2 demo image builds at 724,336 bytes with SHA-256
-`da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+The clean ESP-IDF 6.0.2 app `002581d` builds at 724,336 bytes with SHA-256
+`4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
 No flash or physical validation was performed for this correction.
 
 Earlier hardware evidence: 2026-08-11 — the warning-audio entry gate passes 15/15

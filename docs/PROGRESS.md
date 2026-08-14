@@ -60,8 +60,8 @@
 - Sprint 1 warning correction: the renderer-contract check failed first at 0/6,
   then the new 250 ms boundary regression passed in the 16/16 native suite and
   `keel-verify` passed 6/6 warning invariants. The complete ESP-IDF 6.0.2 build
-  produced a 724,336-byte demo image, SHA-256
-  `da89069dcd0eef2c779cdb8ebffc971d09b57cfacf119b3f770da2a1f4fed0af`.
+  produced clean app `002581d`, a 724,336-byte demo image with SHA-256
+  `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
   The icon, label, and bar now switch from full red to full transparency; the
   numeric pressure stays visible. Exact-board flash and physical judgment are open.
 - Open Design Requests: none
