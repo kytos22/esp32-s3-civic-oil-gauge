@@ -161,7 +161,10 @@ flowchart LR
   `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`
   and the embedded application version is `3e0298a`. Exact-board flash and region
   verification pass; eight consecutive completed-frame windows measure 65–67 FPS.
-  Enlarged-label appearance remains `HARDWARE/JUDGMENT` pending a straight-on photo.
+  The current 13 ms app `bf5c932` retains that renderer and adds the accepted audio
+  path. A user-supplied 28.423-second 60 FPS physical cycle reviewed on 2026-08-14
+  confirms enlarged-label readability, intact glyphs, centered values, intentional
+  warning blink, and no clipping or overlap, closing AC-20 and AC-23 indoors.
 - Current Sprint 5 runtime result: exact-board app `bf5c932` uses a 13 ms
   application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions
   verified; the retained bounded log records three completed tone paths and 29
@@ -170,8 +173,8 @@ flowchart LR
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;
-  exact-board flash and boot capture are driven, while physical appearance remains
-  `HARDWARE/JUDGMENT`.
+  exact-board flash and boot capture are driven; indoor physical appearance passed
+  `HARDWARE/JUDGMENT`, while environmental appearance remains open.
 - Physical display/power/sensor/MTS/vehicle legs: `HARDWARE`; vehicle leg also `PRODUCTION-RISK`; real assistive/glanceability assessment is `JUDGMENT`.
 - Element addressability: compile-time state IDs and deterministic renderer-state names; the HTML prototype sliders need stable IDs if automated.
 - Read-back duty: fail on build/test error; capture serial boot log, I²C scan, ADC channels, reset reason, and fault state. Browser console errors must fail prototype checks once the driver exists.

@@ -1,6 +1,6 @@
 # Oil Gauge UI Design
 
-Status: **approved binding reference; native LVGL implementation built, physical review pending**.
+Status: **approved binding reference; native LVGL implementation built and indoor physical match accepted**.
 
 Editable reference:
 [`design/references/oil-gauge-design.fragment.html`](design/references/oil-gauge-design.fragment.html).
@@ -19,7 +19,8 @@ Static capture:
 - Bars are 9 px thick at 480×480.
 - Numeric values are white; labels/units/references use dimmed white.
 - Semantic state labels are right-aligned in 24 px Montserrat for distance
-  readability; their physical clipping and glanceability remain to be judged.
+  readability; the physical demo confirms they are unclipped and glanceable at
+  handheld distance.
 - RPM is never shown. It is only an internal pressure-warning input.
 
 ## Icons
@@ -106,6 +107,8 @@ characterized and compared against the MTX-D.
   Exact-board flash passes and eight consecutive completed-frame windows measure
   65–67 FPS.
 
-The approved HTML/SVG geometry was not redesigned. A physical screenshot and
-day/night glanceability review remain mandatory before the visual match can be
-accepted; the current flashed image still requires that visual judgment.
+The approved HTML/SVG geometry was not redesigned. The user-supplied physical
+photo and complete 60 FPS demo video were reviewed on 2026-08-14: the visual match,
+glyph integrity, warning blink, semantic labels, centered values, and 50/50 layout
+pass indoors at handheld distance. Daylight, night, glare, and in-vehicle motion
+remain mandatory before vehicle cutover.

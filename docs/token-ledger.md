@@ -21,8 +21,9 @@
 | 2026-08-10 | Phase 5 / Keel update and sensor-connection review | Codex session model | 60000 | 12000 | estimated, rounded up from the full Keel v5.13.0 update/reconciliation references and safety-document review; environment exposes no exact counter | Updated all Keel copies, audited the pending reconciliation delta, and reviewed the staged Route A/Route B sensor connection evidence without authorizing a hardware connection |
 | 2026-08-11 | Phase 5 / Sprint 5 warning audio | Codex session model | 50000 | 12000 | estimated, rounded up from Keel/reference inspection, pinned BSP audio-source review, red-first native testing, full firmware rebuild and documentation; environment exposes no exact counter | Added a one-shot warning-entry gate and non-blocking ES8311/I²S double-beep worker, passed 15/15 native tests and the full ESP-IDF build, and stopped before flash/physical sound proof |
 | 2026-08-11 | Phase 5 / Sprint 5 exact-board retest | Codex session model | 40000 | 10000 | estimated, rounded up from USB/IP recovery, repeated complete builds, exact-board flashes, long serial FPS captures, remediation and evidence updates; environment exposes no exact counter | Flashed and region-verified the audio builds, found repeatable 58–59 FPS warning-load windows, added 14 ms headroom, isolated 512-sample audio writes on CPU1, selected 13 ms, and closed the sprint after Marcos confirmed the double beep was audible |
+| 2026-08-14 | Phase 5 / Sprint 1 physical visual acceptance | Codex session model | 30000 | 7000 | estimated, rounded up from Keel maintenance, attached photo/video extraction, full-cycle state inspection, warning-blink analysis, and close-out documentation; environment exposes no exact counter | Reviewed the 28.423-second 60 FPS physical demo and companion photo, confirmed every semantic state and the intentional warning blink without corruption, clipping, or overlap, and closed AC-20, AC-23, and Sprint 1 while leaving environmental and sensor checks open |
 
-Running total: approximately 816000 input / 213000 output.
+Running total: approximately 846000 input / 220000 output.
 
 ## Final reconciliation
 

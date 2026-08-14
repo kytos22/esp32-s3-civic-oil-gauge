@@ -32,17 +32,17 @@
 | 1 Discovery | adopted (as-built) | `docs/00-competitive-landscape.md`, `docs/01-discovery.md`, `docs/estimate.md` |
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
-| 4 Faithful build | renderer implemented; physical fidelity pending | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 2–5 complete; Sprint 1 physical judgment remains open | [Sprint 1](sprints/sprint-1-fluid-demo.md) physical visual judgment; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
+| 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
+| 5 Development | Sprints 1–5 complete; sensor-input slice not yet authorized | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 1 physical visual judgment
-- Next action: obtain a straight-on powered-screen photo and judge the full 50/50
-  demo for glyph integrity, clipping, overlap, and distance readability. Keep demo
-  mode enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
+- Phase: 5 — Development  Step: all planned Sprints 1–5 complete
+- Next action: complete the pending Keel v5.13.0 reconciliation choices, then plan
+  and explicitly authorize a protected ADS1115 bench-input slice. Keep demo mode
+  enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
@@ -81,8 +81,9 @@
   `7591c7cf5a02899252ad8404f67fa93d557c52124b93c2f76aeabd2b9f63ffbe`. A bounded
   boot capture proves demo mode, ESP-IDF 6.0.2, 16 MB flash, 8 MB PSRAM, 480×480
   display/touch initialization, and no error/reset/watchdog after startup. Physical
-  corrected-text evidence, I²C scan, ADC, MTS, power, thermal, and EMC validation
-  remain open. The user accepted proceeding without a complete factory backup; two
+  corrected-text evidence passed on 2026-08-14. I²C scan, ADC, MTS, power, thermal,
+  environmental visual, and EMC validation remain open. The user accepted proceeding
+  without a complete factory backup; two
   1 MB chunks remain diagnostic evidence only. Sprint 1 app `3e0298a` now uses
   linear interpolation, fractional-pixel bar edges, a 15 ms cadence, completed-frame
   FPS logging, and the dedicated uncompressed 24 px Spanish state font. Its
@@ -90,7 +91,10 @@
   `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`.
   The local exact-board identifier and all four written regions verified. The bounded
   log records a clean ESP-IDF 6.0.2/demo boot and eight consecutive completed-frame
-  windows of 65–67 FPS. Physical visual judgment remains open.
+  windows of 65–67 FPS. The user-supplied 28.423-second 60 FPS video and photo were
+  reviewed on 2026-08-14: all semantic states, Spanish accents, centered values,
+  icons, bars, black background, warning blink, and 50/50 geometry pass without
+  corruption, clipping, or overlap, closing AC-20, AC-23, and Sprint 1.
 - Forge issues in progress: none
 - Repository publication: Marcos selected public visibility for
   `kytos22/esp32-s3-civic-oil-gauge` on 2026-08-04. The public repository is live
@@ -115,7 +119,7 @@
 
 ### Deferred items (consciously postponed work)
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
-- Physical 50/50 UI fidelity/glanceability judgment — medium — after an explicitly authorized flash and capture
+- Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-11 — Sprint 5 and AC-32 complete after audible double-beep confirmation
+Last updated: 2026-08-14 — indoor physical UI review closes AC-20, AC-23, and Sprint 1

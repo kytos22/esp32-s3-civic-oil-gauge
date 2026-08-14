@@ -406,3 +406,19 @@
   remains outstanding. Treat this as calibrated vehicle-alarm proof; sensor curves
   and vehicle alarm semantics remain separately safety-gated.
 - Supersedes: none.
+
+## D-036 — Accept the indoor physical UI result
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 acceptance
+- Decision: Accept the flashed demo's indoor 480×480 visual match and close AC-20,
+  AC-23, and Sprint 1 from the user-supplied photo and complete 60 FPS video.
+- Why: The 28.423-second physical cycle shows every long and short pressure and
+  temperature state, intact Spanish accents, centered values, binding icons, 9 px
+  bars, pure-black presentation, and the exact 50/50 split without glyph corruption,
+  clipping, or overlap. Sequential warning frames prove that the intermittent
+  warning label/icon/bar are the intended 1 Hz blink while the numeric pressure
+  remains visible.
+- Alternatives rejected (and why): Treat blink-off frames as renewed rendering
+  corruption; adjacent frames show a regular on/off sequence and all static text
+  remains intact. Treat the desk capture as daylight/night or vehicle-motion proof;
+  those environmental judgments were not exercised and remain open.
+- Supersedes: none.

@@ -17,7 +17,7 @@
 | Fonts resolved | yes | no external font asset is required by the embedded target | pass |
 | External assets | yes | none | pass |
 | External setup | yes | none for the visual design | pass |
-| Accessibility specified | yes | §4 and `docs/design/DESIGN-BRIEF.md` | pass, physical leg unverified |
+| Accessibility specified | yes | §4 and `docs/design/DESIGN-BRIEF.md` | pass indoors at handheld distance; environmental checks remain |
 | Open design questions | yes | none | pass |
 | Foreign delivery files | yes | handoff contains only its orientation file | pass |
 
@@ -91,8 +91,10 @@ Temperature colors are linearly interpolated between:
 - Pressure numeric text never blinks.
 - Reduced motion holds the warning icon, label, and bar red.
 - All specified foreground tokens exceed 4.5:1 against black.
-- Physical AMOLED daylight/night, glare, motion, and color assessment is
-  `⚠ unverified — HARDWARE/JUDGMENT` until an authorized physical display run.
+- Indoor physical fidelity, text integrity, warning motion, and handheld-distance
+  readability passed from the user-supplied full demo video on 2026-08-14.
+- AMOLED daylight/night, glare, in-vehicle motion, and environmental color
+  assessment remain `⚠ unverified — HARDWARE/JUDGMENT` until supervised tests.
 
 ## 5. Interactions and logic
 
@@ -134,7 +136,7 @@ None.
 
 ## 10. Faithfulness checklist
 
-- [ ] Physical firmware capture visually matches the approved 480×480 reference.
+- [x] Physical firmware capture visually matches the approved 480×480 reference indoors.
 - [x] Every documented semantic state has a deterministic core representation.
 - [x] Every value traces to this token table or `docs/UI_DESIGN.md`.
 - [x] Every behavior traces to §5.
@@ -143,9 +145,11 @@ None.
 - [x] No placeholder copy is presented as calibrated data.
 - [x] No external visual setup or generated asset is pending.
 - [x] Code-side state-model adaptation preserves design intent.
-- [ ] Physical accessibility/glanceability pass completed on the AMOLED.
+- [x] Indoor handheld-distance accessibility/glanceability pass completed on the AMOLED.
+- [ ] Daylight, night, glare, and in-vehicle-motion visual assessment completed.
 - [x] Zero unresolved Design Requests.
 
-The renderer now compiles into a complete ESP32-S3 image. The two unchecked items
-require an explicitly authorized flash, physical capture, and human judgment on the
-received AMOLED; a software build alone cannot close them.
+The renderer compiles into a complete ESP32-S3 image and its indoor physical match
+is accepted. The remaining environmental visual assessment requires a separately
+authorized supervised run; the supplied desk video does not prove daylight, night,
+glare, or in-vehicle motion performance.

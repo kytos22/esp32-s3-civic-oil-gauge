@@ -31,9 +31,8 @@
   without one. The user accepted proceeding without one on 2026-08-04; the current
   USB/IP route stopped a 16 MB read and a chunked retry, and two 1 MB chunks remain
   incomplete evidence only.
-- [ ] Confirm clean visible `DEMO` labeling. The first physical photo showed glyph
-  fragments from concurrent compressed-font rendering; serialized app `701d0b4` is
-  now flashed and awaits a straight-on confirmation photo.
+- [x] Confirm clean visible `DEMO` labeling. The 2026-08-14 user photo and complete
+  60 FPS demo video show intact text and accents with no earlier glyph fragments.
 - [x] Save the boot/reset log (serialized app `701d0b4`, 2026-08-04; display/touch
   initialized with no error, reset, or watchdog after startup).
 - [x] Save a bounded completed-frame FPS log (app `3e0298a`, 2026-08-04; eight

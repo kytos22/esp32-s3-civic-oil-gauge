@@ -1,10 +1,17 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Last hardware-assisted verification: 2026-08-11 — the warning-audio entry gate
-passes 15/15 native tests; exact-board app `bf5c932` and every flash region
-verified. A retained bounded log records three completed tone paths and 29
-consecutive 66–77 FPS windows without a runtime fault. Marcos confirmed the
-physical double beep is audible, completing Sprint 5.
+Last hardware-assisted verification: 2026-08-14 — a user-supplied 28.423-second,
+1920×1080/60 FPS physical demo video and companion photo confirm the indoor 480×480
+visual match. Every semantic state is readable at handheld distance with intact
+Spanish glyphs, centered values, no clipping or overlap, and an intentional 1 Hz
+warning blink. This closes AC-20, AC-23, and Sprint 1. The video SHA-256 is
+`f27838f6ffb06107d2663e3cd1fef015730935794a4293358aedceede95f749b`.
+
+Earlier hardware evidence: 2026-08-11 — the warning-audio entry gate passes 15/15
+native tests; exact-board app `bf5c932` and every flash region verified. A retained
+bounded log records three completed tone paths and 29 consecutive 66–77 FPS windows
+without a runtime fault. Marcos confirmed the physical double beep is audible,
+completing Sprint 5.
 
 Earlier deployed/physical evidence: 2026-08-04 — the GitHub Pages simulator is published from
 `main:/docs`; its 47,509-byte deployed HTML is byte-identical to the approved
@@ -12,8 +19,8 @@ source. Firmware fix commit `9b806cc` passed 12/12 native tests, project
 consistency, and a complete ESP-IDF 6.0.2 build. The resulting 669,824-byte app
 `701d0b4`, SHA-256
 `7591c7cf5a02899252ad8404f67fa93d557c52124b93c2f76aeabd2b9f63ffbe`, was flashed
-and region-verified on the exact board. Its bounded boot is clean; physical corrected
-text remains a user-photo gate.
+and region-verified on the exact board. Its bounded boot is clean; the corrected
+physical text passed from the 2026-08-14 user photo/video.
 
 ## Software playground
 
@@ -48,14 +55,14 @@ contains no application error, reset after startup, or watchdog event.
 
 ## Hardware playground
 
-`⚠ unverified — HARDWARE`
+`⚠ partially verified — HARDWARE`
 
 The board is attached through usbipd-win 5.3.0 as `/dev/ttyACM0`, identified by
 Espressif VID/PID `303a:1001` and the exact identifier retained in ignored local
 hardware evidence. Serialized-font app
 `701d0b4` is written, every region is verified, and its bounded boot is clean. The
-screen needs one straight-on photo to confirm that the earlier corrupted glyph
-fragments are gone. A full factory backup is not available because USB/IP
+screen's indoor physical UI passed on 2026-08-14; daylight/night, glare, and
+in-vehicle motion remain unverified. A full factory backup is not available because USB/IP
 stopped both the continuous read and the chunked retry; two 1 MB chunks are not
 restorable. On 2026-08-04 the user explicitly accepted that limitation and authorized
 the calibration-safe demo flash only on this exact serial.
