@@ -40,8 +40,9 @@
 
 ## Current position
 - Phase: 5 — Development  Step: Sprint 1 slice 1.5, hard 2 Hz warning blink
-- Next action: obtain Marcos's physical judgment that the flashed 2 Hz warning has
-  no dotted phase and keeps the numeric pressure visible. Keep demo mode enabled;
+- Next action: obtain Marcos's physical judgment of the flashed 2 Hz warning and
+  resolve [DR-001](design/design-requests/DR-001.md), which defines the raised
+  thermometer geometry and 700 ms long-press settings menu. Keep demo mode enabled;
   sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
@@ -69,7 +70,8 @@
   `6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`
   records a clean demo boot, two warning tones, and 16 consecutive 64–77 FPS windows.
   Only Marcos's physical appearance judgment remains open for this slice.
-- Open Design Requests: none
+- Open Design Requests: [DR-001](design/design-requests/DR-001.md) — thermometer
+  geometry and complete settings-menu behavior; awaiting Marcos's choices
 - Sprint 5 software result: the warning-entry gate failed first with `Expected
   TRUE Was FALSE`, then the 15/15 native suite passed. Exact-board app `0c33fe6`
   flashed with all four regions hash-verified and booted with demo warning audio
@@ -135,4 +137,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — app 002581d flashed and stable; physical judgment pending
+Last updated: 2026-08-14 — settings-menu/icon DR opened; warning judgment pending

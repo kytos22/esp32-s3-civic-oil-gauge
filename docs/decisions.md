@@ -437,3 +437,24 @@
   numeric value; it would reduce the continuously readable measurement.
 - Supersedes: D-007 for warning frequency and D-036 only for acceptance of the
   former warning-off appearance; their other safety and visual conclusions remain.
+
+## D-038 — Add a long-press settings surface and separate the thermometer marks
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: Add a settings surface opened by a 700 ms press-and-hold anywhere on
+  the gauge. Its required controls are AMOLED brightness, warning-sound volume,
+  and data-source mode. Redraw the oil-temperature icon with a taller thermometer
+  stem and all three horizontal marks raised so no mark intersects the oil waves.
+- Why: Marcos requested on-device adjustment without adding visible controls to the
+  driving screen, and the current lowest thermometer mark reaches the wave stroke
+  in the native geometry.
+- Safety constraint: A runtime `SENSORES`/normal choice may be shown but must remain
+  disabled with an explicit `CALIBRACIÓN PENDIENTE` reason until ADS1115 acquisition,
+  sensor calibrations, and AC-13 through AC-18 pass. It must never turn missing or
+  assumed sensor data into normal-looking values.
+- Undefined by this decision: exact menu composition beyond the three required
+  controls, persistence/reset behavior, interruption by an active warning, exit
+  behavior, and exact revised icon coordinates. These are registered in DR-001 and
+  block implementation until Marcos approves them.
+- Supersedes: the `no touch UI` assumption in the adopted design for the new settings
+  surface only; the driving gauge remains touch-control-free and visually unchanged
+  except for the thermometer icon.
