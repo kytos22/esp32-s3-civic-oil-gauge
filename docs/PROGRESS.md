@@ -49,6 +49,10 @@
   safety-gated work.
 
 ## Open items
+- Sprint 6 review-extension artifact: clean ESP-IDF 6.0.2 build from implementation
+  commit `8c2cc46`, 752,960-byte app, SHA-256
+  `6b854240f99d4edf92e8bdf0507ca83b26b0ad0fb69161d3146961c5d7543127`.
+  It has not been flashed; exact-board review requires new explicit authorization.
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
   confirmed pressure transfer function, temperature curve/electrical range,
   installed connector identities,

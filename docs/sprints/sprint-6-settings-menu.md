@@ -53,4 +53,6 @@
   °C/°F enum, shows `<122` below the sensor's 50 °C floor, adds the same choice to
   the editable simulator, and regenerates the large numeric face with a real decimal
   point. Native 22/22, temperature-unit 7/7, BAR-font 2/2, all 40 acceptance rows,
-  and a full clean ESP-IDF build pass; exact-board visual confirmation remains gated.
+  and a full clean ESP-IDF build pass. Clean app `8c2cc46` is 752,960 bytes with
+  SHA-256 `6b854240f99d4edf92e8bdf0507ca83b26b0ad0fb69161d3146961c5d7543127`;
+  exact-board visual confirmation remains gated.
