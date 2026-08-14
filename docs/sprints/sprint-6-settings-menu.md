@@ -42,5 +42,6 @@
   full-screen 0.5 Hz, adds `PELIGRO` / `PRESIÓN MUY BAJA`, toggles only a prebuilt
   overlay's visibility, and leaves the codec active at digital zero between tones.
 - Corrected software evidence: native 21/21; settings 9/9; warning 11/11; physical
-  review 12/12; complete ESP-IDF 6.0.2 build. A new flash was deliberately not
-  performed without explicit authorization.
+  review 12/12; clean ESP-IDF 6.0.2 app `da7cbfb`, 751,472 bytes, SHA-256
+  `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
+  A new flash was deliberately not performed without explicit authorization.

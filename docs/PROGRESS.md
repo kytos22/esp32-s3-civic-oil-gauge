@@ -107,7 +107,9 @@
   implementation now passes 21/21 native tests, 9/9 menu invariants, 11/11 warning
   invariants, 12/12 physical-review invariants, and a complete ESP-IDF 6.0.2 build.
   `SENSORES` persists but renders `--` / `SIN DATOS`; no ADS1115 path or calibration
-  is enabled. Exact-board proof remains pending new flash authorization.
+  is enabled. Clean commit `da7cbfb` builds a 751,472-byte application with SHA-256
+  `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
+  Exact-board proof remains pending new flash authorization.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination

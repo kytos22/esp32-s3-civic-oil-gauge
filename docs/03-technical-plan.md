@@ -196,7 +196,9 @@ flowchart LR
   absent `DataSource` and independent full-screen phase, and the review contract
   failed 0/12. The implementation now passes 21/21 native tests, 9/9 menu, 11/11
   split-cadence warning, and 12/12 review invariants plus a complete ESP-IDF 6.0.2
-  build. New exact-board flash/runtime proof is not yet authorized.
+  build. Clean app `da7cbfb` is 751,472 bytes with SHA-256
+  `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
+  New exact-board flash/runtime proof is not yet authorized.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

@@ -18,8 +18,9 @@ prebuilt red layer with the number plus `PELIGRO` / `PRESIÓN MUY BAJA` on an
 independent 0.5 Hz cycle; and the codec remains active at digital zero between
 enveloped beeps. Red-first checks failed on the absent source/phase and at 0/12
 review invariants; the correction passes native 21/21, settings 9/9, warning 11/11,
-review 12/12, and a complete ESP-IDF 6.0.2 build. Physical proof awaits explicit
-authorization to replace the current app.
+review 12/12, and clean ESP-IDF 6.0.2 app `da7cbfb` (751,472 bytes; SHA-256
+`995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`). Physical
+proof awaits explicit authorization to replace the current app.
 
 Last hardware-assisted verification: 2026-08-14 — a user-supplied 28.423-second,
 1920×1080/60 FPS physical demo video and companion photo confirm the indoor 480×480

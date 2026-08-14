@@ -141,7 +141,9 @@ characterized and compared against the MTX-D.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a
-complete ESP-IDF 6.0.2 build. Marcos confirmed NVS persistence on app `65ebbfa`.
+complete ESP-IDF 6.0.2 build: clean app `da7cbfb`, 751,472 bytes, SHA-256
+`995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
+Marcos confirmed NVS persistence on app `65ebbfa`.
 Exact-board proof of the revised no-data source, persistent menu, full-screen
 transition/message, puff-free audio edges, and post-change FPS remains pending.
 
