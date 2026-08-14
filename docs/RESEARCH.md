@@ -1,6 +1,6 @@
 # Research and Sources
 
-Evidence cutoff: **2026-08-10**. Current purchasing/status information can drift;
+Evidence cutoff: **2026-08-14**. Current purchasing/status information can drift;
 reverify before ordering.
 
 ## Confirmed facts
@@ -64,6 +64,43 @@ Sources:
 - [schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.16/ESP32-S3-Touch-AMOLED-2.16-Schematic.pdf)
 - [Espressif component](https://components.espressif.com/components/waveshare/esp32_s3_touch_amoled_2_16)
 
+### Ambient-light sensing for automatic brightness
+
+- The Waveshare onboard-resource list and complete three-page schematic contain no
+  ambient-light sensor. The display therefore cannot measure cabin illumination by
+  itself.
+- A true digital ambient-light sensor can share the exposed 3.3 V I²C bus on GPIO14
+  and GPIO15 with the ADS1115. The final board must reuse the Waveshare's existing
+  2.2 kΩ pull-ups rather than adding another strong pair.
+- Preferred final-vehicle candidate: TI `OPT4001-Q1`. It is AEC-Q100 qualified,
+  operates from 1.6–3.6 V, has selectable I²C addressing, human-eye spectral
+  response with infrared rejection, and supports automatic-ranging measurements.
+  A non-conflicting address must be fixed in the final schematic and verified by an
+  I²C scan.
+- Easier bench candidate: Vishay `VEML7700`, powered at 3.3 V over I²C. It measures
+  approximately 0–140 klx and rejects 100/120 Hz lighting flicker, but its cited
+  datasheet does not provide the `-Q1` automotive qualification required for the
+  final in-car PCB.
+- The already reserved protected lighting input on ADS1115 A3 is a separate binary
+  alternative: it can report that the vehicle illumination circuit is energized,
+  but it does not measure actual ambient lux and cannot react correctly to every
+  tunnel, shadow, glare, or daytime-headlights case.
+- Any optical sensor needs a clear or characterized dark window facing cabin/
+  windshield light, not an opaque enclosure. Firmware must use filtering, hysteresis,
+  a minimum dwell time, gradual brightness ramps, and a manual brightness fallback so
+  passing shadows do not make the AMOLED pump visibly.
+- Automatic brightness and manual `DÍA`/`NOCHE` presets remain deferred. No light
+  sensor is added to the current BOM until packaging and the final analog PCB are
+  selected.
+
+Sources:
+
+- [Waveshare board resources](https://docs.waveshare.com/ESP32-S3-Touch-AMOLED-2.16)
+- [Waveshare schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.16/ESP32-S3-Touch-AMOLED-2.16-Schematic.pdf)
+- [TI OPT4001-Q1](https://www.ti.com/product/OPT4001-Q1)
+- [TI automotive-display ambient-light note](https://www.ti.com/lit/ab/sboa359/sboa359.pdf)
+- [Vishay VEML7700](https://www.vishay.com/en/product/84286/)
+
 ### ADC and automotive supply
 
 - ADS1115-Q1: four single-ended channels, 16 bits, 8–860 SPS, PGA, internal
@@ -92,6 +129,8 @@ Sources:
 6. Waveshare peak current with final UI.
 7. Enclosure temperature in the vehicle mount.
 8. Evidence-backed source and semantics for engine-running/RPM state.
+9. Ambient-light sensor optical placement, cover-window transmission, lux thresholds,
+   hysteresis, and brightness mapping if automatic brightness is selected later.
 
 None is resolved by assumption; each has a procedure in `CALIBRATION.md` or
 `ARRIVAL_CHECKLIST.md`.

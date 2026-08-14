@@ -18,7 +18,7 @@
 | External assets | yes | none | pass |
 | External setup | yes | none for the visual design | pass |
 | Accessibility specified | yes | §4 and `docs/design/DESIGN-BRIEF.md` | pass indoors at handheld distance; environmental checks remain |
-| Open design questions | yes | none | pass |
+| Open design questions | no | DR-001 full-screen warning off-phase semantics | blocked for menu extension only |
 | Foreign delivery files | yes | handoff contains only its orientation file | pass |
 
 The compact adopted handoff is an explicit legacy exception, not a general weakening
@@ -67,7 +67,7 @@ Temperature colors are linearly interpolated between:
 |---|---|---|---|---|
 | engine unknown | engine state unavailable | pending/fault cue | non-alarming | implemented/tested |
 | engine stopped | known RPM = 0 | `MOTOR PARADO` | amber, fixed | implemented/tested |
-| warning | running and 0–10 PSI | `WARNING` | red, binary 2 Hz; reduced motion fixed | implemented/tested; physical recheck pending |
+| warning | running and 0–10 PSI | `WARNING` | red, binary 2 Hz; reduced motion fixed | implemented/tested; physical pass |
 | low | running and 11–14 PSI | `PRESIÓN BAJA` | provisional amber | implemented/tested |
 | OK | 15–80 PSI | `OK` | `#FFB020` | implemented/tested |
 | high | >80 PSI | `PRESIÓN ALTA` | provisional amber | implemented/tested |

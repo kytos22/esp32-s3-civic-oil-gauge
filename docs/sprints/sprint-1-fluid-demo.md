@@ -14,8 +14,8 @@
     remain right-aligned, and do not overlap or clip on the physical 480×480 panel;
   - native tests and the complete ESP-IDF firmware build pass;
   - demo mode remains enabled and no sensor, ADC, 12 V, or vehicle path is enabled.
-- Status: reopened — software, exact-board flash, and runtime complete; Marcos's
-  physical warning-animation judgment remains required
+- Status: complete — software, exact-board runtime, and physical warning appearance
+  accepted
 
 ## Slices
 
@@ -25,7 +25,7 @@
 | 1.2 Larger semantic labels | complete | physical visual pass | Every short and long state is readable, right-aligned, unclipped, and free of overlap in the supplied 60 FPS video |
 | 1.3 Real FPS instrumentation | complete | eight consecutive windows at 65–67 FPS | Exact-board app `3e0298a`; passing bounded log retained |
 | 1.4 Hardware proof and close-out | complete | exact-board flash/boot/FPS and physical visual pass | Full demo cycle reviewed; warning blink is intentional and numeric values remain continuously visible |
-| 1.5 Hard 2 Hz warning blink | runtime pass; judgment pending | red-first 0/6, then 16/16 native + 6/6 contract + full build; exact-board app `002581d`, 16 windows at 64–77 FPS | Dotted 20% phase removed; 250 ms on/off timing flashed; Marcos must confirm the physical appearance |
+| 1.5 Hard 2 Hz warning blink | complete | red-first 0/6, then 16/16 native + 6/6 contract + full build; exact-board app `002581d`, 16 windows at 64–77 FPS; physical judgment passed | Dotted 20% phase removed; 250 ms on/off timing is clean on the AMOLED |
 
 ## Physical close-out evidence
 
@@ -45,10 +45,8 @@
 - The complete physical demo cycle shows `DEMO`, `<50`, every pressure and
   temperature semantic label, centered values, intact Spanish accents, the exact
   50/50 split, and the black AMOLED background without glyph corruption, clipping,
-  or overlap. It also exposed a dotted-looking low-opacity warning phase, so it no
-  longer closes the corrected warning animation; the pressure number remains visible
-  throughout.
-- This evidence retains indoor fidelity and handheld-distance readability for all
-  non-warning-animation elements. The corrected warning is now running on the exact
-  display and needs Marcos's physical judgment.
-  Daylight, night, glare, and in-vehicle motion remain separate pre-vehicle checks.
+  or overlap. It exposed the former dotted-looking low-opacity warning phase, which
+  D-037 replaced with the binary off phase while keeping pressure visible.
+- Marcos confirmed on 2026-08-14 that app `002581d` makes the corrected warning look
+  clean. This closes slice 1.5 and Sprint 1. Daylight, night, glare, and in-vehicle
+  motion remain separate pre-vehicle checks.

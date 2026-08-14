@@ -87,6 +87,19 @@ temperature sensor resistance only while unpowered and disconnected. Select
 the pull-up from evidence so the useful range uses the ADC well without
 excessive self-heating.
 
+### Deferred automatic brightness
+
+The Waveshare has no onboard ambient-light sensor. If true automatic brightness is
+added later, the preferred final candidate is an automotive-qualified `OPT4001-Q1`
+on the existing 3.3 V I²C bus. It can coexist with ADS1115 address `0x48` by selecting
+and verifying a free address. Do not add another strong SDA/SCL pull-up pair on the
+final PCB.
+
+The protected A3 lighting input remains useful as an optional headlight/illumination
+signal, but it is binary vehicle state rather than ambient lux. A true optical sensor
+also requires a characterized enclosure window and a filtered, hysteretic brightness
+mapping. Both routes are deferred; the v1 settings menu keeps manual brightness.
+
 ### Grounding
 
 Innovate requires the pressure sensor's additional black wire to share the

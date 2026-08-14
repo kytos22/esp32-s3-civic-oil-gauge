@@ -22,6 +22,8 @@ Project use:
 - ADS1115: P2, P3, P6, P7.
 - MTS is laptop-only calibration equipment; it is not connected to a board pin.
 - Vehicle power: regulated 5 V to P1/GND, never 12 V.
+- The board has no onboard ambient-light sensor. A future external sensor may share
+  P2/P3/P6/P7 only after its I²C address and pull-up loading are verified.
 
 ## Display and touch
 

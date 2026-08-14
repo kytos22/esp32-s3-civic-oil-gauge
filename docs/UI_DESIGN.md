@@ -111,5 +111,6 @@ characterized and compared against the MTX-D.
 The approved HTML/SVG geometry was not redesigned. The user-supplied physical
 photo and complete 60 FPS demo video were reviewed on 2026-08-14: the visual match,
 glyph integrity, warning blink, semantic labels, centered values, and 50/50 layout
-pass indoors at handheld distance. Daylight, night, glare, and in-vehicle motion
-remain mandatory before vehicle cutover.
+pass indoors at handheld distance. Marcos subsequently confirmed that app `002581d`
+removes the dotted warning phase and looks clean at 2 Hz. Daylight, night, glare,
+and in-vehicle motion remain mandatory before vehicle cutover.

@@ -458,3 +458,34 @@
 - Supersedes: the `no touch UI` assumption in the adopted design for the new settings
   surface only; the driving gauge remains touch-control-free and visually unchanged
   except for the thermometer icon.
+
+## D-039 — Accept the clean binary 2 Hz warning on the physical AMOLED
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 acceptance
+- Decision: Accept flashed app `002581d` as the corrected physical warning result.
+  Its current icon, label, and bar blink cleanly at 2 Hz with no dotted dim phase,
+  while the numeric pressure remains visible.
+- Why: Marcos explicitly confirmed that the current warning now looks clean. The
+  exact-board run already recorded 16 consecutive completed-frame windows at
+  64–77 FPS through repeated warning entries.
+- Alternatives rejected (and why): Keep the physical judgment open; the designated
+  user judgment is now present. Reintroduce an opacity fade; that was the artifact
+  corrected by D-037.
+- Supersedes: D-036 and D-037 only where they left physical acceptance pending.
+
+## D-040 — Approve settings v1 choices and defer manual day/night profiles
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: Approve the DR-001 menu hierarchy and interaction proposal, including
+  PSI/bar units. Keep the manual brightness slider, but defer manual `DÍA`/`NOCHE`
+  profiles while automatic ambient-light sensing is evaluated. The thermometer
+  stem must extend above the top of all three raised marks, and the lowest mark must
+  retain clear separation from the oil waves.
+- Why: Marcos approved the proposed menu, selected units, specified the final icon
+  relationship, and preferred investigating automatic light detection before adding
+  redundant manual profiles.
+- Open boundary: Marcos also requested an optional full-screen 2 Hz warning. Whether
+  its off phase may hide the pressure number remains unresolved in DR-001 and blocks
+  the consolidated design handoff.
+- Alternatives rejected (and why): Ship manual day/night presets now; they are
+  deliberately deferred. Treat the stem and marks as merely non-overlapping; the
+  stem must visibly protrude above them.
+- Supersedes: D-038 where it left these menu and icon details undefined.

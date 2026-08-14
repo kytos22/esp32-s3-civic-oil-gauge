@@ -33,17 +33,18 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprint 1 reopened for warning-animation correction; Sprints 2–5 complete | [Sprint 1](sprints/sprint-1-fluid-demo.md) in progress; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
+| 5 Development | Sprints 1–5 complete; settings-menu extension awaiting resolved design | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Development  Step: Sprint 1 slice 1.5, hard 2 Hz warning blink
-- Next action: obtain Marcos's physical judgment of the flashed 2 Hz warning and
-  resolve [DR-001](design/design-requests/DR-001.md), which defines the raised
-  thermometer geometry and 700 ms long-press settings menu. Keep demo mode enabled;
-  sensor calibration and vehicle cutover remain separate safety-gated work.
+- Phase: 3/5 — Design extension before settings-menu implementation
+- Next action: resolve the one remaining full-screen warning rendering choice in
+  [DR-001](design/design-requests/DR-001.md), then consolidate the raised thermometer,
+  units, menu interactions, and new acceptance criteria before writing firmware.
+  Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
+  safety-gated work.
 
 ## Open items
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
@@ -69,9 +70,16 @@
   verification, and the retained log SHA-256
   `6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`
   records a clean demo boot, two warning tones, and 16 consecutive 64–77 FPS windows.
-  Only Marcos's physical appearance judgment remains open for this slice.
+  Marcos confirmed that the current warning looks clean without the dotted phase,
+  closing AC-06, AC-23, slice 1.5, and Sprint 1 on 2026-08-14.
 - Open Design Requests: [DR-001](design/design-requests/DR-001.md) — thermometer
-  geometry and complete settings-menu behavior; awaiting Marcos's choices
+  geometry and settings-menu behavior; the hierarchy, PSI/bar units, icon relation,
+  and deferral of manual day/night profiles are approved. One choice remains: whether
+  full-screen 2 Hz warning motion preserves the pressure number or blacks it out.
+- Ambient-light research: the Waveshare has no onboard light sensor. A future
+  `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
+  `VEML7700` is an easier non-automotive bench option. Protected A3 illumination
+  sensing is binary, not ambient lux. Automatic brightness remains deferred.
 - Sprint 5 software result: the warning-entry gate failed first with `Expected
   TRUE Was FALSE`, then the 15/15 native suite passed. Exact-board app `0c33fe6`
   flashed with all four regions hash-verified and booted with demo warning audio
@@ -109,7 +117,7 @@
   reviewed on 2026-08-14: all semantic states, Spanish accents, centered values,
   icons, bars, black background, and 50/50 geometry pass without corruption,
   clipping, or overlap. The same evidence exposed the warning's dotted low-opacity
-  phase; AC-06 and Sprint 1 now await the binary 2 Hz correction and new physical proof.
+  phase; app `002581d` corrected it and Marcos subsequently accepted the clean result.
 - Forge issues in progress: none
 - Repository publication: Marcos selected public visibility for
   `kytos22/esp32-s3-civic-oil-gauge` on 2026-08-04. The public repository is live
@@ -137,4 +145,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — settings-menu/icon DR opened; warning judgment pending
+Last updated: 2026-08-14 — warning accepted; settings/menu DR has one clarification pending
