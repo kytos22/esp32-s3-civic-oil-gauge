@@ -1,26 +1,26 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Current Sprint 6 hardware evidence: 2026-08-14 — after Marcos explicitly authorized
-the demo test, app `65ebbfa` was written only to the locally recorded exact display.
-All write regions passed esptool digest verification; bootloader, partition table,
-and the 750,720-byte application also passed post-boot verification. Retained ignored
-capture `.artifacts/hardware/2026-08-14/sprint6-first-boot.typescript`, SHA-256
-`78391016db981bda1f6284d51b4b56260c8ccf5b9e86232fb01ad22d2a430da8`, records one
-completed warning tone and 24 consecutive 63–76 FPS windows, with no frame window
-below 60 and no panic, watchdog, reset, or application error. Marcos confirmed NVS
-reboot persistence. He also reported that `SENSORES` was disabled, the menu closed
-on inactivity, the full-screen warning tore and lacked a message, and the speaker
-puffed at tone edges. No sensor, ADS1115, MTX-D, 12 V, or vehicle connection was made.
+Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
+the demo flash, app `8c2cc46` was written only to the locally recorded exact display;
+its USB identity and chip MAC both matched. All four write regions passed hash
+verification; bootloader, partition table, and the complete 752,960-byte application
+also passed post-boot digest verification. Retained ignored capture
+`.artifacts/hardware/2026-08-15/sprint6-fahrenheit-bar-8c2cc46.typescript`, SHA-256
+`53d431227357bf5f3eaab1f5ac8467a6b08769f06919e73897877232ed40ea93`, records a
+clean ESP-IDF 6.0.2 demo boot and 19 consecutive 61–77 FPS windows with no panic,
+watchdog, reset, or application error. No sensor, ADS1115, MTX-D, 12 V, or vehicle
+connection was made. BAR-decimal, Fahrenheit, revised warning/menu/thermometer, and
+audio-edge judgment remain physical checks for Marcos.
 
-Current unflashed correction: `SENSORES` is selectable and persistent but shows only
+The flashed correction makes `SENSORES` selectable and persistent but shows only
 `--` / `SIN DATOS`; the menu has no inactivity timeout; full-screen warning uses one
 prebuilt red layer with the number plus `PELIGRO` / `PRESIÓN MUY BAJA` on an
 independent 0.5 Hz cycle; and the codec remains active at digital zero between
 enveloped beeps. Red-first checks failed on the absent source/phase and at 0/12
 review invariants; the correction passes native 21/21, settings 9/9, warning 11/11,
-review 12/12, and clean ESP-IDF 6.0.2 app `da7cbfb` (751,472 bytes; SHA-256
-`995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`). Physical
-proof awaits explicit authorization to replace the current app.
+review 12/12, and is included in app `8c2cc46`. Its review extension adds persistent
+display-only °C/°F selection and regenerates the 96 px numeric font with U+002E for
+the BAR decimal. Physical proof remains pending.
 
 Last hardware-assisted verification: 2026-08-14 — a user-supplied 28.423-second,
 1920×1080/60 FPS physical demo video and companion photo confirm the indoor 480×480

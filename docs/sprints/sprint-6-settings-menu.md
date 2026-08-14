@@ -5,9 +5,8 @@
   thermometer geometry without changing sensor calibration or enabling real inputs.
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
-- Status: physical-review correction complete in software — the first exact-board
-  pass confirmed runtime/FPS and reboot persistence; revised warning/audio/menu
-  behavior awaits a newly authorized flash
+- Status: review extension flashed and runtime-verified on the exact board;
+  guided visual, touch, persistence, and audio-edge judgment remains
 
 ## Slices
 
@@ -15,11 +14,11 @@
 |---|---|---|---|
 | 6.1 Pure settings model | complete | red observed, then native 19/19 | Sanitization, units, warning presentation |
 | 6.2 NVS and runtime audio controls | complete in software | complete firmware build | Save on menu close; defaults on error |
-| 6.3 LVGL settings surface | hardware partially verified | 9/9 menu invariants + exact-board runtime | Reboot persistence confirmed; revised source/menu flow pending |
-| 6.4 Thermometer and full-screen warning | hardware partially verified | 11/11 warning invariants + 24 consecutive 63–76 FPS windows | Pressure number never hidden in software; three-mode visual proof pending |
+| 6.3 LVGL settings surface | hardware partially verified | 9/9 menu invariants + revised exact-board runtime | Reboot persistence was confirmed on the earlier image; revised source/menu touch flow pending |
+| 6.4 Thermometer and full-screen warning | hardware partially verified | 11/11 warning invariants + revised exact-board 61–77 FPS | Pressure number never hidden in software; three-mode visual proof pending |
 | 6.5 Editable simulator parity | complete locally | fragment/wrapper synchronization + Keel pass | Public Pages remains unchanged until an authorized push |
-| 6.6 Physical-review correction | complete in software | red-first compile/0-of-12 contract; then native 21/21 + review 12/12 + full build | Exact-board no-tearing, no-puff, 0.5 Hz, and persistent-menu proof pending |
-| 6.7 Temperature units and BAR glyph | complete in software | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build | Persistent °C/°F presentation added and 96 px font regenerated with U+002E; exact-board confirmation requires a separately authorized flash |
+| 6.6 Physical-review correction | hardware partially verified | red-first compile/0-of-12 contract; then native 21/21 + review 12/12 + full build + exact-board runtime | Corrected image boots at 61–77 FPS; visual no-tearing, no-puff, 0.5 Hz, and persistent-menu proof pending |
+| 6.7 Temperature units and BAR glyph | hardware partially verified | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build + exact-board flash/digest | Persistent °C/°F presentation and U+002E numeric font are on the exact board; guided touch/render/persistence confirmation remains |
 
 ## Software evidence
 
@@ -55,4 +54,13 @@
   point. Native 22/22, temperature-unit 7/7, BAR-font 2/2, all 40 acceptance rows,
   and a full clean ESP-IDF build pass. Clean app `8c2cc46` is 752,960 bytes with
   SHA-256 `6b854240f99d4edf92e8bdf0507ca83b26b0ad0fb69161d3146961c5d7543127`;
-  exact-board visual confirmation remains gated.
+  exact-board visual confirmation remains pending.
+- Marcos authorized the exact-board flash on 2026-08-15. USB identity and chip MAC
+  matched the locally recorded exact display; all four write regions passed hash
+  verification, and bootloader, partition table, and the complete application passed
+  post-boot digest verification. Ignored capture
+  `.artifacts/hardware/2026-08-15/sprint6-fahrenheit-bar-8c2cc46.typescript`, SHA-256
+  `53d431227357bf5f3eaab1f5ac8467a6b08769f06919e73897877232ed40ea93`, records a
+  clean demo boot and 19 consecutive 61–77 FPS windows with no runtime fault. No
+  sensors, ADS1115, MTX-D, 12 V, or vehicle connection was used. Visual/touch/audio
+  judgment is still required.

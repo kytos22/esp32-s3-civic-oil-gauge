@@ -39,20 +39,26 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 review extension complete in software
-- Next action: after new explicit flash authorization, verify on the exact AMOLED
-  that BAR renders a clean decimal point and that the persistent °C/°F control,
-  including `<122` below-range Fahrenheit presentation, behaves as specified.
-  Recheck the previously pending full-screen warning, menu, thermometer, audio-edge,
-  and FPS observations in that same bounded demo-only run. Keep compile-time demo
-  support enabled; sensor calibration and vehicle cutover remain separate
-  safety-gated work.
+- Phase: 5 — Sprint 6 review extension flashed and runtime-verified
+- Next action: Marcos physically reviews the exact AMOLED for a clean BAR decimal,
+  selects and persists °F (including `<122` below the 50 °C sensor floor), and
+  rechecks the full-screen warning, persistent menu, thermometer geometry, and
+  audio edges. Keep compile-time demo support enabled; sensor calibration and
+  vehicle cutover remain separate safety-gated work.
 
 ## Open items
 - Sprint 6 review-extension artifact: clean ESP-IDF 6.0.2 build from implementation
   commit `8c2cc46`, 752,960-byte app, SHA-256
   `6b854240f99d4edf92e8bdf0507ca83b26b0ad0fb69161d3146961c5d7543127`.
-  It has not been flashed; exact-board review requires new explicit authorization.
+  Marcos authorized and completed the exact-board flash on 2026-08-15. The
+  Espressif USB identity and chip MAC both matched the locally recorded exact
+  display; all four write regions passed hash verification, and bootloader,
+  partition table, and the
+  complete application passed independent post-boot digest verification. Ignored
+  capture `.artifacts/hardware/2026-08-15/sprint6-fahrenheit-bar-8c2cc46.typescript`,
+  SHA-256 `53d431227357bf5f3eaab1f5ac8467a6b08769f06919e73897877232ed40ea93`,
+  records a clean demo boot and 19 consecutive 61–77 FPS windows with no panic,
+  watchdog, reset, or application error. Guided visual/touch/audio judgment remains.
 - Unresolved user questions: exact pressure excitation/signal pin assignment,
   confirmed pressure transfer function, temperature curve/electrical range,
   installed connector identities,
@@ -114,7 +120,8 @@
   `SENSORES` persists but renders `--` / `SIN DATOS`; no ADS1115 path or calibration
   is enabled. Clean commit `da7cbfb` builds a 751,472-byte application with SHA-256
   `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
-  Exact-board proof remains pending new flash authorization.
+  This correction is included in the exact-board app `8c2cc46`; guided physical
+  proof of the revised behaviors remains pending.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination
