@@ -503,3 +503,18 @@
   field translucent; the physical AMOLED already exposed an unwanted dotted
   attenuation artifact.
 - Resolves: the final open boundary in D-040 and DR-001.
+
+## D-042 — Accept Sprint 6 as software-complete without flashing
+- Date / phase: 2026-08-14 / Phase 5, Sprint 6
+- Decision: Accept commit `65ebbfa` as the software-complete settings/menu build.
+  It passes 19/19 native tests, the complete Keel verifier, and an ESP-IDF 6.0.2
+  clean build producing a 750,720-byte app with SHA-256
+  `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
+  Do not mark the sprint physically complete and do not flash without a new explicit
+  authorization.
+- Why: The pure logic, integration contracts, and target compilation are evidenced,
+  while touch feel, visual fidelity, NVS across reboot, sound controls, and sustained
+  FPS require the exact display.
+- Safety boundary: Demo mode stays enabled; `SENSORES` remains disabled as
+  `CALIBRACIÓN PENDIENTE`; no ADS1115, Innovate harness, 12 V, or vehicle action is
+  authorized by this decision.

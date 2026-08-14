@@ -33,15 +33,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 settings/menu in progress | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) in progress |
+| 5 Development | Sprints 1–5 complete; Sprint 6 software complete, physical proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) software complete |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 settings-menu implementation
-- Next action: implement the resolved [DR-001](design/design-requests/DR-001.md)
-  contract with red-first native/renderer checks, then build the complete firmware.
+- Phase: 5 — Sprint 6 exact-board acceptance pending
+- Next action: after explicit flash authorization, write app `65ebbfa` only to the
+  exact display, then validate the 700 ms hold/menu flow, all warning modes, icon
+  geometry, NVS reboot persistence, sound controls, and sustained ≥60 FPS.
   Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
   safety-gated work.
 
@@ -74,6 +75,17 @@
 - Open Design Requests: none. [DR-001](design/design-requests/DR-001.md) is answered
   and consolidated. In full-screen 2 Hz mode the opaque red phase redraws the white
   pressure number above it; the number is never hidden.
+- Sprint 6 software result: the new settings tests first failed at link time because
+  the model did not exist, then the native suite passed 19/19. The firmware now has
+  a 700 ms full-screen settings menu, live/persisted safe settings, runtime warning
+  audio controls, PSI/bar display, three warning presentation modes, immediate alarm
+  interruption, protected reset, and the raised thermometer marks. The full-screen
+  red mode redraws the pressure number above its opaque field in every active phase.
+  Keel passes 9/9 menu and 11/11 warning invariants. Clean commit `65ebbfa` builds a
+  750,720-byte app with SHA-256
+  `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
+  No flash was performed; physical touch, appearance, persistence, sound, and FPS
+  proof remain pending explicit authorization.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination
@@ -128,6 +140,9 @@
   `b96bddee2599f8fd4ddfcc233e6ba87aec415dcbc7c38567554197cded62e9e1`).
   Browser-driven slider movement remains `PLATFORM-IMPOSSIBLE` in this session
   because Browser bootstrap rejects the WSL workspace path containing spaces.
+  The local canonical fragment and standalone wrapper now also expose PSI/bar and
+  all three warning modes, including the always-visible full-screen pressure value;
+  the deployed Pages copy remains unchanged until an authorized push.
 - Animated preview: both READMEs use the same 736×700 looping GIF generated from
   205 smooth-step HTML samples at 50 FPS. Optimized storage retains 142 unique
   frames (132 at 20 ms), a 4.1-second loop, 1,212,439 bytes and SHA-256
@@ -143,4 +158,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — DR-001 resolved; Sprint 6 settings/menu implementation started
+Last updated: 2026-08-14 — Sprint 6 software complete; exact-board proof not flashed

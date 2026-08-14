@@ -137,8 +137,8 @@ None.
 - `src/oil_gauge_ui.cpp` consumes those decisions in a fixed 480×480 LVGL renderer;
   `src/main.cpp` and `src/demo_sequence.cpp` supply deterministic continuous demo
   or calibration-gate frames.
-- Icon geometry will be ported from the editable reference without transformation of
-  silhouette or proportion.
+- Icon geometry is ported from the editable reference without transformation of
+  silhouette or proportion; DR-001 raises the thermometer marks and extends its stem.
 - The fixed coordinate system is used directly; no responsive or adaptive layout.
 - `CONFIG_OIL_GAUGE_DEMO_MODE=y` remains mandatory until real calibration passes.
 
@@ -148,7 +148,7 @@ None.
 - [x] Every documented semantic state has a deterministic core representation.
 - [x] Every value traces to this token table or `docs/UI_DESIGN.md`.
 - [x] Every behavior traces to §5.
-- [x] One screen and one state source; no duplicated layout.
+- [x] One driving layout plus its separate full-screen settings surface; one state source.
 - [x] No external logo, icon, font, or image requires transformation.
 - [x] No placeholder copy is presented as calibrated data.
 - [x] No external visual setup or generated asset is pending.
@@ -161,3 +161,7 @@ The renderer compiles into a complete ESP32-S3 image and its indoor physical mat
 is accepted. The remaining environmental visual assessment requires a separately
 authorized supervised run; the supplied desk video does not prove daylight, night,
 glare, or in-vehicle motion performance.
+
+The Sprint 6 settings extension compiles cleanly at commit `65ebbfa` and passes its
+software contracts. Its touch flow, revised icon, full-screen warning, persistence,
+and post-change FPS are not yet physically accepted because the image was not flashed.

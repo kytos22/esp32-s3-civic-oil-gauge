@@ -185,6 +185,12 @@ flowchart LR
   verified; the retained bounded log records three completed tone paths and 29
   consecutive completed-frame windows at 66–77 FPS with no panic, watchdog, or
   audio error. Marcos confirmed the physical double beep is audible on 2026-08-11.
+- Current Sprint 6 software result: red-first settings tests now pass in the 19/19
+  native suite; the Keel verifier passes 9/9 menu and 11/11 warning invariants.
+  Clean app `65ebbfa` is 750,720 bytes with SHA-256
+  `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
+  Exact-board touch, visual, NVS reboot, sound-control, and FPS evidence remain
+  `HARDWARE` and were not authorized in this session.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

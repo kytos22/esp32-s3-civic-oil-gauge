@@ -129,11 +129,16 @@ characterized and compared against the MTX-D.
   `src/demo_sequence.cpp`.
 - Embedded Montserrat subsets: `src/fonts/`.
 - Framework: ESP-IDF 6.0.2, official Waveshare BSP 2.0.1, LVGL 9.5.0.
-- Software/hardware evidence: 14/14 native tests and a complete 676,224-byte
+- Baseline software/hardware evidence: 14/14 native tests and a complete 676,224-byte
   ESP32-S3 image generated on 2026-08-04 from application version `3e0298a`,
   SHA-256 `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`.
   Exact-board flash passes and eight consecutive completed-frame windows measure
   65–67 FPS.
+
+The Sprint 6 extension passes 19/19 native tests, 9/9 settings invariants, 11/11
+warning invariants, and a clean ESP-IDF 6.0.2 build from commit `65ebbfa`. Exact-board
+touch/menu appearance, the revised icon, all warning modes, reboot persistence, and
+post-change FPS remain pending because this image has not been flashed.
 
 The approved HTML/SVG geometry was not redesigned. The user-supplied physical
 photo and complete 60 FPS demo video were reviewed on 2026-08-14: the visual match,
