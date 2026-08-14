@@ -1,5 +1,17 @@
 # Playground — Civic ESP32 Oil Gauge
 
+Current Sprint 6 hardware evidence: 2026-08-14 — after Marcos explicitly authorized
+the demo test, app `65ebbfa` was written only to the locally recorded exact display.
+All write regions passed esptool digest verification; bootloader, partition table,
+and the 750,720-byte application also passed post-boot verification. Retained ignored
+capture `.artifacts/hardware/2026-08-14/sprint6-first-boot.typescript`, SHA-256
+`78391016db981bda1f6284d51b4b56260c8ccf5b9e86232fb01ad22d2a430da8`, records one
+completed warning tone and 24 consecutive 63–76 FPS windows, with no frame window
+below 60 and no panic, watchdog, reset, or application error. Guided touch, the three
+physical warning appearances, thermometer geometry, sound-volume judgment, and NVS
+reboot persistence remain `HARDWARE`/`JUDGMENT`. No sensor, ADS1115, MTX-D, 12 V, or
+vehicle connection was made.
+
 Last hardware-assisted verification: 2026-08-14 — a user-supplied 28.423-second,
 1920×1080/60 FPS physical demo video and companion photo confirm the indoor 480×480
 visual match. Every semantic state is readable at handheld distance with intact

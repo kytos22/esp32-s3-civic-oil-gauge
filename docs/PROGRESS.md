@@ -33,16 +33,17 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 software complete, physical proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) software complete |
+| 5 Development | Sprints 1–5 complete; Sprint 6 exact-board runtime passed, guided touch/visual proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 exact-board acceptance pending
-- Next action: after explicit flash authorization, write app `65ebbfa` only to the
-  exact display, then validate the 700 ms hold/menu flow, all warning modes, icon
-  geometry, NVS reboot persistence, sound controls, and sustained ≥60 FPS.
+- Phase: 5 — Sprint 6 guided exact-board acceptance in progress
+- Next action: with Marcos at the flashed exact display, validate the 700 ms
+  hold/menu flow, corrected icon geometry, all three warning modes, sound controls,
+  and NVS persistence across a controlled reboot. Automated exact-board runtime and
+  sustained ≥60 FPS already pass.
   Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
   safety-gated work.
 
@@ -84,8 +85,15 @@
   Keel passes 9/9 menu and 11/11 warning invariants. Clean commit `65ebbfa` builds a
   750,720-byte app with SHA-256
   `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
-  No flash was performed; physical touch, appearance, persistence, sound, and FPS
-  proof remain pending explicit authorization.
+  Marcos authorized the exact-board test on 2026-08-14. App `65ebbfa` passed the
+  USB/chip identity gate, write-time verification, and post-boot verification of
+  the three immutable regions. Ignored capture
+  `.artifacts/hardware/2026-08-14/sprint6-first-boot.typescript`, SHA-256
+  `78391016db981bda1f6284d51b4b56260c8ccf5b9e86232fb01ad22d2a430da8`, records
+  one completed warning tone and 24 consecutive 63–76 FPS windows, with no window
+  below 60 and no panic, watchdog, reset, or runtime error. Physical touch,
+  geometry, all three warning appearances, sound-volume judgment, and reboot
+  persistence remain in the guided hardware pass.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination
@@ -158,4 +166,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — Sprint 6 software complete; exact-board proof not flashed
+Last updated: 2026-08-14 — Sprint 6 exact-board runtime passed; guided touch/visual/persistence proof pending
