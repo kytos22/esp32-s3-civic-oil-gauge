@@ -18,7 +18,7 @@
 | External assets | yes | none | pass |
 | External setup | yes | none for the visual design | pass |
 | Accessibility specified | yes | §4 and `docs/design/DESIGN-BRIEF.md` | pass indoors at handheld distance; environmental checks remain |
-| Open design questions | no | DR-001 full-screen warning off-phase semantics | blocked for menu extension only |
+| Open design questions | yes | DR-001 answered and consolidated; pressure number never hides | pass |
 | Foreign delivery files | yes | handoff contains only its orientation file | pass |
 
 The compact adopted handoff is an explicit legacy exception, not a general weakening
@@ -28,7 +28,8 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 
 | Screen | Type | Source artifact | Contract | Notes |
 |---|---|---|---|---|
-| Oil gauge | unique, fixed 480×480 | `docs/design/references/oil-gauge-design.fragment.html` | `docs/UI_DESIGN.md` | Pressure top, temperature bottom, no touch UI |
+| Oil gauge | unique, fixed 480×480 | `docs/design/references/oil-gauge-design.fragment.html` | `docs/UI_DESIGN.md` | Pressure top, temperature bottom; 700 ms hold opens settings |
+| Settings | full-screen, fixed 480×480 | `docs/UI_DESIGN.md` | DR-001 | Black touch surface; warning interrupts it |
 
 ## 3. Canonical tokens
 
@@ -89,6 +90,8 @@ Temperature colors are linearly interpolated between:
 
 - All semantic states include text, not color alone.
 - Pressure numeric text never blinks.
+- Full-screen warning redraws the pressure number in white above the opaque red
+  field; neither warning phase may hide it.
 - Reduced motion holds the warning icon, label, and bar red.
 - All specified foreground tokens exceed 4.5:1 against black.
 - Indoor physical fidelity, text integrity, warning motion, and handheld-distance
@@ -105,6 +108,11 @@ Temperature colors are linearly interpolated between:
 | RPM unavailable | do not arm pressure warning | explicit unknown state |
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
+| 700 ms stationary hold | open full-screen settings | gauge visible; no active warning |
+| menu idle for 10 s or `VOLVER` | save changed settings and return to gauge | settings visible |
+| pressure warning while menu open | close settings immediately and show warning | warning active |
+| warning mode `PANTALLA 2 HZ` | alternate opaque red field and normal gauge; redraw pressure above red | warning active |
+| units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | temperature below 50 | render `<50`, empty temperature bar | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 13 ms |
 

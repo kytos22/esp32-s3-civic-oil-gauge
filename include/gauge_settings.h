@@ -1,0 +1,40 @@
+#pragma once
+
+#include <cstdint>
+
+namespace oilgauge {
+
+enum class PressureUnit : std::uint8_t {
+  psi = 0,
+  bar = 1,
+};
+
+enum class WarningVisualMode : std::uint8_t {
+  elementsBlink = 0,
+  fullScreenBlink = 1,
+  fixed = 2,
+};
+
+struct GaugeSettings {
+  std::uint8_t brightnessPercent = 55;
+  bool warningSoundEnabled = true;
+  std::uint8_t warningVolumePercent = 35;
+  PressureUnit pressureUnit = PressureUnit::psi;
+  WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
+};
+
+struct WarningPresentation {
+  bool attentionVisible = true;
+  bool fullScreenRedVisible = false;
+  bool pressureValueVisible = true;
+};
+
+[[nodiscard]] GaugeSettings sanitizeGaugeSettings(GaugeSettings settings);
+[[nodiscard]] double pressureForDisplay(double pressurePsi,
+                                        PressureUnit unit);
+[[nodiscard]] WarningPresentation evaluateWarningPresentation(
+    WarningVisualMode mode,
+    bool warningActive,
+    bool blinkPhaseOn);
+
+}  // namespace oilgauge

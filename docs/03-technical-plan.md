@@ -67,11 +67,13 @@ flowchart LR
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
 | `include/demo_sequence.h` / `src/demo_sequence.cpp` | [E] | Native-testable continuous seven-scene demo interpolation |
 | `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable one-shot warning-entry gate |
+| `include/gauge_settings.h` / `src/gauge_settings.cpp` | [E] | Native-testable settings sanitization, units, and warning presentation |
 | `src/warning_audio.h` / `src/warning_audio.cpp` | [E] | Non-blocking ES8311/I²S warning-tone worker |
+| `src/settings_store.h` / `src/settings_store.cpp` | [E] | NVS-backed safe preference persistence |
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Fifteen Unity native tests |
+| `test/test_gauge_core/test_main.cpp` | [E] | Nineteen Unity native tests |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |
@@ -111,6 +113,7 @@ flowchart LR
 | `scripts/keel-verify` | [E] | Project consistency checks |
 | `scripts/keel-handoff-verify` | [E] | Continuation courier verification |
 | `scripts/generate-readme-demo-gif.py` | [E] | Reproducible Edge/Pillow renderer for the README GIF |
+| `scripts/sync-standalone-design.py` | [E] | Deterministic editable-fragment to Pages-wrapper synchronization |
 | `scripts/pio` | [E] | Project-isolated PlatformIO entry point |
 | `scripts/idf` | [E] | Pinned ESP-IDF 6.0.2 firmware entry point |
 | `docs/playground.md` | [E] | Reproducible software and hardware-tagged exercises |
@@ -126,6 +129,7 @@ flowchart LR
 | Sensor conversion/calibration math | `include/gauge_core.h`, `src/gauge_core.cpp`, `include/calibration_config.h`, native tests, `docs/CALIBRATION.md`, AC rows, API index |
 | Alarm threshold or engine-state logic | `include/gauge_core.h`, `src/gauge_core.cpp`, `src/main.cpp`, native tests, `docs/UI_DESIGN.md`, functional spec |
 | Onboard warning-audio behavior | audio gate + ESP-IDF audio implementation, `src/main.cpp`, Kconfig/defaults, native tests, functional AC row, test ledger, sprint record, decision log, progress card, complete firmware build and separately authorized physical proof |
+| Settings, units, or warning-presentation behavior | pure settings model, NVS store, `src/main.cpp`, `src/oil_gauge_ui.cpp`, warning audio, native tests, editable prototype, build spec/UI design, functional AC rows, test ledger, sprint record, decision log, progress card, native suite and complete firmware build |
 | Visual state/renderer change | `src/main.cpp`, `src/oil_gauge_ui.cpp`, fonts when applicable, `docs/UI_DESIGN.md`, editable prototype if the binding design changes, new physical capture, affected AC tests |
 | Board pin or I²C address | `include/board_pins.h`, `src/main.cpp`, `docs/WAVESHARE_PINOUT.md`, `docs/ARCHITECTURE.md`, arrival checklist |
 | Analog front-end value/component | `include/calibration_config.h`, `docs/ARCHITECTURE.md`, `docs/BOM.md`/CSV, calibration evidence and conversion tests |

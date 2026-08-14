@@ -250,6 +250,7 @@ def safety_invariants() -> None:
 
 def approved_geometry() -> None:
     ui = text("docs/UI_DESIGN.md")
+    renderer = text("src/oil_gauge_ui.cpp")
     fragment = text("docs/design/references/oil-gauge-design.fragment.html")
     conditions = [
         "480×480" in ui,
@@ -259,6 +260,10 @@ def approved_geometry() -> None:
         "--ogr-danger: #ff3948" in fragment.lower(),
         "height: 9px" in fragment,
         'id="ogrRpmInput"' in fragment,
+        "createSolid(icon, 31, 0, 10, 42, 5)" in renderer,
+        "createSolid(icon, 42, 27, 18, 6, 1)" in renderer,
+        'x="36" y="0" width="12" height="48"' in fragment,
+        'x="49" y="32" width="21" height="7"' in fragment,
     ]
     check("Approved reference geometry", all(conditions), f"{sum(conditions)}/{len(conditions)} invariants")
 
@@ -266,21 +271,48 @@ def approved_geometry() -> None:
 def warning_animation_contract() -> None:
     demo_sequence = text("src/demo_sequence.cpp")
     renderer = text("src/oil_gauge_ui.cpp")
+    settings = text("src/gauge_settings.cpp")
     fragment = text("docs/design/references/oil-gauge-design.fragment.html")
     standalone = text("docs/design/references/oil-gauge-design.html")
     conditions = [
         "kWarningBlinkHalfPeriodUs = 250'000U" in demo_sequence,
-        "warning && !state.pressureAttentionVisible ? LV_OPA_TRANSP : LV_OPA_COVER"
-        in renderer,
+        "evaluateWarningPresentation(" in renderer,
+        "presentation.pressureValueVisible = true" in settings,
+        "gUi.fullScreenPressureValue" in renderer,
+        "lv_obj_move_foreground(gUi.fullScreenWarning)" in renderer,
         "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in fragment,
-        "opacity: 0;" in fragment,
+        "animation: ogr-full-screen-warning-blink 0.5s step-end infinite" in fragment,
+        'id="ogrFullWarningValue"' in fragment,
         "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in standalone,
-        "opacity: 0;" in standalone,
+        "animation: ogr-full-screen-warning-blink 0.5s step-end infinite" in standalone,
+        "ogrFullWarningValue" in standalone,
     ]
     check(
         "AC-06 warning animation",
         all(conditions),
-        f"{sum(conditions)}/{len(conditions)} hard 2 Hz firmware/simulator invariants",
+        f"{sum(conditions)}/{len(conditions)} hard 2 Hz and persistent-number invariants",
+    )
+
+
+def settings_menu_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    main = text("src/main.cpp")
+    store = text("src/settings_store.cpp")
+    conditions = [
+        "lv_indev_set_long_press_time(input, 700)" in main,
+        "kMenuTimeoutMs = 10'000" in renderer,
+        '"CALIBRACIÓN PENDIENTE"' in renderer,
+        "if (warning && gUi.menuVisible)" in renderer,
+        "closeMenu(true)" in renderer,
+        "nvs_commit(handle)" in store,
+        "NVS unavailable; using safe defaults without erasing storage" in store,
+        "PressureUnit::bar" in renderer,
+        "WarningVisualMode::fullScreenBlink" in renderer,
+    ]
+    check(
+        "AC-33..38 settings menu",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} interaction and persistence invariants",
     )
 
 
@@ -437,6 +469,7 @@ def main() -> int:
     safety_invariants()
     approved_geometry()
     warning_animation_contract()
+    settings_menu_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")

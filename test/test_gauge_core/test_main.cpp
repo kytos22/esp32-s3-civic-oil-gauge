@@ -1,8 +1,10 @@
 #include <unity.h>
 
 #include <cmath>
+#include <initializer_list>
 
 #include "gauge_core.h"
+#include "gauge_settings.h"
 #include "demo_sequence.h"
 #include "warning_tone_gate.h"
 
@@ -242,6 +244,49 @@ void test_warning_tone_gate_triggers_once_and_rearms() {
   TEST_ASSERT_TRUE(gate.update(true));
 }
 
+void test_settings_are_sanitized_to_safe_ranges() {
+  GaugeSettings settings;
+  settings.brightnessPercent = 0;
+  settings.warningVolumePercent = 255;
+  settings.pressureUnit = static_cast<PressureUnit>(99);
+  settings.warningVisualMode = static_cast<WarningVisualMode>(99);
+
+  const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
+  TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
+  TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(PressureUnit::psi),
+                        static_cast<int>(sanitized.pressureUnit));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningVisualMode::elementsBlink),
+                        static_cast<int>(sanitized.warningVisualMode));
+}
+
+void test_pressure_units_convert_only_the_display_value() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 61.0, pressureForDisplay(61.0, PressureUnit::psi));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-6, 4.205802, pressureForDisplay(61.0, PressureUnit::bar));
+}
+
+void test_full_screen_warning_never_hides_pressure_number() {
+  for (const bool phaseOn : {false, true}) {
+    const WarningPresentation presentation = evaluateWarningPresentation(
+        WarningVisualMode::fullScreenBlink, true, phaseOn);
+    TEST_ASSERT_TRUE(presentation.pressureValueVisible);
+    TEST_ASSERT_EQUAL(phaseOn, presentation.fullScreenRedVisible);
+  }
+
+  const WarningPresentation elementsOff = evaluateWarningPresentation(
+      WarningVisualMode::elementsBlink, true, false);
+  TEST_ASSERT_FALSE(elementsOff.attentionVisible);
+  TEST_ASSERT_TRUE(elementsOff.pressureValueVisible);
+
+  const WarningPresentation fixed = evaluateWarningPresentation(
+      WarningVisualMode::fixed, true, false);
+  TEST_ASSERT_TRUE(fixed.attentionVisible);
+  TEST_ASSERT_FALSE(fixed.fullScreenRedVisible);
+  TEST_ASSERT_TRUE(fixed.pressureValueVisible);
+}
+
 }  // namespace
 
 void setUp() {}
@@ -265,5 +310,8 @@ int main(int, char**) {
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
   RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
   RUN_TEST(test_warning_tone_gate_triggers_once_and_rearms);
+  RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
+  RUN_TEST(test_pressure_units_convert_only_the_display_value);
+  RUN_TEST(test_full_screen_warning_never_hides_pressure_number);
   return UNITY_END();
 }

@@ -489,3 +489,17 @@
   deliberately deferred. Treat the stem and marks as merely non-overlapping; the
   stem must visibly protrude above them.
 - Supersedes: D-038 where it left these menu and icon details undefined.
+
+## D-041 — Keep pressure continuously visible in full-screen warning mode
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: In selectable `PANTALLA 2 HZ` mode, alternate an opaque red full-screen
+  field for 250 ms with the normal black gauge for 250 ms. During the red phase,
+  redraw the centered pressure number in white above the field at its normal
+  position. The pressure number is never hidden in either phase.
+- Why: Marcos explicitly required that the number never disappear. Continuous
+  pressure readability is also the existing safety and accessibility invariant.
+- Alternatives rejected (and why): Blink or black out the complete screen including
+  the number; this would temporarily remove the primary measurement. Make the red
+  field translucent; the physical AMOLED already exposed an unwanted dotted
+  attenuation artifact.
+- Resolves: the final open boundary in D-040 and DR-001.

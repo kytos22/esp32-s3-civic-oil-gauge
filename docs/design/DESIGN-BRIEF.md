@@ -19,7 +19,8 @@
 - Product: a glanceable oil pressure and oil temperature instrument for a 2017 Honda
   Civic Sport 1.5.
 - Target: Waveshare ESP32-S3-Touch-AMOLED-2.16, 480×480 CO5300 AMOLED.
-- Audience: the driver; no touch interaction is required while driving.
+- Audience: the driver; no touch interaction is required while driving. A deliberate
+  700 ms hold opens a separate settings surface while stationary.
 - Purpose: show both oil values simultaneously, make warming/fault/warning states
   immediately legible, and never imply validity when calibration is missing.
 - Host constraints: pure embedded C++ renderer, fixed 480×480 viewport, black AMOLED
@@ -43,16 +44,21 @@
 - Geometry: 480×480, equal 240 px regions, values centered at x=240, 9 px bars.
 - Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
   reference. They are path geometry, not external image assets.
-- Motion: pressure warning uses a binary 2 Hz flash (250 ms fully visible, 250 ms
-  fully transparent); reduced-motion mode holds the warning red.
+- Motion: pressure warning uses either a binary 2 Hz element flash, a binary 2 Hz
+  opaque full-screen red field, or fixed red. The full-screen field always redraws
+  the pressure number above it; the number never disappears.
 
 ## 3. Screen inventory
 
-One unique screen: `oil-gauge`.
+Two unique surfaces: `oil-gauge` and its full-screen `settings` page.
 
 It shows pressure in the upper half and temperature in the lower half. It accepts
 converted samples, engine/RPM state, fault state, blink phase, and reduced-motion
 preference. RPM is never displayed.
+
+The settings page provides brightness, warning audio, demo/calibration-gated source,
+PSI/bar units, warning presentation, diagnostics, and protected reset. Warning
+activation interrupts settings and restores the gauge immediately.
 
 ## 4. Required states
 
@@ -72,7 +78,8 @@ preference. RPM is never displayed.
 - Numeric values remain visible and stable during pressure-warning flashing.
 - Reduced motion removes flashing while retaining fixed red plus `WARNING`.
 - `<50 °C` prevents false precision below the validated display floor.
-- No touch target, focus order, or screen-reader surface exists on the driving display.
+- The driving display has no visible touch target; a stationary 700 ms hold is the
+  sole entry to large settings controls.
   Physical glanceability, color perception, daylight/night brightness, glare, and motion
   remain `HARDWARE`/`JUDGMENT` verification.
 

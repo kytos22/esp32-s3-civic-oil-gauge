@@ -3,7 +3,9 @@ idf_component_register(
         "main.cpp"
         "demo_sequence.cpp"
         "gauge_core.cpp"
+        "gauge_settings.cpp"
         "oil_gauge_ui.cpp"
+        "settings_store.cpp"
         "warning_audio.cpp"
         "warning_tone_gate.cpp"
         "fonts/oil_font_ui_12.c"
@@ -16,4 +18,5 @@ idf_component_register(
     PRIV_REQUIRES
         esp_codec_dev
         esp_timer
+        nvs_flash
 )

@@ -22,6 +22,8 @@ Static capture:
   readability; the physical demo confirms they are unclipped and glanceable at
   handheld distance.
 - RPM is never shown. It is only an internal pressure-warning input.
+- A stationary 700 ms press-and-hold opens the settings page; ordinary taps,
+  dragging, and scrolling do not alter the driving display.
 
 ## Icons
 
@@ -32,6 +34,11 @@ Use compact automotive symbols with thick strokes and filled elements:
 
 Prototype SVG geometry is binding. Firmware may convert it to paths, polygons,
 or monochrome bitmaps without changing the silhouette.
+
+For the temperature icon, extend the stem 3 px upward without moving its lower
+endpoint. Raise the three native side marks to y = 3, 15, and 27 px. The stem's
+painted top must remain at least 3 px above the top mark and the bottom mark must
+retain at least 6 px of painted clearance from the upper oil wave.
 
 ## Oil pressure
 
@@ -51,6 +58,10 @@ Alarm color: `rgb(255, 57, 72)`.
 During `WARNING`, icon, text, and bar alternate between fully visible and fully
 transparent every 250 ms; the numeric value remains fixed and readable. No dimmed
 intermediate state is allowed. With reduced motion, those elements remain fixed red.
+
+The selectable full-screen warning alternates an opaque red 480×480 field and the
+normal black gauge every 250 ms. The red phase redraws the centered pressure number
+in white above the field. The number never blinks or disappears.
 
 ## Oil temperature
 
@@ -84,7 +95,23 @@ Bar, icon, and label use the same continuous interpolation:
 
 Interpolate linearly between stops. Normalize the bar from 50–138 °C.
 
-## Prototype-only controls
+## Settings page
+
+A full-screen black menu opens after a stationary 700 ms hold and contains:
+
+- brightness 5–100%, live preview;
+- warning sound enabled, volume 5–100%, and the real double-beep test;
+- `DEMO` plus a visible disabled `SENSORES — CALIBRACIÓN PENDIENTE` source;
+- PSI/bar units;
+- warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 2 HZ`, or `FIJO`;
+- read-only diagnostics and a confirmation-protected settings reset;
+- `VOLVER` and a 10-second inactivity return.
+
+An active pressure warning closes the menu immediately. Safe preferences persist
+in NVS when the menu closes; missing/corrupt NVS falls back to compile-time defaults.
+The sensor source cannot persist or activate until the calibration safety gate passes.
+
+## Browser controls
 
 The three sliders below the gauge exist only to explore the design. The RPM
 slider proves hidden engine stopped/running logic. None belongs in the driving UI.

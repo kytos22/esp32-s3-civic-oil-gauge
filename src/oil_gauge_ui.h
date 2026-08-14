@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gauge_core.h"
+#include "gauge_settings.h"
 #include "lvgl.h"
 
 #include <cstdint>
@@ -9,12 +10,24 @@ namespace oilgauge {
 
 inline constexpr std::uint32_t kUiFramePeriodMs = 13;
 
-void createOilGaugeUi(lv_obj_t* screen);
+struct OilGaugeUiActions {
+  GaugeSettings settings{};
+  bool applySettings = false;
+  bool saveSettings = false;
+  bool testSound = false;
+};
+
+void createOilGaugeUi(lv_obj_t* screen,
+                      const GaugeSettings& settings,
+                      const GaugeSettings& defaults);
 
 void updateOilGaugeUi(const ConvertedValue& pressure,
                       const ConvertedValue& temperature,
                       const EngineState& engine,
                       bool blinkPhaseOn,
-                      bool reducedMotion);
+                      const GaugeSettings& settings);
+
+void tickOilGaugeUi(std::uint32_t nowMs);
+[[nodiscard]] bool takeOilGaugeUiActions(OilGaugeUiActions& actions);
 
 }  // namespace oilgauge

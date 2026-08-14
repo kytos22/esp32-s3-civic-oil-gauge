@@ -4,6 +4,7 @@
     role="region"
     aria-label="Indicador de presión y temperatura de aceite"
     aria-live="polite"
+    data-warning-mode="elements"
   >
     <section class="ogr-half ogr-pressure" data-state="ok">
       <div class="ogr-heading">
@@ -19,7 +20,7 @@
           <path class="ogr-solid" d="M105 42s-8 9-8 15a8 8 0 0 0 16 0c0-6-8-15-8-15z" />
         </svg>
         <span class="ogr-value" id="ogrPressureValue">61</span>
-        <span class="ogr-unit">PSI</span>
+        <span class="ogr-unit" id="ogrPressureUnit">PSI</span>
       </div>
       <div class="ogr-scale" aria-hidden="true">
         <span class="ogr-fill" id="ogrPressureFill"></span>
@@ -28,8 +29,8 @@
         <i style="left:53.3%"></i>
       </div>
       <div class="ogr-context">
-        <span>Alerta ≤10 PSI</span>
-        <span>OK: 15–80 PSI</span>
+        <span id="ogrPressureLowReference">Alerta ≤10 PSI</span>
+        <span id="ogrPressureOkReference">OK: 15–80 PSI</span>
       </div>
     </section>
 
@@ -40,11 +41,11 @@
       </div>
       <div class="ogr-main">
         <svg class="ogr-icon ogr-temperature-icon" viewBox="0 0 88 74" aria-hidden="true">
-          <rect class="ogr-solid" x="36" y="3" width="12" height="45" rx="6" />
+          <rect class="ogr-solid" x="36" y="0" width="12" height="48" rx="6" />
           <circle class="ogr-solid" cx="42" cy="48" r="13" />
-          <rect class="ogr-solid" x="49" y="11" width="21" height="7" rx="1" />
-          <rect class="ogr-solid" x="49" y="25" width="21" height="7" rx="1" />
-          <rect class="ogr-solid" x="49" y="39" width="21" height="7" rx="1" />
+          <rect class="ogr-solid" x="49" y="4" width="21" height="7" rx="1" />
+          <rect class="ogr-solid" x="49" y="18" width="21" height="7" rx="1" />
+          <rect class="ogr-solid" x="49" y="32" width="21" height="7" rx="1" />
           <path class="ogr-wave" d="M5 55c8-6 15 6 23 0M56 55c8-6 15 6 23 0" />
           <path class="ogr-wave" d="M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0" />
         </svg>
@@ -64,6 +65,9 @@
         <span>&gt;94 °C caliente</span>
       </div>
     </section>
+    <div class="ogr-full-warning" id="ogrFullWarning" aria-hidden="true">
+      <span class="ogr-full-warning-value" id="ogrFullWarningValue">61</span>
+    </div>
   </div>
 
   <div class="viz-controls ogr-controls" aria-label="Simular lecturas">
@@ -78,6 +82,21 @@
     <label class="form-label" for="ogrTemperatureInput">
       Temperatura <span id="ogrTemperatureControlValue">92 °C</span>
       <input class="form-range" id="ogrTemperatureInput" type="range" min="0" max="138" value="92">
+    </label>
+    <label class="form-label" for="ogrUnitInput">
+      Unidades
+      <select id="ogrUnitInput">
+        <option value="psi">PSI</option>
+        <option value="bar">BAR</option>
+      </select>
+    </label>
+    <label class="form-label" for="ogrWarningModeInput">
+      Warning
+      <select id="ogrWarningModeInput">
+        <option value="elements">Elementos 2 Hz</option>
+        <option value="screen">Pantalla 2 Hz</option>
+        <option value="fixed">Fijo</option>
+      </select>
     </label>
   </div>
 </div>
@@ -101,6 +120,7 @@
   }
 
   #oilGaugeRefinedIcons .ogr-screen {
+    position: relative;
     width: min(100%, 480px);
     aspect-ratio: 1;
     display: grid;
@@ -250,13 +270,63 @@
     flex: 1 1 190px;
   }
 
-  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-icon,
-  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-state,
-  #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-fill {
+  #oilGaugeRefinedIcons .ogr-controls select {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    min-height: 40px;
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+    .ogr-pressure[data-state="warning"] .ogr-icon,
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+    .ogr-pressure[data-state="warning"] .ogr-state,
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+    .ogr-pressure[data-state="warning"] .ogr-fill {
     animation: ogr-pressure-warning-blink 0.5s step-end infinite;
   }
 
+  #oilGaugeRefinedIcons .ogr-full-warning {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    background: var(--ogr-danger);
+  }
+
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="screen"]
+    .ogr-pressure[data-state="warning"] ~ .ogr-full-warning {
+    display: block;
+    animation: ogr-full-screen-warning-blink 0.5s step-end infinite;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-value {
+    position: absolute;
+    top: 15.6%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ogr-white);
+    font-size: clamp(68px, 17vw, 108px);
+    font-weight: 500;
+    line-height: 0.86;
+    letter-spacing: -0.07em;
+  }
+
   @keyframes ogr-pressure-warning-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ogr-full-screen-warning-blink {
     0%,
     49% {
       opacity: 1;
@@ -291,9 +361,14 @@
       transition: none;
     }
 
-    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-icon,
-    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-state,
-    #oilGaugeRefinedIcons .ogr-pressure[data-state="warning"] .ogr-fill {
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+      .ogr-pressure[data-state="warning"] .ogr-icon,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+      .ogr-pressure[data-state="warning"] .ogr-state,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="elements"]
+      .ogr-pressure[data-state="warning"] .ogr-fill,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode="screen"]
+      .ogr-pressure[data-state="warning"] ~ .ogr-full-warning {
       animation: none;
       opacity: 1;
     }
@@ -304,12 +379,19 @@
   (() => {
     const root = document.getElementById('oilGaugeRefinedIcons');
     const pressureHalf = root.querySelector('.ogr-pressure');
+    const screen = root.querySelector('.ogr-screen');
     const temperatureHalf = root.querySelector('.ogr-temperature');
     const pressureInput = document.getElementById('ogrPressureInput');
     const rpmInput = document.getElementById('ogrRpmInput');
     const temperatureInput = document.getElementById('ogrTemperatureInput');
+    const unitInput = document.getElementById('ogrUnitInput');
+    const warningModeInput = document.getElementById('ogrWarningModeInput');
     const pressureValue = document.getElementById('ogrPressureValue');
     const temperatureValue = document.getElementById('ogrTemperatureValue');
+    const fullWarningValue = document.getElementById('ogrFullWarningValue');
+    const pressureUnit = document.getElementById('ogrPressureUnit');
+    const pressureLowReference = document.getElementById('ogrPressureLowReference');
+    const pressureOkReference = document.getElementById('ogrPressureOkReference');
     const pressureState = document.getElementById('ogrPressureState');
     const temperatureState = document.getElementById('ogrTemperatureState');
     const pressureFill = document.getElementById('ogrPressureFill');
@@ -378,21 +460,28 @@
       const pressureColor = pressureKey === 'warning' ? toRgb(red) : toRgb(yellow);
       const currentTemperatureColor = temperatureColor(temperature);
       const temperatureDisplay = temperature < 50 ? '<50' : String(temperature);
+      const bar = unitInput.value === 'bar';
+      const pressureDisplay = bar ? (psi * 0.0689475729).toFixed(1) : String(psi);
 
+      screen.dataset.warningMode = warningModeInput.value;
       pressureHalf.dataset.state = pressureKey;
       temperatureHalf.dataset.state = temperatureKey;
       pressureHalf.style.setProperty('--ogr-metric-color', pressureColor);
       temperatureHalf.style.setProperty('--ogr-metric-color', currentTemperatureColor);
-      pressureValue.textContent = String(psi);
+      pressureValue.textContent = pressureDisplay;
+      fullWarningValue.textContent = pressureDisplay;
+      pressureUnit.textContent = bar ? 'BAR' : 'PSI';
+      pressureLowReference.textContent = bar ? 'Alerta ≤0,7 BAR' : 'Alerta ≤10 PSI';
+      pressureOkReference.textContent = bar ? 'OK: 1,0–5,5 BAR' : 'OK: 15–80 PSI';
       temperatureValue.textContent = temperatureDisplay;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
       temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
-      pressureControlValue.textContent = `${psi} PSI`;
+      pressureControlValue.textContent = `${pressureDisplay} ${bar ? 'BAR' : 'PSI'}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${temperature} °C`;
-      pressureHalf.setAttribute('aria-label', `Presión de aceite ${psi} PSI, ${pressureLabel}, motor a ${rpm} RPM`);
+      pressureHalf.setAttribute('aria-label', `Presión de aceite ${pressureDisplay} ${bar ? 'bar' : 'PSI'}, ${pressureLabel}, motor a ${rpm} RPM`);
       temperatureHalf.setAttribute(
         'aria-label',
         temperature < 50
@@ -401,7 +490,7 @@
       );
     };
 
-    [pressureInput, rpmInput, temperatureInput].forEach((input) => {
+    [pressureInput, rpmInput, temperatureInput, unitInput, warningModeInput].forEach((input) => {
       input.addEventListener('input', update);
     });
 

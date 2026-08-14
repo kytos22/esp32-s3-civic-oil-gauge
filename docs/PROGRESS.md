@@ -33,16 +33,15 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; settings-menu extension awaiting resolved design | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete |
+| 5 Development | Sprints 1–5 complete; Sprint 6 settings/menu in progress | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) in progress |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 3/5 — Design extension before settings-menu implementation
-- Next action: resolve the one remaining full-screen warning rendering choice in
-  [DR-001](design/design-requests/DR-001.md), then consolidate the raised thermometer,
-  units, menu interactions, and new acceptance criteria before writing firmware.
+- Phase: 5 — Sprint 6 settings-menu implementation
+- Next action: implement the resolved [DR-001](design/design-requests/DR-001.md)
+  contract with red-first native/renderer checks, then build the complete firmware.
   Keep demo mode enabled; sensor calibration and vehicle cutover remain separate
   safety-gated work.
 
@@ -72,10 +71,9 @@
   records a clean demo boot, two warning tones, and 16 consecutive 64–77 FPS windows.
   Marcos confirmed that the current warning looks clean without the dotted phase,
   closing AC-06, AC-23, slice 1.5, and Sprint 1 on 2026-08-14.
-- Open Design Requests: [DR-001](design/design-requests/DR-001.md) — thermometer
-  geometry and settings-menu behavior; the hierarchy, PSI/bar units, icon relation,
-  and deferral of manual day/night profiles are approved. One choice remains: whether
-  full-screen 2 Hz warning motion preserves the pressure number or blacks it out.
+- Open Design Requests: none. [DR-001](design/design-requests/DR-001.md) is answered
+  and consolidated. In full-screen 2 Hz mode the opaque red phase redraws the white
+  pressure number above it; the number is never hidden.
 - Ambient-light research: the Waveshare has no onboard light sensor. A future
   `OPT4001-Q1` can share the 3.3 V I²C bus with the ADS1115 at a selected free address;
   `VEML7700` is an easier non-automotive bench option. Protected A3 illumination
@@ -145,4 +143,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-14 — warning accepted; settings/menu DR has one clarification pending
+Last updated: 2026-08-14 — DR-001 resolved; Sprint 6 settings/menu implementation started

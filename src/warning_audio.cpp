@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 
@@ -30,6 +31,7 @@ constexpr std::array<std::int16_t, 10> kWave{
 
 esp_codec_dev_handle_t gSpeaker = nullptr;
 TaskHandle_t gAudioTask = nullptr;
+std::atomic_bool gAudioEnabled{true};
 
 bool writeSegment(bool audible, std::uint32_t durationMs) {
   const std::uint32_t totalSamples =
@@ -151,9 +153,29 @@ bool initWarningAudio() {
 }
 
 void requestWarningTone() {
-  if (gAudioTask != nullptr) {
+  if (gAudioTask != nullptr && gAudioEnabled.load()) {
     xTaskNotifyGive(gAudioTask);
   }
+}
+
+bool warningAudioAvailable() {
+  return gAudioTask != nullptr;
+}
+
+void setWarningAudioEnabled(bool enabled) {
+  gAudioEnabled.store(enabled);
+}
+
+bool setWarningAudioVolume(int percent) {
+  if (gSpeaker == nullptr) {
+    return false;
+  }
+  const int bounded = std::clamp(percent, 5, 100);
+  if (esp_codec_dev_set_out_vol(gSpeaker, bounded) != ESP_CODEC_DEV_OK) {
+    ESP_LOGW(kTag, "Unable to set warning-speaker volume to %d%%", bounded);
+    return false;
+  }
+  return true;
 }
 
 }  // namespace oilgauge

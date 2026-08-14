@@ -880,6 +880,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     role=&quot;region&quot;
     aria-label=&quot;Indicador de presión y temperatura de aceite&quot;
     aria-live=&quot;polite&quot;
+    data-warning-mode=&quot;elements&quot;
   &gt;
     &lt;section class=&quot;ogr-half ogr-pressure&quot; data-state=&quot;ok&quot;&gt;
       &lt;div class=&quot;ogr-heading&quot;&gt;
@@ -895,7 +896,7 @@ html&gt;body{padding:0}&lt;/style&gt;
           &lt;path class=&quot;ogr-solid&quot; d=&quot;M105 42s-8 9-8 15a8 8 0 0 0 16 0c0-6-8-15-8-15z&quot; /&gt;
         &lt;/svg&gt;
         &lt;span class=&quot;ogr-value&quot; id=&quot;ogrPressureValue&quot;&gt;61&lt;/span&gt;
-        &lt;span class=&quot;ogr-unit&quot;&gt;PSI&lt;/span&gt;
+        &lt;span class=&quot;ogr-unit&quot; id=&quot;ogrPressureUnit&quot;&gt;PSI&lt;/span&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-scale&quot; aria-hidden=&quot;true&quot;&gt;
         &lt;span class=&quot;ogr-fill&quot; id=&quot;ogrPressureFill&quot;&gt;&lt;/span&gt;
@@ -904,8 +905,8 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;i style=&quot;left:53.3%&quot;&gt;&lt;/i&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-context&quot;&gt;
-        &lt;span&gt;Alerta ≤10 PSI&lt;/span&gt;
-        &lt;span&gt;OK: 15–80 PSI&lt;/span&gt;
+        &lt;span id=&quot;ogrPressureLowReference&quot;&gt;Alerta ≤10 PSI&lt;/span&gt;
+        &lt;span id=&quot;ogrPressureOkReference&quot;&gt;OK: 15–80 PSI&lt;/span&gt;
       &lt;/div&gt;
     &lt;/section&gt;
 
@@ -916,11 +917,11 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-main&quot;&gt;
         &lt;svg class=&quot;ogr-icon ogr-temperature-icon&quot; viewBox=&quot;0 0 88 74&quot; aria-hidden=&quot;true&quot;&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;36&quot; y=&quot;3&quot; width=&quot;12&quot; height=&quot;45&quot; rx=&quot;6&quot; /&gt;
+          &lt;rect class=&quot;ogr-solid&quot; x=&quot;36&quot; y=&quot;0&quot; width=&quot;12&quot; height=&quot;48&quot; rx=&quot;6&quot; /&gt;
           &lt;circle class=&quot;ogr-solid&quot; cx=&quot;42&quot; cy=&quot;48&quot; r=&quot;13&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;11&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;25&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;39&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
+          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;4&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
+          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;18&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
+          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;32&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
           &lt;path class=&quot;ogr-wave&quot; d=&quot;M5 55c8-6 15 6 23 0M56 55c8-6 15 6 23 0&quot; /&gt;
           &lt;path class=&quot;ogr-wave&quot; d=&quot;M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0&quot; /&gt;
         &lt;/svg&gt;
@@ -940,6 +941,9 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;span&gt;&amp;gt;94 °C caliente&lt;/span&gt;
       &lt;/div&gt;
     &lt;/section&gt;
+    &lt;div class=&quot;ogr-full-warning&quot; id=&quot;ogrFullWarning&quot; aria-hidden=&quot;true&quot;&gt;
+      &lt;span class=&quot;ogr-full-warning-value&quot; id=&quot;ogrFullWarningValue&quot;&gt;61&lt;/span&gt;
+    &lt;/div&gt;
   &lt;/div&gt;
 
   &lt;div class=&quot;viz-controls ogr-controls&quot; aria-label=&quot;Simular lecturas&quot;&gt;
@@ -954,6 +958,21 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ogrTemperatureInput&quot;&gt;
       Temperatura &lt;span id=&quot;ogrTemperatureControlValue&quot;&gt;92 °C&lt;/span&gt;
       &lt;input class=&quot;form-range&quot; id=&quot;ogrTemperatureInput&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;138&quot; value=&quot;92&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ogrUnitInput&quot;&gt;
+      Unidades
+      &lt;select id=&quot;ogrUnitInput&quot;&gt;
+        &lt;option value=&quot;psi&quot;&gt;PSI&lt;/option&gt;
+        &lt;option value=&quot;bar&quot;&gt;BAR&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ogrWarningModeInput&quot;&gt;
+      Warning
+      &lt;select id=&quot;ogrWarningModeInput&quot;&gt;
+        &lt;option value=&quot;elements&quot;&gt;Elementos 2 Hz&lt;/option&gt;
+        &lt;option value=&quot;screen&quot;&gt;Pantalla 2 Hz&lt;/option&gt;
+        &lt;option value=&quot;fixed&quot;&gt;Fijo&lt;/option&gt;
+      &lt;/select&gt;
     &lt;/label&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -977,6 +996,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   #oilGaugeRefinedIcons .ogr-screen {
+    position: relative;
     width: min(100%, 480px);
     aspect-ratio: 1;
     display: grid;
@@ -1126,13 +1146,63 @@ html&gt;body{padding:0}&lt;/style&gt;
     flex: 1 1 190px;
   }
 
-  #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-icon,
-  #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-state,
-  #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-fill {
+  #oilGaugeRefinedIcons .ogr-controls select {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    min-height: 40px;
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+    .ogr-pressure[data-state=&quot;warning&quot;] .ogr-icon,
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+    .ogr-pressure[data-state=&quot;warning&quot;] .ogr-state,
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+    .ogr-pressure[data-state=&quot;warning&quot;] .ogr-fill {
     animation: ogr-pressure-warning-blink 0.5s step-end infinite;
   }
 
+  #oilGaugeRefinedIcons .ogr-full-warning {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    background: var(--ogr-danger);
+  }
+
+  #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;screen&quot;]
+    .ogr-pressure[data-state=&quot;warning&quot;] ~ .ogr-full-warning {
+    display: block;
+    animation: ogr-full-screen-warning-blink 0.5s step-end infinite;
+  }
+
+  #oilGaugeRefinedIcons .ogr-full-warning-value {
+    position: absolute;
+    top: 15.6%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ogr-white);
+    font-size: clamp(68px, 17vw, 108px);
+    font-weight: 500;
+    line-height: 0.86;
+    letter-spacing: -0.07em;
+  }
+
   @keyframes ogr-pressure-warning-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ogr-full-screen-warning-blink {
     0%,
     49% {
       opacity: 1;
@@ -1167,9 +1237,14 @@ html&gt;body{padding:0}&lt;/style&gt;
       transition: none;
     }
 
-    #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-icon,
-    #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-state,
-    #oilGaugeRefinedIcons .ogr-pressure[data-state=&quot;warning&quot;] .ogr-fill {
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+      .ogr-pressure[data-state=&quot;warning&quot;] .ogr-icon,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+      .ogr-pressure[data-state=&quot;warning&quot;] .ogr-state,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;elements&quot;]
+      .ogr-pressure[data-state=&quot;warning&quot;] .ogr-fill,
+    #oilGaugeRefinedIcons .ogr-screen[data-warning-mode=&quot;screen&quot;]
+      .ogr-pressure[data-state=&quot;warning&quot;] ~ .ogr-full-warning {
       animation: none;
       opacity: 1;
     }
@@ -1180,12 +1255,19 @@ html&gt;body{padding:0}&lt;/style&gt;
   (() =&gt; {
     const root = document.getElementById(&#x27;oilGaugeRefinedIcons&#x27;);
     const pressureHalf = root.querySelector(&#x27;.ogr-pressure&#x27;);
+    const screen = root.querySelector(&#x27;.ogr-screen&#x27;);
     const temperatureHalf = root.querySelector(&#x27;.ogr-temperature&#x27;);
     const pressureInput = document.getElementById(&#x27;ogrPressureInput&#x27;);
     const rpmInput = document.getElementById(&#x27;ogrRpmInput&#x27;);
     const temperatureInput = document.getElementById(&#x27;ogrTemperatureInput&#x27;);
+    const unitInput = document.getElementById(&#x27;ogrUnitInput&#x27;);
+    const warningModeInput = document.getElementById(&#x27;ogrWarningModeInput&#x27;);
     const pressureValue = document.getElementById(&#x27;ogrPressureValue&#x27;);
     const temperatureValue = document.getElementById(&#x27;ogrTemperatureValue&#x27;);
+    const fullWarningValue = document.getElementById(&#x27;ogrFullWarningValue&#x27;);
+    const pressureUnit = document.getElementById(&#x27;ogrPressureUnit&#x27;);
+    const pressureLowReference = document.getElementById(&#x27;ogrPressureLowReference&#x27;);
+    const pressureOkReference = document.getElementById(&#x27;ogrPressureOkReference&#x27;);
     const pressureState = document.getElementById(&#x27;ogrPressureState&#x27;);
     const temperatureState = document.getElementById(&#x27;ogrTemperatureState&#x27;);
     const pressureFill = document.getElementById(&#x27;ogrPressureFill&#x27;);
@@ -1254,21 +1336,28 @@ html&gt;body{padding:0}&lt;/style&gt;
       const pressureColor = pressureKey === &#x27;warning&#x27; ? toRgb(red) : toRgb(yellow);
       const currentTemperatureColor = temperatureColor(temperature);
       const temperatureDisplay = temperature &lt; 50 ? &#x27;&lt;50&#x27; : String(temperature);
+      const bar = unitInput.value === &#x27;bar&#x27;;
+      const pressureDisplay = bar ? (psi * 0.0689475729).toFixed(1) : String(psi);
 
+      screen.dataset.warningMode = warningModeInput.value;
       pressureHalf.dataset.state = pressureKey;
       temperatureHalf.dataset.state = temperatureKey;
       pressureHalf.style.setProperty(&#x27;--ogr-metric-color&#x27;, pressureColor);
       temperatureHalf.style.setProperty(&#x27;--ogr-metric-color&#x27;, currentTemperatureColor);
-      pressureValue.textContent = String(psi);
+      pressureValue.textContent = pressureDisplay;
+      fullWarningValue.textContent = pressureDisplay;
+      pressureUnit.textContent = bar ? &#x27;BAR&#x27; : &#x27;PSI&#x27;;
+      pressureLowReference.textContent = bar ? &#x27;Alerta ≤0,7 BAR&#x27; : &#x27;Alerta ≤10 PSI&#x27;;
+      pressureOkReference.textContent = bar ? &#x27;OK: 1,0–5,5 BAR&#x27; : &#x27;OK: 15–80 PSI&#x27;;
       temperatureValue.textContent = temperatureDisplay;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
       temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
-      pressureControlValue.textContent = `${psi} PSI`;
+      pressureControlValue.textContent = `${pressureDisplay} ${bar ? &#x27;BAR&#x27; : &#x27;PSI&#x27;}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${temperature} °C`;
-      pressureHalf.setAttribute(&#x27;aria-label&#x27;, `Presión de aceite ${psi} PSI, ${pressureLabel}, motor a ${rpm} RPM`);
+      pressureHalf.setAttribute(&#x27;aria-label&#x27;, `Presión de aceite ${pressureDisplay} ${bar ? &#x27;bar&#x27; : &#x27;PSI&#x27;}, ${pressureLabel}, motor a ${rpm} RPM`);
       temperatureHalf.setAttribute(
         &#x27;aria-label&#x27;,
         temperature &lt; 50
@@ -1277,13 +1366,14 @@ html&gt;body{padding:0}&lt;/style&gt;
       );
     };
 
-    [pressureInput, rpmInput, temperatureInput].forEach((input) =&gt; {
+    [pressureInput, rpmInput, temperatureInput, unitInput, warningModeInput].forEach((input) =&gt; {
       input.addEventListener(&#x27;input&#x27;, update);
     });
 
     update();
   })();
 &lt;/script&gt;
+
 
 &lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
 &lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;

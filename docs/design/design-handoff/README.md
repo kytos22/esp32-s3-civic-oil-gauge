@@ -7,7 +7,8 @@ orientation file: the byte-preserved reference artifacts live in
 `docs/design/references/`, their semantic contract lives in `docs/UI_DESIGN.md`, and
 the audited implementation contract lives in `docs/BUILD-SPEC.md`.
 
-No creative design work, external assets, fonts, responsive variants, touch controls,
-or external-software setup are part of this handoff. Replacing the approved reference
+No creative design work, external assets, fonts, responsive variants, or
+external-software setup are part of this handoff. DR-001 adds only the approved
+700 ms settings surface and thermometer correction. Replacing the approved reference
 or changing a visual/behavioral token requires an explicit user decision and a new
 Design Request or design delta.

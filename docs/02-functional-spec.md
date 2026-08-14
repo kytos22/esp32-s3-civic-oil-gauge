@@ -181,6 +181,24 @@ See `docs/03-technical-plan.md`.
   pressure-warning state requests exactly one non-blocking double beep through the
   onboard ES8311 speaker path; remaining in warning does not retrigger it, leaving
   warning re-arms it, and audio failure never stops the visual gauge.
+- **AC-33:** A stationary 700 ms hold opens a full-screen black settings page;
+  ordinary taps, dragging, and scrolling do not. `VOLVER` or 10 seconds without
+  interaction saves changed safe preferences and returns to the gauge.
+- **AC-34:** Brightness, warning-sound enable/volume, units, and warning presentation
+  persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
+  compile-time defaults. `SENSORES` remains disabled and cannot persist while the
+  calibration gate is incomplete.
+- **AC-35:** PSI/bar changes only displayed pressure values, units, and reference
+  labels from canonical PSI; it never changes calibration, bar fraction, thresholds,
+  or alarm evaluation.
+- **AC-36:** `ELEMENTOS 2 HZ`, `PANTALLA 2 HZ`, and `FIJO` are selectable. The
+  full-screen mode alternates opaque red and the normal gauge every 250 ms and
+  redraws the white pressure number above red; the number is always visible.
+- **AC-37:** The thermometer stem protrudes at least 3 painted pixels above the
+  raised top mark, and the lowest mark retains at least 6 painted pixels of clearance
+  from the upper oil wave in native and editable geometry.
+- **AC-38:** An active pressure warning closes settings immediately. Diagnostics are
+  read-only, sound test uses the real double beep, and reset requires confirmation.
 
 ## Estimate
 
