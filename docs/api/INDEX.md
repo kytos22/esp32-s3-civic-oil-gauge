@@ -30,7 +30,7 @@
 | `faultName()` | function | `include/gauge_core.h` | progressive backfill | Stable diagnostic name for a fault |
 | `pressureStateName()` | function | `include/gauge_core.h` | `docs/api/display-state.md` | Stable pressure-state diagnostic name |
 | `temperatureStateName()` | function | `include/gauge_core.h` | `docs/api/display-state.md` | Stable temperature-state diagnostic name |
-| `WarningToneGate` | class | `include/warning_tone_gate.h` | [warning tone gate](warning-tone-gate.md) | Rising-edge gate for one warning tone request per warning episode |
+| `WarningToneGate` | class | `include/warning_tone_gate.h` | [warning tone gate](warning-tone-gate.md) | Emits start/stop commands for the persistent warning-audio loop |
 | `warningBlinkPhaseOn()` | function | `include/demo_sequence.h` | `docs/api/display-state.md` | Deterministic binary 2 Hz warning phase |
 | `fullScreenWarningPhaseOn()` | function | `include/demo_sequence.h` | [gauge settings](gauge-settings.md) | Deterministic 0.5 Hz full-screen warning phase |
 | `DataSource` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select demo or explicit no-data sensor gate |

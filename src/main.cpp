@@ -12,6 +12,7 @@
 #include <inttypes.h>
 
 #include "demo_sequence.h"
+#include "display_runtime.h"
 #include "gauge_core.h"
 #include "oil_gauge_ui.h"
 #include "settings_store.h"
@@ -27,6 +28,19 @@ constexpr std::uint64_t kUiFramePeriodUs = kUiFramePeriodMs * 1'000U;
 constexpr std::uint64_t kFpsLogPeriodUs = 2'000'000;
 WarningToneGate gWarningToneGate;
 GaugeSettings gSettings;
+
+void applyWarningAudioState(bool warningActive) {
+  switch (gWarningToneGate.update(warningActive)) {
+    case WarningToneCommand::startLoop:
+      setWarningAudioActive(true);
+      break;
+    case WarningToneCommand::stopLoop:
+      setWarningAudioActive(false);
+      break;
+    case WarningToneCommand::none:
+      break;
+  }
+}
 
 GaugeSettings compileTimeDefaults() {
   GaugeSettings defaults;
@@ -55,13 +69,11 @@ void renderDemoFrame(std::uint64_t nowUs) {
 
   const bool warningActive =
       evaluatePressureState(pressure, engine) == PressureState::warning;
-  if (gWarningToneGate.update(warningActive)) {
-    requestWarningTone();
-  }
+  applyWarningAudioState(warningActive);
 }
 
 void renderCalibrationGate(std::uint64_t nowUs) {
-  (void)gWarningToneGate.update(false);
+  applyWarningAudioState(false);
   updateOilGaugeUi(
       {0.0, Fault::calibrationMissing},
       {0.0, Fault::calibrationMissing},
@@ -110,8 +122,9 @@ extern "C" void app_main(void) {
            static_cast<unsigned>(gSettings.temperatureUnit),
            static_cast<unsigned>(gSettings.dataSource));
 
-  lv_display_t* display = bsp_display_start();
-  if (display == nullptr) {
+  const OilDisplayRuntime displayRuntime = startOilDisplayRuntime();
+  lv_display_t* display = displayRuntime.display;
+  if (display == nullptr || displayRuntime.input == nullptr) {
     ESP_LOGE(kTag, "Waveshare display initialization failed");
     return;
   }
@@ -131,7 +144,7 @@ extern "C" void app_main(void) {
     }
   }
 
-  lv_indev_t* input = bsp_display_get_input_dev();
+  lv_indev_t* input = displayRuntime.input;
   if (input != nullptr) {
     lv_indev_set_long_press_time(input, 700);
   } else {

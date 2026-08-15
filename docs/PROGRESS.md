@@ -33,20 +33,30 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 exact-board runtime passed, guided touch/visual proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 second review correction passes software gates, exact-board proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) reopened for loop proof; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 review extension flashed and runtime-verified
-- Next action: Marcos physically reviews the exact AMOLED for a clean BAR decimal,
-  selects and persists °F (including `<122` below the 50 °C sensor floor), and
-  rechecks the full-screen warning, persistent menu, thermometer geometry, and
-  audio edges. Keep compile-time demo support enabled; sensor calibration and
-  vehicle cutover remain separate safety-gated work.
+- Phase: 5 — Sprint 6 second physical-review correction software-complete
+- Next action: after explicit authorization, flash the exact AMOLED and verify that
+  the menu stays resident without background gauge updates, menu/red transitions
+  no longer show 50-line band tearing, the double beep loops only while warning is
+  active, and completed FPS remains at least 60. Keep compile-time demo support
+  enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
 
 ## Open items
+- Sprint 6 second-review artifact: the red native fixture failed to compile before
+  warning-loop commands existed and the new display/audio contract passed only 4/9.
+  The implementation now keeps settings resident, returns from the renderer before
+  touching gauge widgets, loops the ramped double beep until warning exit/disable,
+  and uses a project-owned ESP LCD/LVGL registration with two 480×480 RGB565 PSRAM
+  draw buffers. Native 22/22, settings 9/9, display/audio 9/9, all 41 acceptance
+  rows, and the complete ESP-IDF 6.0.2 build pass. The 753,856-byte app has SHA-256
+  `be9d546ea83f6c34eaad0cd7e988f6ac2a443f13c104ca2575959bc898e254a1`.
+  No flash was performed; lack of a verified CO5300 TE GPIO leaves final tearing,
+  continuous-audio FPS, and audible stop/edge quality as HARDWARE/JUDGMENT.
 - Sprint 6 review-extension artifact: clean ESP-IDF 6.0.2 build from implementation
   commit `8c2cc46`, 752,960-byte app, SHA-256
   `6b854240f99d4edf92e8bdf0507ca83b26b0ad0fb69161d3146961c5d7543127`.
@@ -194,4 +204,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — Sprint 6 review extension complete in software; no flash authorized
+Last updated: 2026-08-15 — resident-menu/audio-loop/full-frame correction passes software gates; no flash authorized

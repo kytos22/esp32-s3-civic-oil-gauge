@@ -234,14 +234,22 @@ void test_ac06_warning_blink_is_binary_two_hertz() {
   TEST_ASSERT_TRUE(warningBlinkPhaseOn(1'000'000));
 }
 
-void test_warning_tone_gate_triggers_once_and_rearms() {
+void test_ac32_warning_tone_gate_starts_and_stops_loop() {
   WarningToneGate gate;
 
-  TEST_ASSERT_FALSE(gate.update(false));
-  TEST_ASSERT_TRUE(gate.update(true));
-  TEST_ASSERT_FALSE(gate.update(true));
-  TEST_ASSERT_FALSE(gate.update(false));
-  TEST_ASSERT_TRUE(gate.update(true));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::none),
+                        static_cast<int>(gate.update(false)));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::startLoop),
+                        static_cast<int>(gate.update(true)));
+  TEST_ASSERT_TRUE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::none),
+                        static_cast<int>(gate.update(true)));
+  TEST_ASSERT_TRUE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::stopLoop),
+                        static_cast<int>(gate.update(false)));
+  TEST_ASSERT_FALSE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::startLoop),
+                        static_cast<int>(gate.update(true)));
 }
 
 void test_settings_are_sanitized_to_safe_ranges() {
@@ -351,7 +359,7 @@ int main(int, char**) {
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
   RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
-  RUN_TEST(test_warning_tone_gate_triggers_once_and_rearms);
+  RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);
   RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);

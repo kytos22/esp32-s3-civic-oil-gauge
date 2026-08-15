@@ -5,6 +5,7 @@
   thermometer geometry without changing sensor calibration or enabling real inputs.
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
+- Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
 - Status: review extension flashed and runtime-verified on the exact board;
   guided visual, touch, persistence, and audio-edge judgment remains
 
@@ -19,6 +20,7 @@
 | 6.5 Editable simulator parity | complete locally | fragment/wrapper synchronization + Keel pass | Public Pages remains unchanged until an authorized push |
 | 6.6 Physical-review correction | hardware partially verified | red-first compile/0-of-12 contract; then native 21/21 + review 12/12 + full build + exact-board runtime | Corrected image boots at 61–77 FPS; visual no-tearing, no-puff, 0.5 Hz, and persistent-menu proof pending |
 | 6.7 Temperature units and BAR glyph | hardware partially verified | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build + exact-board flash/digest | Persistent °C/°F presentation and U+002E numeric font are on the exact board; guided touch/render/persistence confirmation remains |
+| 6.8 Resident menu, warning loop, full-frame QSPI buffers | software implemented; hardware pending | red native compile plus 4/9 contract; then native 22/22 + display/audio 9/9 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
 
 ## Software evidence
 
@@ -64,3 +66,14 @@
   clean demo boot and 19 consecutive 61–77 FPS windows with no runtime fault. No
   sensors, ADS1115, MTX-D, 12 V, or vehicle connection was used. Visual/touch/audio
   judgment is still required.
+- Marcos then confirmed the prior checks and reported tearing on the red transition
+  and menu. The second-review regression failed natively before start/stop loop
+  commands existed and passed only 4/9 display/audio invariants. The implementation
+  now keeps settings visible across warning, returns before all gauge-widget updates
+  while settings is open, repeats the existing double beep while warning remains,
+  and registers the CO5300 through the BSP's public primitives with two 480×480
+  RGB565 PSRAM draw buffers. Native 22/22, display/audio 9/9, all 41 acceptance rows,
+  and the complete ESP-IDF 6.0.2 build pass. The 753,856-byte app SHA-256 is
+  `be9d546ea83f6c34eaad0cd7e988f6ac2a443f13c104ca2575959bc898e254a1`.
+  No flash was authorized or performed; TE is not exposed by the verified BSP pin
+  map, so tearing and continuous-audio FPS remain exact-hardware judgments.

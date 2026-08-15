@@ -4,8 +4,8 @@
   when the calibration-safe demo enters its pressure-warning state, without
   changing the approved visual behavior or blocking the 60 FPS UI loop.
 - Acceptance:
-  - one double beep is requested only on a non-warning to warning transition;
-  - remaining in warning does not retrigger audio and leaving warning re-arms it;
+  - the double beep repeats while the engine-gated warning remains active;
+  - leaving warning stops the loop and a later warning starts it again;
   - PCM playback uses the pinned Waveshare BSP's ES8311/I²S path in a separate
     FreeRTOS task;
   - audio initialization or playback failure is logged and leaves the visual
@@ -33,6 +33,6 @@
 
 | Slice | Status | Test point result | Notes |
 |---|---|---|---|
-| 5.1 Warning-entry gate | complete | red observed, then native 15/15 pass | Pure state transition logic |
+| 5.1 Warning-loop gate | complete | original red observed, latest regression then native 22/22 pass | Pure start/stop transition logic |
 | 5.2 ES8311 playback worker | complete | complete ESP-IDF 6.0.2 build pass | Non-blocking double beep; silent degradation on error |
 | 5.3 Physical proof | complete | exact-board 66–77 FPS and audible double beep | Accepted by Marcos on 2026-08-11 |

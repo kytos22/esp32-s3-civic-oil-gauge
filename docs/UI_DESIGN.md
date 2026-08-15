@@ -110,8 +110,11 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 - read-only diagnostics and a confirmation-protected settings reset;
 - `VOLVER`; there is no inactivity timeout.
 
-An active pressure warning closes the menu immediately. Safe preferences persist
-in NVS when the menu closes; missing/corrupt NVS falls back to compile-time defaults.
+An active pressure warning does not close the menu. Warning evaluation and the
+configured repeating double beep continue, but the gauge and red overlay are not
+rendered behind settings; the gauge catches up after `VOLVER`. Safe preferences
+persist in NVS when the menu closes; missing/corrupt NVS falls back to compile-time
+defaults.
 The source choice persists, but `SENSORES` remains an explicit no-data calibration
 gate until a separately validated acquisition path exists.
 

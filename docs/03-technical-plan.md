@@ -66,7 +66,8 @@ flowchart LR
 | `include/gauge_core.h` | [E] | Public conversion, filtering, fault, and alarm types/functions |
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
 | `include/demo_sequence.h` / `src/demo_sequence.cpp` | [E] | Native-testable continuous seven-scene demo interpolation |
-| `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable one-shot warning-entry gate |
+| `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable warning-loop start/stop gate |
+| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Project-owned ESP LCD/LVGL registration with two full-frame PSRAM draw buffers |
 | `include/gauge_settings.h` / `src/gauge_settings.cpp` | [E] | Native-testable settings sanitization, units, and warning presentation |
 | `src/warning_audio.h` / `src/warning_audio.cpp` | [E] | Non-blocking ES8311/I²S warning-tone worker |
 | `src/settings_store.h` / `src/settings_store.cpp` | [E] | NVS-backed safe preference persistence |

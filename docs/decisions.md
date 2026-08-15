@@ -578,3 +578,32 @@
   Draw the decimal with a smaller fallback font; it would not match the baseline or
   preserve centered numeric typography.
 - Supersedes: none.
+
+## D-046 — Keep settings resident, loop warning audio, and use full-frame QSPI draw buffers
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 physical-review correction
+- Decision: A pressure warning never closes an already-open settings menu. While
+  settings owns the screen, the gauge renderer performs no background widget or
+  warning-overlay updates; it catches up from the current sample after `VOLVER`.
+  Warning audio repeats the existing ramped double beep for as long as the warning
+  remains active and stops when the warning clears or warning sound is disabled.
+  Keep the sound-test action as one isolated double beep. Use the BSP's public panel
+  and touch primitives from a project-owned display runtime, registering two 480x480
+  RGB565 PSRAM draw buffers instead of `bsp_display_start()`'s two 480x50 buffers,
+  so full-screen menu and red-warning invalidations are rendered and submitted as
+  one full-frame area rather than ten horizontal bands.
+- Why: Marcos physically confirmed the previous checks but observed tearing on both
+  the red warning and settings menu, requested a continuous warning-sound loop, and
+  required settings to remain resident without rendering the gauge behind it. Code
+  inspection confirms that the CO5300 is driven through `esp_lcd_panel` and
+  Espressif's LVGL adapter, but the pinned Waveshare BSP selects
+  `ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE` with double 50-line partial buffers.
+- Hardware boundary: The board BSP and pin map expose no CO5300 TE GPIO. Therefore
+  firmware cannot claim scan-synchronous tear elimination: full-frame buffering
+  removes the observed banded partial refresh mechanism, but the exact AMOLED still
+  requires physical judgment after a separately authorized flash. TE synchronization
+  would require evidence of a physically connected panel TE output.
+- Safety boundary: The warning is still evaluated while settings is visible and its
+  audio loop remains non-blocking. Demo mode stays enabled; no sensor, ADS1115, 12 V,
+  harness, or vehicle action is enabled.
+- Supersedes: D-043/AC-33/AC-38 only where warning closed settings, and D-044/AC-32
+  only where one double beep was requested per warning episode.

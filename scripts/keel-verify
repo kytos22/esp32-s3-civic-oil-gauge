@@ -338,8 +338,8 @@ def settings_menu_contract() -> None:
         "lv_indev_set_long_press_time(input, 700)" in main,
         "kMenuTimeoutMs" not in renderer,
         '"SIN DATOS · CALIBRACIÓN PENDIENTE"' in renderer,
-        "if (warning && gUi.menuVisible)" in renderer,
-        "closeMenu(true)" in renderer,
+        "if (gUi.menuVisible)" in renderer,
+        "if (warning && gUi.menuVisible)" not in renderer,
         "nvs_commit(handle)" in store,
         "NVS unavailable; using safe defaults without erasing storage" in store,
         "PressureUnit::bar" in renderer,
@@ -349,6 +349,29 @@ def settings_menu_contract() -> None:
         "AC-33..38 settings menu",
         all(conditions),
         f"{sum(conditions)}/{len(conditions)} interaction and persistence invariants",
+    )
+
+
+def full_frame_and_warning_loop_contract() -> None:
+    display_runtime = text("src/display_runtime.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    main = text("src/main.cpp")
+    audio = text("src/warning_audio.cpp")
+    conditions = [
+        "bsp_display_new(&panelConfig, &panel, &panelIo)" in display_runtime,
+        "esp_lv_adapter_register_display(&displayConfig)" in display_runtime,
+        "buffer_height = BSP_LCD_V_RES" in display_runtime,
+        "require_double_buffer = true" in display_runtime,
+        "ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE" in display_runtime,
+        "if (gUi.menuVisible)" in renderer,
+        "setWarningAudioActive(true)" in main,
+        "setWarningAudioActive(false)" in main,
+        "while (gWarningActive.load()" in audio,
+    ]
+    check(
+        "AC-32/33/38/41 resident menu and full-frame warning loop",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} display/audio invariants",
     )
 
 
@@ -537,6 +560,7 @@ def main() -> int:
     temperature_units_contract()
     warning_animation_contract()
     settings_menu_contract()
+    full_frame_and_warning_loop_contract()
     sprint6_physical_revision_contract()
     marked_existing_paths()
     suppressions()

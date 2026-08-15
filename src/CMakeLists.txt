@@ -2,6 +2,7 @@ idf_component_register(
     SRCS
         "main.cpp"
         "demo_sequence.cpp"
+        "display_runtime.cpp"
         "gauge_core.cpp"
         "gauge_settings.cpp"
         "oil_gauge_ui.cpp"

@@ -3,23 +3,24 @@
 ## `WarningToneGate`
 
 `include/warning_tone_gate.h` provides the renderer-independent transition gate
-used by the demo audio path.
+used to start and stop the demo warning-audio loop.
 
-### `bool update(bool warningActive)`
+### `WarningToneCommand update(bool warningActive)`
 
 - Input: whether the current evaluated pressure state is `warning`.
-- Returns `true` only when the input changes from `false` to `true`.
-- Returns `false` while warning remains active and while it is inactive.
-- A `false` update re-arms the next rising edge.
+- Returns `startLoop` on a `false` to `true` transition.
+- Returns `stopLoop` on a `true` to `false` transition.
+- Returns `none` while the state remains unchanged.
+- `warningActive()` exposes the retained state for deterministic tests.
 
 Example:
 
 ```cpp
 oilgauge::WarningToneGate gate;
-gate.update(false);  // false
-gate.update(true);   // true: request one tone
-gate.update(true);   // false: do not repeat
-gate.update(false);  // false: re-arm
+gate.update(false);  // none
+gate.update(true);   // startLoop
+gate.update(true);   // none; worker keeps looping
+gate.update(false);  // stopLoop
 ```
 
 The class has no ESP-IDF dependency and is covered by the native Unity suite.

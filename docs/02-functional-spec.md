@@ -182,16 +182,19 @@ See `docs/03-technical-plan.md`.
   unmodified PolyForm Noncommercial License 1.0.0 plus a required copyright
   notice; both READMEs state that improvements and redistribution are permitted
   only for noncommercial purposes and that third-party licenses remain separate.
-- **AC-32:** In demo mode, each transition from non-warning to the engine-running
-  pressure-warning state requests exactly one non-blocking double beep through the
-  onboard ES8311 speaker path; remaining in warning does not retrigger it, leaving
-  warning re-arms it, and audio failure never stops the visual gauge. The codec is
+- **AC-32:** In demo mode, the engine-running pressure-warning state starts a
+  non-blocking loop of the existing double beep through the onboard ES8311 speaker
+  path. The loop remains active while warning remains active, stops when warning
+  clears or sound is disabled, and can resume if sound is re-enabled during the same
+  warning episode. Audio failure never stops the visual gauge. The sound-test action
+  requests one isolated double beep. The codec is
   not muted/unmuted at individual tone edges; zero-filled settling segments and the
   waveform envelope prevent an abrupt output step.
 - **AC-33:** A stationary 700 ms hold opens a full-screen black settings page;
   ordinary taps, dragging, and scrolling do not. The page remains open until
-  `VOLVER` is pressed or an active pressure warning interrupts it; `VOLVER` saves
-  changed safe preferences and returns to the gauge.
+  `VOLVER` is pressed, including while a pressure warning is active; `VOLVER` saves
+  changed safe preferences and returns to the gauge. While settings is visible, no
+  gauge widgets or warning overlay are rendered behind it.
 - **AC-34:** Brightness, warning-sound enable/volume, units, warning presentation,
   and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
@@ -209,8 +212,10 @@ See `docs/03-technical-plan.md`.
 - **AC-37:** The thermometer stem protrudes at least 3 painted pixels above the
   raised top mark, and the lowest mark retains at least 6 painted pixels of clearance
   from the upper oil wave in native and editable geometry.
-- **AC-38:** An active pressure warning closes settings immediately. Diagnostics are
-  read-only, sound test uses the real double beep, and reset requires confirmation.
+- **AC-38:** An active pressure warning does not close settings. Warning evaluation
+  and the configured audio loop continue without background gauge rendering.
+  Diagnostics are read-only, sound test uses one real double beep, and reset requires
+  confirmation.
 - **AC-39:** Celsius/Fahrenheit changes only the displayed temperature value, unit,
   and temperature reference labels from canonical degrees Celsius. It never changes
   calibration, state boundaries, colors, bar fraction, thresholds, or alarms. The
@@ -218,6 +223,11 @@ See `docs/03-technical-plan.md`.
 - **AC-40:** Every character emitted by the large numeric renderer exists in its
   96 px font. In particular, one-decimal BAR values use a real U+002E decimal-point
   glyph and never LVGL's missing-glyph rectangle.
+- **AC-41:** The CO5300 remains on the ESP LCD Panel API through the pinned Waveshare
+  BSP and Espressif LVGL adapter. Its QSPI path uses two 480x480 RGB565 draw buffers
+  in PSRAM, so a 480x480 menu or red-warning invalidation is not split by the
+  application into 50-line render bands. Because the board exposes no verified TE
+  signal, final tearing judgment remains an exact-hardware test.
 
 ## Estimate
 

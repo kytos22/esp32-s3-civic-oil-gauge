@@ -2,10 +2,17 @@
 
 namespace oilgauge {
 
-bool WarningToneGate::update(bool warningActive) {
-  const bool shouldPlay = warningActive && !warningActive_;
+WarningToneCommand WarningToneGate::update(bool warningActive) {
+  if (warningActive == warningActive_) {
+    return WarningToneCommand::none;
+  }
   warningActive_ = warningActive;
-  return shouldPlay;
+  return warningActive ? WarningToneCommand::startLoop
+                       : WarningToneCommand::stopLoop;
+}
+
+bool WarningToneGate::warningActive() const {
+  return warningActive_;
 }
 
 }  // namespace oilgauge

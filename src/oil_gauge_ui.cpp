@@ -256,7 +256,7 @@ void closeMenu(bool save) {
 }
 
 void openMenu() {
-  if (gUi.warningActive || gUi.menuVisible) {
+  if (gUi.menuVisible) {
     return;
   }
   refreshMenuControls();
@@ -930,6 +930,11 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
       gUi.settings.warningVisualMode == WarningVisualMode::fixed;
   const DisplayState state = evaluateDisplayState(
       pressure, temperature, engine, elementsBlinkPhaseOn, reducedMotion);
+  const bool warning = state.pressure == PressureState::warning;
+  gUi.warningActive = warning;
+  if (gUi.menuVisible) {
+    return;
+  }
   const bool sensorsPending = gUi.settings.dataSource == DataSource::sensors;
   const RgbColor pressureColorValue =
       sensorsPending ? RgbColor{154, 164, 175} : state.pressureColor;
@@ -991,11 +996,6 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     gUi.pressureColorSet = true;
   }
 
-  const bool warning = state.pressure == PressureState::warning;
-  gUi.warningActive = warning;
-  if (warning && gUi.menuVisible) {
-    closeMenu(true);
-  }
   const WarningPresentation presentation = evaluateWarningPresentation(
       gUi.settings.warningVisualMode,
       warning,

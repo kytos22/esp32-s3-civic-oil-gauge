@@ -33,6 +33,8 @@ constexpr std::array<std::int16_t, 10> kWave{
 esp_codec_dev_handle_t gSpeaker = nullptr;
 TaskHandle_t gAudioTask = nullptr;
 std::atomic_bool gAudioEnabled{true};
+std::atomic_bool gWarningActive{false};
+std::atomic_bool gTestToneRequested{false};
 
 bool writeSegment(bool audible, std::uint32_t durationMs) {
   const std::uint32_t totalSamples =
@@ -73,19 +75,64 @@ bool writeSegment(bool audible, std::uint32_t durationMs) {
   return true;
 }
 
+bool playbackAllowed(bool followsWarning) {
+  return gAudioEnabled.load() &&
+         (!followsWarning || gWarningActive.load());
+}
+
+bool playDoubleBeep(bool followsWarning) {
+  if (!playbackAllowed(followsWarning)) {
+    return true;
+  }
+  if (!writeSegment(false, kEdgeSilenceMs)) {
+    return false;
+  }
+  if (!playbackAllowed(followsWarning)) {
+    return true;
+  }
+  if (!writeSegment(true, kBeepDurationMs)) {
+    return false;
+  }
+  if (!playbackAllowed(followsWarning)) {
+    return true;
+  }
+  if (!writeSegment(false, kGapDurationMs)) {
+    return false;
+  }
+  if (!playbackAllowed(followsWarning)) {
+    return true;
+  }
+  if (!writeSegment(true, kBeepDurationMs)) {
+    return false;
+  }
+  return writeSegment(false, kEdgeSilenceMs);
+}
+
 void warningAudioTask(void*) {
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    const bool played =
-        writeSegment(false, kEdgeSilenceMs) &&
-        writeSegment(true, kBeepDurationMs) &&
-        writeSegment(false, kGapDurationMs) &&
-        writeSegment(true, kBeepDurationMs) &&
-        writeSegment(false, kEdgeSilenceMs);
-    if (!played) {
-      ESP_LOGE(kTag, "Warning tone did not complete cleanly");
-    } else {
-      ESP_LOGI(kTag, "Warning tone completed");
+
+    if (gTestToneRequested.exchange(false) && gAudioEnabled.load()) {
+      if (!playDoubleBeep(false)) {
+        ESP_LOGE(kTag, "Sound-test tone did not complete cleanly");
+      } else {
+        ESP_LOGI(kTag, "Sound-test tone completed");
+      }
+    }
+
+    const bool loopStarted =
+        gWarningActive.load() && gAudioEnabled.load();
+    if (loopStarted) {
+      ESP_LOGI(kTag, "Warning tone loop started");
+    }
+    while (gWarningActive.load() && gAudioEnabled.load()) {
+      if (!playDoubleBeep(true)) {
+        ESP_LOGE(kTag, "Warning tone loop write failed");
+        break;
+      }
+    }
+    if (loopStarted) {
+      ESP_LOGI(kTag, "Warning tone loop idle");
     }
   }
 }
@@ -157,7 +204,9 @@ bool initWarningAudio() {
 }
 
 void requestWarningTone() {
-  if (gAudioTask != nullptr && gAudioEnabled.load()) {
+  if (gAudioTask != nullptr && gAudioEnabled.load() &&
+      !gWarningActive.load()) {
+    gTestToneRequested.store(true);
     xTaskNotifyGive(gAudioTask);
   }
 }
@@ -168,6 +217,16 @@ bool warningAudioAvailable() {
 
 void setWarningAudioEnabled(bool enabled) {
   gAudioEnabled.store(enabled);
+  if (gAudioTask != nullptr) {
+    xTaskNotifyGive(gAudioTask);
+  }
+}
+
+void setWarningAudioActive(bool active) {
+  gWarningActive.store(active);
+  if (gAudioTask != nullptr) {
+    xTaskNotifyGive(gAudioTask);
+  }
 }
 
 bool setWarningAudioVolume(int percent) {

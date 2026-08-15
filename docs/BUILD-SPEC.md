@@ -29,7 +29,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | Screen | Type | Source artifact | Contract | Notes |
 |---|---|---|---|---|
 | Oil gauge | unique, fixed 480×480 | `docs/design/references/oil-gauge-design.fragment.html` | `docs/UI_DESIGN.md` | Pressure top, temperature bottom; 700 ms hold opens settings |
-| Settings | full-screen, fixed 480×480 | `docs/UI_DESIGN.md` | DR-001 | Black touch surface; warning interrupts it |
+| Settings | full-screen, fixed 480×480 | `docs/UI_DESIGN.md` | DR-001 | Black touch surface; remains open during warning |
 
 ## 3. Canonical tokens
 
@@ -112,7 +112,7 @@ Temperature colors are linearly interpolated between:
 | reduced motion enabled | hold warning elements red | warning |
 | 700 ms stationary hold | open full-screen settings | gauge visible; no active warning |
 | `VOLVER` | save changed settings and return to gauge | settings visible |
-| pressure warning while menu open | close settings immediately and show warning | warning active |
+| pressure warning while menu open | keep settings visible; continue warning evaluation/audio without rendering the gauge behind it | warning active |
 | data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
@@ -141,6 +141,11 @@ None.
 - `src/oil_gauge_ui.cpp` consumes those decisions in a fixed 480×480 LVGL renderer;
   `src/main.cpp` and `src/demo_sequence.cpp` supply deterministic continuous demo
   or calibration-gate frames.
+- The Waveshare CO5300 QSPI panel remains on `esp_lcd_panel` through
+  `esp_lvgl_adapter`. The project-owned runtime calls the BSP's public panel/touch
+  primitives and registers two full 480×480 RGB565 PSRAM draw buffers instead of
+  `bsp_display_start()`'s 50-line partial buffers. No TE GPIO is verified on this
+  board, so exact-panel observation remains required.
 - Icon geometry is ported from the editable reference without transformation of
   silhouette or proportion; DR-001 raises the thermometer marks and extends its stem.
 - The fixed coordinate system is used directly; no responsive or adaptive layout.
