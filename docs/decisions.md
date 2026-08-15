@@ -717,5 +717,8 @@
   fault, but it presented mostly 14.84–14.86 FPS with average full-frame render
   times around 61–65 ms and average flush times around 31–35 ms. This rules out the
   adapter's serialized single-buffer `TE_SYNC` path for the product target. Marcos's
-  physical orientation and tearing judgment is still required before selecting the
-  next native-scan asynchronous architecture.
+  subsequent physical A/B showed the image rotated 180 degrees and restored the
+  diagonal tearing that was absent from the previous version. D-051 is rejected;
+  changing mirror flags alone cannot rescue a path that also fails scan-order
+  presentation and throughput. The next experiment must retain native panel scan
+  order, or the prior `443eb72` baseline must be restored.

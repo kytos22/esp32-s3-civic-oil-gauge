@@ -25,7 +25,7 @@
 | 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 | 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
 | 6.12 80 MHz QSPI comparison | runtime verified; visual judgment pending | contract 6/6, native 23/23, full build, exact-board flash/digests; 27 windows at 48–50 FPS, eight matched warning phases, no lock/reset failure in 71.5 s | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
-| 6.13 Official CO5300 GPIO-TE path | runtime measured; performance failed, visual judgment pending | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz and the official path starts, but the serialized single-buffer route delivers mostly about 14.85 FPS with 61–65 ms render averages |
+| 6.13 Official CO5300 GPIO-TE path | rejected by runtime and physical A/B | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz, but the route delivers mostly about 14.85 FPS, rotates the image 180 degrees, and restores the diagonal absent from the prior version |
 
 ## Software evidence
 
@@ -49,8 +49,10 @@
   started, and 33 timing windows contained no panic, watchdog, or reset. Dynamic
   presentation nevertheless stayed mostly at 14.84–14.86 FPS, with periodic
   roughly 9 FPS windows, 61–65 ms average render time, and 31–35 ms average flush
-  time. This implementation fails the performance target; orientation, touch
-  mapping, and physical tearing remain Marcos's visual judgment.
+  time. Marcos then observed that the image is rotated 180 degrees and the diagonal
+  tearing absent from the previous version has returned. This implementation fails
+  both performance and physical presentation; further menu/touch testing cannot
+  rescue the path.
 
 - The 50 Hz experiment first failed with an expected 20 ms value versus the active
   13 ms profile. After moving the cadence and reporting target into the shared

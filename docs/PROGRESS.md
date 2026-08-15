@@ -33,17 +33,17 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 official GPIO-TE experiment measured and too slow | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 official GPIO-TE experiment rejected | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
 - Phase: 5 — Sprint 6 display synchronization architecture
-- Next action: obtain Marcos's visual orientation/tearing judgment for the flashed
-  D-051 candidate, then design the next native-scan, asynchronous producer/consumer
-  experiment; do not tune the proven-slow single-buffer official path. Sensor and
-  vehicle work remain gated.
+- Next action: choose between restoring the prior `443eb72` display baseline or
+  implementing the next native-scan asynchronous producer/consumer experiment;
+  neither action is authorized yet. Do not tune the rejected official path. Sensor
+  and vehicle work remain gated.
 
 ## Open items
 - D-051 software candidate is complete. Red-first failed at the former 20 ms
@@ -64,8 +64,10 @@
   but 33 retained timing windows show mostly 14.84–14.86 FPS, with periodic windows
   near 9 FPS; render averages are roughly 61–65 ms and flush averages roughly
   31–35 ms. There was no panic, watchdog, or reset. The official single-buffer path
-  therefore fails the performance target; physical orientation and tearing judgment
-  remains with Marcos.
+  therefore fails the performance target. Marcos then confirmed the image is rotated
+  180 degrees and that the diagonal tearing absent from the prior version returned.
+  This completes the A/B rejection of the hardware-orientation path; menu/touch
+  testing is unnecessary for deciding D-051.
 - D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
   GPSPI is sourced from 80 MHz APB and uses integer divisors. The effective
   experiment therefore changes application/LVGL cadence to 20 ms and the measured
@@ -281,4 +283,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — official hardware-rotation/GPIO-TE candidate measured at about 15 FPS; visual judgment pending
+Last updated: 2026-08-16 — official hardware-rotation/GPIO-TE candidate rejected by timing and physical A/B evidence
