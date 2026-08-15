@@ -73,7 +73,8 @@
   while settings is open, repeats the existing double beep while warning remains,
   and registers the CO5300 through the BSP's public primitives with two 480×480
   RGB565 PSRAM draw buffers. Native 22/22, display/audio 9/9, all 41 acceptance rows,
-  and the complete ESP-IDF 6.0.2 build pass. The 753,856-byte app SHA-256 is
-  `be9d546ea83f6c34eaad0cd7e988f6ac2a443f13c104ca2575959bc898e254a1`.
+  and the complete ESP-IDF 6.0.2 build from clean implementation commit `1b28eac`
+  pass. The 753,856-byte app SHA-256 is
+  `56ea0cddcf76b7079619489cdaf2814899d0a328db346be7cabddb73a2304f4e`.
   No flash was authorized or performed; TE is not exposed by the verified BSP pin
   map, so tearing and continuous-audio FPS remain exact-hardware judgments.

@@ -53,8 +53,9 @@
   touching gauge widgets, loops the ramped double beep until warning exit/disable,
   and uses a project-owned ESP LCD/LVGL registration with two 480×480 RGB565 PSRAM
   draw buffers. Native 22/22, settings 9/9, display/audio 9/9, all 41 acceptance
-  rows, and the complete ESP-IDF 6.0.2 build pass. The 753,856-byte app has SHA-256
-  `be9d546ea83f6c34eaad0cd7e988f6ac2a443f13c104ca2575959bc898e254a1`.
+  rows, and the complete ESP-IDF 6.0.2 build from clean implementation commit
+  `1b28eac` pass. The 753,856-byte app has SHA-256
+  `56ea0cddcf76b7079619489cdaf2814899d0a328db346be7cabddb73a2304f4e`.
   No flash was performed; lack of a verified CO5300 TE GPIO leaves final tearing,
   continuous-audio FPS, and audible stop/edge quality as HARDWARE/JUDGMENT.
 - Sprint 6 review-extension artifact: clean ESP-IDF 6.0.2 build from implementation
