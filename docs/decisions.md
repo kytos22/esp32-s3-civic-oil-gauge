@@ -627,3 +627,23 @@
   it would mask the unnecessary display work and leave the FPS failure.
 - Supersedes: D-046 only where it implied full-height buffers alone were sufficient;
   its menu, audio-loop, demo, and no-TE boundaries remain active.
+
+## D-048 — Freeze the obscured gauge during each static red warning phase
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 exact-board correction
+- Decision: While the opaque full-screen warning is visible, update only its pressure
+  number and do not render the completely obscured gauge underneath. Pause the
+  completed-frame FPS assertion during that intentional one-second static red frame,
+  resume it after two seconds of dynamic gauge rendering, and log both transitions.
+- Why: Edge-gated app `7c3a7c5` proves five complete warning-audio loops, but still
+  measures 45–57 FPS while red because changing bars, labels, and values behind an
+  opaque 480×480 object make LVGL redraw their covered regions. A static warning has
+  no 60 FPS motion to measure; the meaningful requirement is at least 60 completed
+  FPS whenever the gauge is dynamically interpolating, plus physical judgment of
+  each 0.5 Hz red transition.
+- Alternatives rejected (and why): Keep rendering hidden content; it wastes both
+  cores and lowers display/audio headroom. Count an invisible animation to preserve
+  a nominal FPS number; D-022 already rejects counters that do not improve visible
+  motion. Report static frames as a failure; zero content changes do not define a
+  frame-rate requirement.
+- Supersedes: D-047 only where edge-gating alone was expected to remove all hidden
+  rendering; its 40 MHz panel-clock and no-overclock boundary remains active.

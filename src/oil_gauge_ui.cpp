@@ -973,6 +973,15 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   setLabelTextIfChanged(gUi.fullScreenPressureValue,
                         gUi.fullScreenPressureValueText,
                         pressureText);
+  const WarningPresentation presentation = evaluateWarningPresentation(
+      gUi.settings.warningVisualMode,
+      warning,
+      elementsBlinkPhaseOn,
+      fullScreenBlinkPhaseOn);
+  setFullScreenWarningVisible(presentation.fullScreenRedVisible);
+  if (presentation.fullScreenRedVisible) {
+    return;
+  }
   if (!gUi.unitRendered || gUi.renderedUnit != gUi.settings.pressureUnit) {
     const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
     lv_label_set_text(gUi.pressureUnit, bar ? "BAR" : "PSI");
@@ -1009,11 +1018,6 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     gUi.pressureColorSet = true;
   }
 
-  const WarningPresentation presentation = evaluateWarningPresentation(
-      gUi.settings.warningVisualMode,
-      warning,
-      elementsBlinkPhaseOn,
-      fullScreenBlinkPhaseOn);
   const lv_opa_t attentionOpacity =
       presentation.attentionVisible ? LV_OPA_COVER : LV_OPA_TRANSP;
   if (gUi.pressureAttentionOpacity != attentionOpacity) {
@@ -1025,8 +1029,6 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
             state.pressureBarFraction,
             pressureColorValue,
             attentionOpacity);
-
-  setFullScreenWarningVisible(presentation.fullScreenRedVisible);
 
   char temperatureText[8];
   if (!temperature.valid()) {
@@ -1065,6 +1067,10 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
             state.temperatureBarFraction,
             temperatureColorValue,
             LV_OPA_COVER);
+}
+
+bool oilGaugeFullScreenWarningVisible() {
+  return gUi.fullScreenWarningVisible;
 }
 
 bool takeOilGaugeUiActions(OilGaugeUiActions& actions) {

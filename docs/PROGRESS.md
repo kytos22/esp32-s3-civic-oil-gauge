@@ -53,6 +53,14 @@
   red layer was cleared from `LV_OBJ_FLAG_HIDDEN` on every 13 ms update, forcing a
   continuous full-panel invalidation and starving the lower-priority audio worker.
   A red regression now requires edge-triggered overlay visibility before correction.
+- Edge-gated exact-board app `7c3a7c5` proves the audio behavior: five captured
+  warning episodes each log one loop start and one loop idle roughly 6.7 seconds
+  later, with sound enabled. Normal gauge windows measure 66–77 FPS. Full-screen
+  warning windows remain 45–57 FPS because the renderer still updates the hidden
+  gauge underneath the opaque red layer. A second red regression now requires the
+  same no-background-render rule already used by the resident settings menu and a
+  truthful pause of the FPS counter while the intentional 1-second static red frame
+  is displayed.
 - Sprint 6 second-review artifact: the red native fixture failed to compile before
   warning-loop commands existed and the new display/audio contract passed only 4/9.
   The implementation now keeps settings resident, returns from the renderer before

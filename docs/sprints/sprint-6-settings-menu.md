@@ -22,6 +22,7 @@
 | 6.7 Temperature units and BAR glyph | hardware partially verified | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build + exact-board flash/digest | Persistent °C/°F presentation and U+002E numeric font are on the exact board; guided touch/render/persistence confirmation remains |
 | 6.8 Resident menu, warning loop, full-frame QSPI buffers | software implemented; hardware pending | red native compile plus 4/9 contract; then native 22/22 + display/audio 9/9 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
 | 6.9 Edge-triggered red overlay | correction implemented; hardware retest pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix | Full-screen visibility changes only on phase edges; settings hides it once |
+| 6.10 Static-red render freeze | correction implemented; hardware retest pending | edge-gated exact-board loop pass but 45–57 FPS red windows; second red verifier 11/14 | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 
 ## Software evidence
 

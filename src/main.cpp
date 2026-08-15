@@ -172,6 +172,7 @@ extern "C" void app_main(void) {
   std::uint64_t lastFrameUs =
       static_cast<std::uint64_t>(esp_timer_get_time());
   std::uint64_t lastFpsLogUs = lastFrameUs;
+  bool fpsPausedForStaticWarning = false;
   while (true) {
     const std::uint64_t nowUs =
         static_cast<std::uint64_t>(esp_timer_get_time());
@@ -203,7 +204,22 @@ extern "C" void app_main(void) {
         }
       }
     }
-    if (CONFIG_OIL_GAUGE_DEMO_MODE &&
+    const bool staticFullScreenWarning =
+        oilGaugeFullScreenWarningVisible();
+    if (staticFullScreenWarning) {
+      lastFpsLogUs = nowUs;
+      if (!fpsPausedForStaticWarning) {
+        ESP_LOGI(
+            kTag,
+            "Display FPS measurement paused for static full-screen warning");
+        fpsPausedForStaticWarning = true;
+      }
+    } else if (fpsPausedForStaticWarning) {
+      ESP_LOGI(kTag, "Display FPS measurement resumed for dynamic gauge");
+      fpsPausedForStaticWarning = false;
+      lastFpsLogUs = nowUs;
+    }
+    if (CONFIG_OIL_GAUGE_DEMO_MODE && !staticFullScreenWarning &&
         nowUs - lastFpsLogUs >= kFpsLogPeriodUs) {
       lastFpsLogUs = nowUs;
       std::uint32_t fps = 0;
