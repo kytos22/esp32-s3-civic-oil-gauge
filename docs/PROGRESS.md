@@ -33,19 +33,31 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 official GPIO-TE experiment rejected | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 combined GPIO-TE candidate failed and is under cause isolation | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
 - Phase: 5 — Sprint 6 display synchronization architecture
-- Next action: choose between restoring the prior `443eb72` display baseline or
-  implementing the next native-scan asynchronous producer/consumer experiment;
-  neither action is authorized yet. Do not tune the rejected official path. Sensor
-  and vehicle work remain gated.
+- Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
+  reference in Git history without duplicating a golden firmware tree or claiming
+  production readiness.
+- Next action: after authorization, run a one-variable diagnostic from the failed
+  D-051 candidate: preserve Waveshare `MADCTL=0xA0` while retaining its 80 MHz,
+  GPIO43 TE, FULL/single-buffer and timing configuration, with phase-specific
+  telemetry. No implementation or flash is authorized yet. Sensor and vehicle work
+  remain gated.
 
 ## Open items
+- D-052 corrects the earlier over-broad D-051 conclusion. The failed candidate
+  changed Waveshare's working `MADCTL=0xA0` to `0x60`, which is the deterministic
+  cause of the observed 180-degree inversion. Adapter `TE_SYNC` independently forces
+  LVGL FULL mode and one buffer; the measured render event encloses its 31–35 ms
+  synchronous flush, leaving roughly 30–34 ms of drawing/scheduling rather than
+  adding 61–65 ms on top. The diagonal remains unisolated because orientation,
+  render mode and buffering changed together. Hardware orientation is therefore
+  still a candidate, not a rejected category. Commit `443eb72` is Golden Prototype 1.
 - D-051 software candidate is complete. Red-first failed at the former 20 ms
   profile and at 12/18 display invariants; green removes software rotation and the
   custom draw callback, uses CO5300 hardware orientation plus adapter 0.6.3
@@ -66,8 +78,8 @@
   31–35 ms. There was no panic, watchdog, or reset. The official single-buffer path
   therefore fails the performance target. Marcos then confirmed the image is rotated
   180 degrees and that the diagonal tearing absent from the prior version returned.
-  This completes the A/B rejection of the hardware-orientation path; menu/touch
-  testing is unnecessary for deciding D-051.
+  This rejects the exact combined D-051 configuration. It does not isolate or reject
+  hardware orientation generally; D-052 defines the required one-variable A/B.
 - D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
   GPSPI is sourced from 80 MHz APB and uses integer divisors. The effective
   experiment therefore changes application/LVGL cadence to 20 ms and the measured

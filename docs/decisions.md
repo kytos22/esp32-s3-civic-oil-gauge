@@ -722,3 +722,40 @@
   changing mirror flags alone cannot rescue a path that also fails scan-order
   presentation and throughput. The next experiment must retain native panel scan
   order, or the prior `443eb72` baseline must be restored.
+
+## D-052 — Preserve `443eb72` as Golden Prototype 1 and isolate the D-051 failures
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization investigation
+- Decision: Keep commit `443eb72` as **Golden Prototype 1**, the first exact-board
+  regression reference for subsequent display work. This is a Git-history reference,
+  not a duplicated golden firmware tree, production release, or claim that every
+  menu/red transition is tear-free. Do not discard CO5300 hardware orientation or
+  GPIO-TE based only on the combined D-051 result. No new candidate or flash is
+  authorized by this decision.
+- Why: Source tracing proves that D-051 changed more than one independent variable.
+  Waveshare initializes this exact panel with `MADCTL=0xA0`; the candidate's
+  `swap_xy(true)` plus `mirror(true, false)` sequence leaves the CO5300 driver at
+  `0x60`, which Waveshare maps 180 degrees opposite to `0xA0`. The observed inverted
+  image therefore diagnoses the selected orientation, not hardware rotation as a
+  category. Separately, adapter 0.6.3 maps `TE_SYNC` to LVGL FULL mode with one
+  buffer. Every small invalidation redraws 480x480, then the bridge byte-swaps the
+  complete RGB565 buffer, waits for TE, starts QSPI and waits for DMA completion
+  before `flush_ready`. The recorded 61–65 ms render event includes the nested
+  31–35 ms flush; it is not an additional pure-render interval. These serialized
+  costs explain the roughly 67 ms transfer interval and 14.85 FPS without invoking
+  hardware rotation overhead.
+- Remaining uncertainty: The returned diagonal is not isolated. Changing
+  `MADCTL` from `0xA0` to `0x60` reverses row and column increment directions and
+  can make the host writer cross the panel reader after the TE edge, but D-051 also
+  changed PARTIAL/double-buffered asynchronous presentation into FULL/single-buffer
+  synchronous presentation. The CO5300 datasheet marks MADCTL D5 as don't-care,
+  while driver 2.1.0 implements `swap_xy()` using the generic D5/MV mask; its QSPI
+  rotation test checks only API success and does not draw/verify orientation.
+- Next diagnostic, only after authorization: retain D-051's 80 MHz, GPIO43 TE,
+  FULL/single-buffer and timing variables but preserve the Waveshare `0xA0`
+  orientation. Add separate timestamps for pure draw, RGB565 swap, TE wait and DMA,
+  plus an ISR-level physical TE-period counter and UI-state tag. This one-variable
+  A/B can determine whether the diagonal follows memory write direction while the
+  expected approximately 15 FPS FULL/single-buffer limit is measured independently.
+- Supersedes: D-051 only where its outcome ruled out hardware orientation as a
+  category or treated mirror changes as unable to isolate the failure. D-051 remains
+  the valid record of the exact failed `c09589f` candidate and its hardware evidence.
