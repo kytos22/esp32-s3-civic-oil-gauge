@@ -24,6 +24,7 @@
 | 6.9 Edge-triggered red overlay | runtime verified; judgment pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix; six later loop pairs | Full-screen visibility changes only on phase edges; settings hides it once |
 | 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 | 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
+| 6.12 80 MHz QSPI comparison | software complete; hardware comparison pending | clock contract red 0/4, then green 6/6; native 23/23 and complete ESP-IDF 6.0.2 build pass | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
 
 ## Software evidence
 

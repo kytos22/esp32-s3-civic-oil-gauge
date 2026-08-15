@@ -1,5 +1,6 @@
 #include "display_runtime.h"
 
+#include "display_clock_profile.h"
 #include "esp_err.h"
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
@@ -26,6 +27,10 @@ void roundInvalidationToPanelAlignment(lv_event_t* event) {
 
 OilDisplayRuntime startOilDisplayRuntime() {
   OilDisplayRuntime runtime;
+
+  ESP_LOGI(kTag,
+           "CO5300 QSPI clock request: %u MHz",
+           static_cast<unsigned>(OIL_GAUGE_DISPLAY_QSPI_HZ / 1'000'000));
 
   const esp_lv_adapter_config_t adapterConfig{
       .task_stack_size = ESP_LV_ADAPTER_DEFAULT_STACK_SIZE,

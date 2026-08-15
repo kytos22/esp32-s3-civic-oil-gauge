@@ -380,6 +380,29 @@ def full_frame_and_warning_loop_contract() -> None:
     )
 
 
+def display_qspi_clock_contract() -> None:
+    root_cmake = text("CMakeLists.txt")
+    profile = text("include/display_clock_profile.h") if (
+        REPO / "include/display_clock_profile.h"
+    ).is_file() else ""
+    override = text("include/display_clock_override.h") if (
+        REPO / "include/display_clock_override.h"
+    ).is_file() else ""
+    conditions = [
+        "display_clock_override.h" in root_cmake,
+        "waveshare__esp32_s3_touch_amoled_2_16" in root_cmake,
+        "#define OIL_GAUGE_DISPLAY_QSPI_HZ (80 * 1000 * 1000)" in profile,
+        '#include "display_clock_profile.h"' in override,
+        "#undef CO5300_PANEL_IO_QSPI_CONFIG" in override,
+        ".pclk_hz = OIL_GAUGE_DISPLAY_QSPI_HZ" in override,
+    ]
+    check(
+        "Sprint 6 80 MHz QSPI experiment",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} project-owned clock override invariants",
+    )
+
+
 def sprint6_physical_revision_contract() -> None:
     renderer = text("src/oil_gauge_ui.cpp")
     main = text("src/main.cpp")
@@ -566,6 +589,7 @@ def main() -> int:
     warning_animation_contract()
     settings_menu_contract()
     full_frame_and_warning_loop_contract()
+    display_qspi_clock_contract()
     sprint6_physical_revision_contract()
     marked_existing_paths()
     suppressions()

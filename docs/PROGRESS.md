@@ -39,12 +39,11 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 50 Hz performance experiment
-- Next action: after separate explicit authorization, flash the exact recorded board
-  with the verified 20 ms candidate and compare menu/full-screen-warning tearing,
-  warning-loop audio, and consecutive completed-frame windows against the prior
-  13 ms image. Keep compile-time demo support enabled; sensor calibration and
-  vehicle cutover remain separate safety-gated work.
+- Phase: 5 — Sprint 6 80 MHz QSPI performance experiment
+- Next action: commit and rebuild the project-owned 80 MHz QSPI override so the
+  image embeds an exact clean revision, then use Marcos's explicit authorization
+  to flash only the exact recorded board. Capture boot, FPS, warning, and LVGL
+  errors for direct comparison with the 40 MHz run.
 
 ## Open items
 - D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
@@ -56,6 +55,19 @@
   `44ba2a5c69fe8963aefaabf94fc9d4ce0293ebfbf5639da9c2d8c51fe674c964`.
   Effective configuration retains `CONFIG_OIL_GAUGE_DEMO_MODE=y` and uses
   `CONFIG_LV_DEF_REFR_PERIOD=20`; QSPI remains 40 MHz. No flash was performed.
+- Marcos authorized and flashed that 40 MHz candidate on the exact board. App
+  `9fc2977`, 754,192 bytes, SHA-256
+  `2f5930076df38e1f946a6489a8dc429c8d217df39d5a35d159045cd40b2d315f`,
+  passed all four write-time hashes and all three post-boot immutable-region checks.
+  Ignored capture `.artifacts/hardware/2026-08-15/sprint6-50hz-9fc2977.typescript`,
+  SHA-256 `73f3077c0165bc297ef8f3979c4b5aa1b0e31e716a37df3313506b62cd0af13d`,
+  records 29 dynamic windows at 46–50 FPS in total, then one 5 FPS and 31 retained
+  17 FPS reports after one LVGL-lock timeout before later recovery. D-050 authorizes
+  the requested 80 MHz comparison while retaining the 20 ms application cadence.
+- The project-owned 80 MHz override now passes its 6/6 source contract, all 23
+  native tests, and a complete ESP-IDF 6.0.2 build. The effective image still has
+  demo mode enabled and `CONFIG_LV_DEF_REFR_PERIOD=20`; the Waveshare BSP compile
+  command contains the forced include while its managed source remains unedited.
 - Authorized exact-board app `728c4de` passed all four write-time region hashes and
   booted cleanly, but the retained run exposed repeated 44–56 FPS windows exactly
   during the full-screen warning and no warning-loop start. NVS confirms warning
@@ -241,4 +253,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — 50 Hz candidate built and software-verified; exact-board comparison awaits separate flash authorization
+Last updated: 2026-08-15 — 40 MHz/50 Hz candidate flashed and captured; explicitly authorized 80 MHz QSPI comparison in progress

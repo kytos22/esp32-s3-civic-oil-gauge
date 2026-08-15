@@ -667,3 +667,22 @@
   it does not perform the requested 50 Hz comparison.
 - Supersedes: D-021, D-022, D-032, and D-034 only for the active cadence/FPS target;
   historical evidence and the 40 MHz/no-TE boundaries remain unchanged.
+
+## D-050 — Run the exact-board CO5300 QSPI bus at 80 MHz for comparison
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 performance experiment
+- Decision: At Marcos's explicit request, keep the application and LVGL cadence at
+  20 ms / 50 FPS but replace the Waveshare BSP's 40 MHz QSPI IO configuration with
+  a project-owned 80 MHz compile-time override. Test it only on the locally recorded
+  exact display and retain the 40 MHz implementation as a reversible Git baseline.
+- Why: The first exact-board 20 ms run spent most dynamic windows at 46–50 FPS and
+  later encountered one LVGL-lock timeout followed by a long low-refresh interval.
+  Doubling the physically realizable panel bus clock isolates transfer bandwidth
+  from the application cadence and directly tests whether it improves the visible
+  transitions. Marcos explicitly requested the 80 MHz hardware experiment after
+  seeing the 40 MHz result.
+- Alternatives rejected (and why): Request 50 MHz QSPI; ESP32-S3 GPSPI resolves it
+  to 40 MHz. Modify the downloaded managed component; a clean build would restore
+  it and invalidate its registry checksum. Return immediately to 13 ms/40 MHz; it
+  would not test the newly authorized bus-speed hypothesis.
+- Supersedes: D-049 only for the active QSPI clock boundary; its 20 ms/50 FPS target
+  and historical 40 MHz evidence remain valid.

@@ -211,6 +211,12 @@ flowchart LR
   cadence to 20 ms with a 50 completed-FPS target. The ESP32-S3 GPSPI clock remains
   at its realizable 40 MHz value: its 80 MHz APB source and integer divider cannot
   produce a physical 50 MHz clock, and 80 MHz is outside the accepted CO5300 limit.
+- Current exact-board extension: D-050 explicitly supersedes that panel-clock limit
+  for one reversible comparison. `include/display_clock_profile.h` owns the 80 MHz
+  request and `include/display_clock_override.h` is force-included only into the
+  pinned Waveshare BSP target to replace its QSPI IO macro; managed registry sources
+  remain byte-for-byte untouched. The UI cadence remains 20 ms so the bus speed is
+  the only changed performance variable.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;
