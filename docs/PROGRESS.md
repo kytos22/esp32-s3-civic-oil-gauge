@@ -40,10 +40,9 @@
 
 ## Current position
 - Phase: 5 — Sprint 6 80 MHz QSPI performance experiment
-- Next action: commit and rebuild the project-owned 80 MHz QSPI override so the
-  image embeds an exact clean revision, then use Marcos's explicit authorization
-  to flash only the exact recorded board. Capture boot, FPS, warning, and LVGL
-  errors for direct comparison with the 40 MHz run.
+- Next action: obtain Marcos's exact-board visual judgment of menu and red-warning
+  tearing, then decide whether 80 MHz becomes the retained panel clock or the board
+  returns to the preserved 40 MHz baseline. Sensor and vehicle work remain gated.
 
 ## Open items
 - D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
@@ -68,6 +67,14 @@
   native tests, and a complete ESP-IDF 6.0.2 build. The effective image still has
   demo mode enabled and `CONFIG_LV_DEF_REFR_PERIOD=20`; the Waveshare BSP compile
   command contains the forced include while its managed source remains unedited.
+- Exact-board app `443eb72`, 754,272 bytes, SHA-256
+  `f9f8a0e9ba5833a909cca0cbce6e939321edebb248d5c4ae18973a9b9ee7161d`,
+  passed all four write-time hashes and all three immutable post-boot digest checks.
+  Ignored capture `.artifacts/hardware/2026-08-15/sprint6-80mhz-443eb72.typescript`,
+  SHA-256 `37c0595383000c1a1877da1b6bb6491d0baa7f277236bffd95691e389bfcf5c6`,
+  confirms the 80 MHz CO5300 request, eight matched static-red pause/resume pairs,
+  and 27 dynamic windows: 6 at 48 FPS, 14 at 49 FPS, and 7 at 50 FPS. No LVGL-lock
+  failure, panic, watchdog, or reset appeared in the retained 71.5-second run.
 - Authorized exact-board app `728c4de` passed all four write-time region hashes and
   booted cleanly, but the retained run exposed repeated 44–56 FPS windows exactly
   during the full-screen warning and no warning-loop start. NVS confirms warning
@@ -253,4 +260,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — 40 MHz/50 Hz candidate flashed and captured; explicitly authorized 80 MHz QSPI comparison in progress
+Last updated: 2026-08-15 — 80 MHz/50 Hz candidate flashed, digest-verified, and runtime-captured; visual judgment pending
