@@ -6,7 +6,7 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: review extension flashed and runtime-verified on the exact board;
+- Status: final correction flashed and runtime-verified on the exact board;
   guided visual, touch, persistence, and audio-edge judgment remains
 
 ## Slices
@@ -20,9 +20,9 @@
 | 6.5 Editable simulator parity | complete locally | fragment/wrapper synchronization + Keel pass | Public Pages remains unchanged until an authorized push |
 | 6.6 Physical-review correction | hardware partially verified | red-first compile/0-of-12 contract; then native 21/21 + review 12/12 + full build + exact-board runtime | Corrected image boots at 61–77 FPS; visual no-tearing, no-puff, 0.5 Hz, and persistent-menu proof pending |
 | 6.7 Temperature units and BAR glyph | hardware partially verified | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build + exact-board flash/digest | Persistent °C/°F presentation and U+002E numeric font are on the exact board; guided touch/render/persistence confirmation remains |
-| 6.8 Resident menu, warning loop, full-frame QSPI buffers | software implemented; hardware pending | red native compile plus 4/9 contract; then native 22/22 + display/audio 9/9 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
-| 6.9 Edge-triggered red overlay | correction implemented; hardware retest pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix | Full-screen visibility changes only on phase edges; settings hides it once |
-| 6.10 Static-red render freeze | correction implemented; hardware retest pending | edge-gated exact-board loop pass but 45–57 FPS red windows; second red verifier 11/14 | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
+| 6.8 Resident menu, warning loop, full-frame QSPI buffers | runtime partially verified | red native compile plus 4/9 contract; then native 22/22 + final display/audio 14/14 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
+| 6.9 Edge-triggered red overlay | runtime verified; judgment pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix; six later loop pairs | Full-screen visibility changes only on phase edges; settings hides it once |
+| 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 
 ## Software evidence
 
@@ -80,3 +80,16 @@
   `56ea0cddcf76b7079619489cdaf2814899d0a328db346be7cabddb73a2304f4e`.
   No flash was authorized or performed; TE is not exposed by the verified BSP pin
   map, so tearing and continuous-audio FPS remain exact-hardware judgments.
+- Marcos authorized the correction flash on 2026-08-15. App `728c4de` reproduced
+  44–56 FPS warning windows with no loop because repeated full-screen invalidation
+  starved audio. Edge-gated app `7c3a7c5` then recorded six matched warning-loop
+  start/idle pairs, proving that the double beep repeats for each complete warning,
+  but hidden gauge rendering still produced 45–57 FPS warning windows. Final app
+  `9d49ead` freezes that obscured rendering and pauses the completed-frame assertion
+  only during each intentional one-second static red field. Its 754,192-byte image,
+  SHA-256 `f0975d82b45ba927a3fccc2ffe6937ed46b0e0487a12789e6517d36e9f34a699`, passed all
+  write hashes and all three immutable post-boot digests. The retained final capture,
+  SHA-256 `51f326b213544032cbc8aea54ae07f278f86ab622da01df94afbc419d5c3178e`, records 44
+  dynamic windows at 63–76 FPS and 12 matched static-red pause/resume pairs without
+  a runtime fault. Sound was disabled in final NVS, so physical continuous-audio,
+  puff, menu, and tearing judgments remain.

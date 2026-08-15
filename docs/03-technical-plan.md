@@ -199,7 +199,14 @@ flowchart LR
   split-cadence warning, and 12/12 review invariants plus a complete ESP-IDF 6.0.2
   build. Clean app `da7cbfb` is 751,472 bytes with SHA-256
   `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
-  New exact-board flash/runtime proof is not yet authorized.
+  The later resident-menu/full-frame extension passes native 22/22 and its final
+  display/audio contract 14/14. Exact-board app `7c3a7c5` proves six complete audio
+  loop start/idle pairs. Final app `9d49ead`, 754,192 bytes, SHA-256
+  `f0975d82b45ba927a3fccc2ffe6937ed46b0e0487a12789e6517d36e9f34a699`, passed all
+  write and immutable post-boot digests and recorded 44 dynamic windows at 63–76
+  FPS. Its static opaque-red frames intentionally pause completed-frame measurement
+  while hidden gauge rendering is frozen. Guided menu/red tearing and final audible
+  edge quality remain `HARDWARE/JUDGMENT`.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

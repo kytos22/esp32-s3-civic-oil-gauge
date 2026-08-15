@@ -33,15 +33,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 second review correction passes software gates, exact-board proof pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) reopened for loop proof; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 final correction flashed and runtime-verified, guided judgment pending | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 exact-board warning-loop correction in progress
-- Next action: correct the repeated full-screen warning invalidation exposed by the
-  authorized exact-board run, then rebuild and retest the loop/FPS behavior. Keep
+- Phase: 5 — Sprint 6 exact-board correction runtime-complete
+- Next action: Marcos enables `SONIDO` in the resident menu and judges the final
+  audible loop/edge quality plus menu and red-transition tearing. The assistant-run
+  flash, digest, boot, warning-loop, and dynamic-FPS gates are complete. Keep
   compile-time demo support enabled; sensor calibration and vehicle cutover remain
   separate safety-gated work.
 
@@ -53,7 +54,7 @@
   red layer was cleared from `LV_OBJ_FLAG_HIDDEN` on every 13 ms update, forcing a
   continuous full-panel invalidation and starving the lower-priority audio worker.
   A red regression now requires edge-triggered overlay visibility before correction.
-- Edge-gated exact-board app `7c3a7c5` proves the audio behavior: five captured
+- Edge-gated exact-board app `7c3a7c5` proves the audio behavior: six captured
   warning episodes each log one loop start and one loop idle roughly 6.7 seconds
   later, with sound enabled. Normal gauge windows measure 66–77 FPS. Full-screen
   warning windows remain 45–57 FPS because the renderer still updates the hidden
@@ -61,6 +62,18 @@
   same no-background-render rule already used by the resident settings menu and a
   truthful pause of the FPS counter while the intentional 1-second static red frame
   is displayed.
+- Final exact-board app `9d49ead`, 754,192 bytes, SHA-256
+  `f0975d82b45ba927a3fccc2ffe6937ed46b0e0487a12789e6517d36e9f34a699`, passed all
+  four write-time hashes and post-boot verification of bootloader, partition table,
+  and application. Its ignored capture
+  `.artifacts/hardware/2026-08-15/sprint6-warning-final-9d49ead.typescript`, SHA-256
+  `51f326b213544032cbc8aea54ae07f278f86ab622da01df94afbc419d5c3178e`, records 44
+  dynamic-gauge windows at 63–76 FPS, 12 matched static-red pause/resume pairs, and
+  no runtime fault. Final NVS had sound disabled, so audible judgment remains. The
+  preceding ignored `7c3a7c5` capture (SHA-256
+  `9030bd30efb6c8880c2670793b7a1996a9a57d34a46548450fddd6ce98080439`) records six
+  matched warning-loop start/idle pairs with sound enabled; the later change did not
+  modify audio code.
 - Sprint 6 second-review artifact: the red native fixture failed to compile before
   warning-loop commands existed and the new display/audio contract passed only 4/9.
   The implementation now keeps settings resident, returns from the renderer before
@@ -219,4 +232,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — exact-board run exposed repeated red-overlay invalidation; correction in progress
+Last updated: 2026-08-15 — final warning correction flashed and runtime-verified; guided judgment pending

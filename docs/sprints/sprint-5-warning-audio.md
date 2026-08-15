@@ -28,6 +28,12 @@
   and the retained bounded log records three completed tone paths plus 29
   consecutive 66–77 FPS windows with no runtime fault. Marcos then confirmed
   that the integrated speaker's double beep was physically audible.
+- The 2026-08-15 loop extension is also runtime-proven on the exact board. Ignored
+  capture `sprint6-warning-loop-7c3a7c5.typescript` records six matched loop-start
+  and loop-idle pairs, each warning lasting roughly 6.7 seconds, with persisted
+  sound enabled. Final app `9d49ead` retains the same audio implementation; its
+  persisted sound switch was off during the final graphics capture, so continuous
+  audible quality and absence of an edge puff remain guided physical judgments.
 
 ## Slices
 

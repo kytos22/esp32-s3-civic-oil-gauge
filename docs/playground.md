@@ -1,16 +1,16 @@
 # Playground — Civic ESP32 Oil Gauge
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
-the demo flash, app `8c2cc46` was written only to the locally recorded exact display;
-its USB identity and chip MAC both matched. All four write regions passed hash
-verification; bootloader, partition table, and the complete 752,960-byte application
-also passed post-boot digest verification. Retained ignored capture
-`.artifacts/hardware/2026-08-15/sprint6-fahrenheit-bar-8c2cc46.typescript`, SHA-256
-`53d431227357bf5f3eaab1f5ac8467a6b08769f06919e73897877232ed40ea93`, records a
-clean ESP-IDF 6.0.2 demo boot and 19 consecutive 61–77 FPS windows with no panic,
-watchdog, reset, or application error. No sensor, ADS1115, MTX-D, 12 V, or vehicle
-connection was made. BAR-decimal, Fahrenheit, revised warning/menu/thermometer, and
-audio-edge judgment remain physical checks for Marcos.
+the correction flash, app `9d49ead` was written only to the locally recorded exact
+display. All four write regions and the three immutable post-boot regions passed
+digest verification. Retained ignored capture
+`.artifacts/hardware/2026-08-15/sprint6-warning-final-9d49ead.typescript`, SHA-256
+`51f326b213544032cbc8aea54ae07f278f86ab622da01df94afbc419d5c3178e`, records a
+clean ESP-IDF 6.0.2 demo boot, 44 dynamic-gauge windows at 63–76 FPS, and 12 matched
+static-red pause/resume pairs without panic, watchdog, reset, or application error.
+No sensor, ADS1115, MTX-D, 12 V, or vehicle connection was made. The final persisted
+sound switch was off; BAR/Fahrenheit, warning/menu/thermometer, audible-loop edge,
+and tearing judgments remain physical checks for Marcos.
 
 The flashed correction makes `SENSORES` selectable and persistent but shows only
 `--` / `SIN DATOS`; the menu has no inactivity timeout; full-screen warning uses one
@@ -18,7 +18,7 @@ prebuilt red layer with the number plus `PELIGRO` / `PRESIÓN MUY BAJA` on an
 independent 0.5 Hz cycle; and the codec remains active at digital zero between
 enveloped beeps. Red-first checks failed on the absent source/phase and at 0/12
 review invariants; the correction passes native 21/21, settings 9/9, warning 11/11,
-review 12/12, and is included in app `8c2cc46`. Its review extension adds persistent
+review 12/12, and is included in final app `9d49ead`. Its review extension adds persistent
 display-only °C/°F selection and regenerates the 96 px numeric font with U+002E for
 the BAR decimal. Physical proof remains pending.
 
@@ -93,8 +93,8 @@ contains no application error, reset after startup, or watchdog event.
 
 The board is attached through usbipd-win 5.3.0 as `/dev/ttyACM0`, identified by
 Espressif VID/PID `303a:1001` and the exact identifier retained in ignored local
-hardware evidence. Serialized-font app
-`701d0b4` is written, every region is verified, and its bounded boot is clean. The
+hardware evidence. Final app `9d49ead` is written, every immutable region is
+verified, and its bounded boot is clean. The
 screen's indoor physical UI passed on 2026-08-14; daylight/night, glare, and
 in-vehicle motion remain unverified. A full factory backup is not available because USB/IP
 stopped both the continuous read and the chunked retry; two 1 MB chunks are not
