@@ -25,7 +25,7 @@
 | 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 | 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
 | 6.12 80 MHz QSPI comparison | runtime verified; visual judgment pending | contract 6/6, native 23/23, full build, exact-board flash/digests; 27 windows at 48–50 FPS, eight matched warning phases, no lock/reset failure in 71.5 s | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
-| 6.13 Official CO5300 GPIO-TE path | software complete; hardware comparison pending | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build | Hardware orientation, adapter `TE_SYNC` on measured GPIO43, one full-frame buffer, effective 15 ms producer cadence, and completed-transfer timing summaries are ready for an authorized flash |
+| 6.13 Official CO5300 GPIO-TE path | runtime measured; performance failed, visual judgment pending | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz and the official path starts, but the serialized single-buffer route delivers mostly about 14.85 FPS with 61–65 ms render averages |
 
 ## Software evidence
 
@@ -39,8 +39,18 @@
   the effective 15 ms LVGL period, demo mode, CO5300 2.1.0, adapter 0.6.3, and LVGL
   9.5.0. The 756,048-byte app SHA-256 is
   `a5f81c11f43b8a5bb9cc22d6f27717c2dabe5bf59c6a989fb75ff13d9fba2b23`.
-  No exact-board flash has been performed; orientation, touch mapping, physical
-  tearing, and the runtime timing summaries remain hardware checks.
+  The exact board received a fresh build from the same commit on 2026-08-16:
+  756,048 bytes, SHA-256
+  `a5463ce6b787f97543049231986abfb36f2c020064fab3a3ba54d852c220f192`.
+  Identity gating, all four write-time hashes, and all three immutable post-boot
+  digests passed. The retained runtime capture SHA-256 is
+  `621f24c2229f3d9656c305c72df3ba8764a56244a83a944400c650013c4d0a4a`:
+  GPIO43 TE measured 59.483 Hz, the official hardware-orientation/`TE_SYNC` path
+  started, and 33 timing windows contained no panic, watchdog, or reset. Dynamic
+  presentation nevertheless stayed mostly at 14.84–14.86 FPS, with periodic
+  roughly 9 FPS windows, 61–65 ms average render time, and 31–35 ms average flush
+  time. This implementation fails the performance target; orientation, touch
+  mapping, and physical tearing remain Marcos's visual judgment.
 
 - The 50 Hz experiment first failed with an expected 20 ms value versus the active
   13 ms profile. After moving the cadence and reporting target into the shared

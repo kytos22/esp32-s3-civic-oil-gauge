@@ -711,3 +711,11 @@
 - Supersedes: D-049 and D-050 only for the active application/LVGL cadence and
   display synchronization implementation. Their 40 MHz and 80 MHz hardware evidence
   remains historical rollback evidence.
+- Outcome (2026-08-16): the exact authorized display received app `c09589f` and
+  passed write-time plus immutable post-boot digest verification. GPIO43 TE was
+  usable at 59.483 Hz and the intended official path started without a runtime
+  fault, but it presented mostly 14.84–14.86 FPS with average full-frame render
+  times around 61–65 ms and average flush times around 31–35 ms. This rules out the
+  adapter's serialized single-buffer `TE_SYNC` path for the product target. Marcos's
+  physical orientation and tearing judgment is still required before selecting the
+  next native-scan asynchronous architecture.

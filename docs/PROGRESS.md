@@ -33,16 +33,16 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 official GPIO-TE experiment in progress | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 official GPIO-TE experiment measured and too slow | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 official CO5300 hardware-rotation/GPIO-TE experiment
-- Next action: request a separate exact-board flash authorization for the built
-  D-051 candidate, then verify orientation, touch mapping, menu scroll, red warning
-  transitions, TE/runtime logs, and the new transfer-timing summaries. Sensor and
+- Phase: 5 — Sprint 6 display synchronization architecture
+- Next action: obtain Marcos's visual orientation/tearing judgment for the flashed
+  D-051 candidate, then design the next native-scan, asynchronous producer/consumer
+  experiment; do not tune the proven-slow single-buffer official path. Sensor and
   vehicle work remain gated.
 
 ## Open items
@@ -56,8 +56,16 @@
   Effective configuration has demo mode enabled and both application production
   and LVGL refresh set to 15 ms; TE remains the physical presentation gate. The
   two-second summary log now reports completed transfers, idle LVGL refreshes,
-  render time, TE-wait-plus-DMA time, and transfer intervals. No flash has been
-  performed.
+  render time, TE-wait-plus-DMA time, and transfer intervals. Marcos authorized and
+  the exact board received the rebuilt 756,048-byte image with SHA-256
+  `a5463ce6b787f97543049231986abfb36f2c020064fab3a3ba54d852c220f192` on
+  2026-08-16. All four write-time hashes and all three immutable post-boot digests
+  passed. GPIO43 TE measured 59.483 Hz and the official synchronized path started,
+  but 33 retained timing windows show mostly 14.84–14.86 FPS, with periodic windows
+  near 9 FPS; render averages are roughly 61–65 ms and flush averages roughly
+  31–35 ms. There was no panic, watchdog, or reset. The official single-buffer path
+  therefore fails the performance target; physical orientation and tearing judgment
+  remains with Marcos.
 - D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
   GPSPI is sourced from 80 MHz APB and uses integer divisors. The effective
   experiment therefore changes application/LVGL cadence to 20 ms and the measured
@@ -273,4 +281,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — official hardware-rotation/GPIO-TE diagnostic candidate in progress; red-first contracts recorded
+Last updated: 2026-08-16 — official hardware-rotation/GPIO-TE candidate measured at about 15 FPS; visual judgment pending
