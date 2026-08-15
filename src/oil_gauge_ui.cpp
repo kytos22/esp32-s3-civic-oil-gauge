@@ -10,12 +10,7 @@
 #include <iterator>
 
 #include "oil_gauge_fonts.h"
-#include "sdkconfig.h"
-
 namespace oilgauge {
-
-static_assert(CONFIG_LV_DEF_REFR_PERIOD == kUiFramePeriodMs,
-              "LVGL and application refresh periods must match");
 
 namespace {
 

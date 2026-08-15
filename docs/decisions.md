@@ -686,3 +686,28 @@
   would not test the newly authorized bus-speed hypothesis.
 - Supersedes: D-049 only for the active QSPI clock boundary; its 20 ms/50 FPS target
   and historical 40 MHz evidence remain valid.
+
+## D-051 — Evaluate the official CO5300 hardware-rotation and GPIO-TE path
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 synchronization experiment
+- Decision: At Marcos's request, replace the experimental full-frame software
+  rotation and custom TE gate with the pinned CO5300 driver's hardware orientation
+  API and `ESP_LV_ADAPTER_TEAR_AVOID_MODE_TE_SYNC`. Keep QSPI at the already tested
+  80 MHz, configure GPIO43 as the measured TE input, use a single full-frame PSRAM
+  buffer as required by adapter 0.6.3, and feed the approximately 60 Hz panel from a
+  15 ms application/LVGL cadence. Add summary timing telemetry before any flash.
+- Why: The current menu path serializes an approximately 15.5 ms software rotation
+  with an ideal 11.52 ms full-frame QSPI transfer, so it cannot deliver a new frame
+  inside every measured 16.82 ms panel period. The official path removes that CPU
+  rotation and makes TE govern every full-frame transfer instead of only exact
+  480x480 custom callbacks.
+- Reversible boundary: This is an exact-board diagnostic candidate. The 80 MHz
+  pre-TE commit remains the rollback point. No sensors, vehicle wiring, 12 V, or
+  flash action is authorized by this decision.
+- Alternatives rejected (and why): Change only 20 ms to 17 ms; it remains
+  unsynchronized with the measured 59.46 Hz TE signal. Keep the custom rotation
+  and add more timing patches; rotation plus DMA already exceeds one panel period.
+  Build the four-buffer custom presenter first; the simpler official path must be
+  measured before accepting that additional ownership and concurrency complexity.
+- Supersedes: D-049 and D-050 only for the active application/LVGL cadence and
+  display synchronization implementation. Their 40 MHz and 80 MHz hardware evidence
+  remains historical rollback evidence.

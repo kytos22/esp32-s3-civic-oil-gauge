@@ -25,8 +25,22 @@
 | 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
 | 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
 | 6.12 80 MHz QSPI comparison | runtime verified; visual judgment pending | contract 6/6, native 23/23, full build, exact-board flash/digests; 27 windows at 48–50 FPS, eight matched warning phases, no lock/reset failure in 71.5 s | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
+| 6.13 Official CO5300 GPIO-TE path | software complete; hardware comparison pending | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build | Hardware orientation, adapter `TE_SYNC` on measured GPIO43, one full-frame buffer, effective 15 ms producer cadence, and completed-transfer timing summaries are ready for an authorized flash |
 
 ## Software evidence
+
+- D-051 red-first evidence: the native suite reached the display-profile assertion
+  and failed with `Expected 15 Was 20`; the source contract passed 12/18 because
+  the official hardware-orientation and adapter `TE_SYNC` route was not implemented
+  yet. The initial sandboxed PlatformIO attempt failed for its known external-cache
+  permission reason and is not counted as the behavioral red.
+- D-051 green evidence: native 23/23 and all Keel checks pass, including the
+  expanded 23/23 display/audio contract. A complete ESP-IDF 6.0.2 rebuild confirms
+  the effective 15 ms LVGL period, demo mode, CO5300 2.1.0, adapter 0.6.3, and LVGL
+  9.5.0. The 756,048-byte app SHA-256 is
+  `a5f81c11f43b8a5bb9cc22d6f27717c2dabe5bf59c6a989fb75ff13d9fba2b23`.
+  No exact-board flash has been performed; orientation, touch mapping, physical
+  tearing, and the runtime timing summaries remain hardware checks.
 
 - The 50 Hz experiment first failed with an expected 20 ms value versus the active
   13 ms profile. After moving the cadence and reporting target into the shared

@@ -9,7 +9,6 @@
 #include "sdkconfig.h"
 
 #include <cstdint>
-#include <inttypes.h>
 
 #include "demo_sequence.h"
 #include "display_runtime.h"
@@ -25,7 +24,6 @@ using namespace oilgauge;
 
 constexpr char kTag[] = "oil_gauge";
 constexpr std::uint64_t kUiFramePeriodUs = kUiFramePeriodMs * 1'000U;
-constexpr std::uint64_t kFpsLogPeriodUs = 2'000'000;
 WarningToneGate gWarningToneGate;
 GaugeSettings gSettings;
 
@@ -127,8 +125,7 @@ extern "C" void app_main(void) {
            static_cast<unsigned>(gSettings.warningVolumePercent));
 
   const OilDisplayRuntime displayRuntime = startOilDisplayRuntime();
-  lv_display_t* display = displayRuntime.display;
-  if (display == nullptr || displayRuntime.input == nullptr) {
+  if (displayRuntime.display == nullptr || displayRuntime.input == nullptr) {
     ESP_LOGE(kTag, "Waveshare display initialization failed");
     return;
   }
@@ -165,22 +162,15 @@ extern "C" void app_main(void) {
   createOilGaugeUi(lv_screen_active(), gSettings, defaults);
   esp_lv_adapter_unlock();
 
-  if (CONFIG_OIL_GAUGE_DEMO_MODE) {
-    ESP_ERROR_CHECK(esp_lv_adapter_fps_stats_enable(display, true));
-  }
-
   std::uint64_t lastFrameUs =
       static_cast<std::uint64_t>(esp_timer_get_time());
-  std::uint64_t lastFpsLogUs = lastFrameUs;
-  bool fpsPausedForStaticWarning = false;
   while (true) {
     const std::uint64_t nowUs =
         static_cast<std::uint64_t>(esp_timer_get_time());
     if (nowUs - lastFrameUs >= kUiFramePeriodUs) {
-      lastFrameUs += kUiFramePeriodUs;
-      if (nowUs - lastFrameUs >= kUiFramePeriodUs * 4U) {
-        lastFrameUs = nowUs;
-      }
+      // Keep only the newest state. Presentation is paced independently by
+      // the CO5300 TE signal, so replaying missed application ticks adds lag.
+      lastFrameUs = nowUs;
       if (esp_lv_adapter_lock(100) == ESP_OK) {
         OilGaugeUiActions beforeRender;
         const bool hadBeforeRender = takeOilGaugeUiActions(beforeRender);
@@ -201,40 +191,6 @@ extern "C" void app_main(void) {
         }
         if (hadAfterRender) {
           applyUiActions(afterRender, settingsStoreAvailable);
-        }
-      }
-    }
-    const bool staticFullScreenWarning =
-        oilGaugeFullScreenWarningVisible();
-    if (staticFullScreenWarning) {
-      lastFpsLogUs = nowUs;
-      if (!fpsPausedForStaticWarning) {
-        ESP_LOGI(
-            kTag,
-            "Display FPS measurement paused for static full-screen warning");
-        fpsPausedForStaticWarning = true;
-      }
-    } else if (fpsPausedForStaticWarning) {
-      ESP_LOGI(kTag, "Display FPS measurement resumed for dynamic gauge");
-      fpsPausedForStaticWarning = false;
-      lastFpsLogUs = nowUs;
-    }
-    if (CONFIG_OIL_GAUGE_DEMO_MODE && !staticFullScreenWarning &&
-        nowUs - lastFpsLogUs >= kFpsLogPeriodUs) {
-      lastFpsLogUs = nowUs;
-      std::uint32_t fps = 0;
-      const esp_err_t fpsResult = esp_lv_adapter_get_fps(display, &fps);
-      if (fpsResult == ESP_OK) {
-        if (fps >= kDisplayTargetFps) {
-          ESP_LOGI(kTag,
-                   "Display FPS: %" PRIu32 " (target >=%" PRIu32 ")",
-                   fps,
-                   kDisplayTargetFps);
-        } else {
-          ESP_LOGW(kTag,
-                   "Display FPS: %" PRIu32 " (below target %" PRIu32 ")",
-                   fps,
-                   kDisplayTargetFps);
         }
       }
     }

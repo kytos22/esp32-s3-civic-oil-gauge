@@ -357,18 +357,29 @@ def full_frame_and_warning_loop_contract() -> None:
     renderer = text("src/oil_gauge_ui.cpp")
     main = text("src/main.cpp")
     audio = text("src/warning_audio.cpp")
+    sdkconfig_defaults = text("sdkconfig.defaults")
+    sdkconfig_effective = text("sdkconfig")
     conditions = [
         "bsp_display_new(&panelConfig, &panel, &panelIo)" in display_runtime,
         "esp_lv_adapter_register_display(&displayConfig)" in display_runtime,
         "buffer_height = BSP_LCD_V_RES" in display_runtime,
-        "require_double_buffer = true" in display_runtime,
-        "ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE" in display_runtime,
+        "require_double_buffer = false" in display_runtime,
+        "ESP_LV_ADAPTER_TEAR_AVOID_MODE_TE_SYNC" in display_runtime,
+        "esp_lcd_panel_swap_xy(panel, true)" in display_runtime,
+        "esp_lcd_panel_mirror(panel, true, false)" in display_runtime,
+        "lv_draw_sw_rotate" not in display_runtime,
+        "custom_draw_bitmap" not in display_runtime,
         "if (gUi.menuVisible)" in renderer,
         "bool fullScreenWarningVisible = false" in renderer,
         "if (gUi.fullScreenWarningVisible !=" in renderer,
         "if (presentation.fullScreenRedVisible)" in renderer,
         "oilGaugeFullScreenWarningVisible()" in renderer,
-        "Display FPS measurement paused for static full-screen warning" in main,
+        "CO5300 timing: transferred=" in display_runtime,
+        "esp_lv_adapter_fps_stats_enable" not in main,
+        "lastFrameUs = nowUs" in main,
+        "static_assert(CONFIG_LV_DEF_REFR_PERIOD == kUiFramePeriodMs" not in renderer,
+        "CONFIG_LV_DEF_REFR_PERIOD=15" in sdkconfig_defaults,
+        "CONFIG_LV_DEF_REFR_PERIOD=15" in sdkconfig_effective,
         "setWarningAudioActive(true)" in main,
         "setWarningAudioActive(false)" in main,
         "while (gWarningActive.load()" in audio,
