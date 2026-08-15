@@ -39,14 +39,20 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 second physical-review correction software-complete
-- Next action: after explicit authorization, flash the exact AMOLED and verify that
-  the menu stays resident without background gauge updates, menu/red transitions
-  no longer show 50-line band tearing, the double beep loops only while warning is
-  active, and completed FPS remains at least 60. Keep compile-time demo support
-  enabled; sensor calibration and vehicle cutover remain separate safety-gated work.
+- Phase: 5 — Sprint 6 exact-board warning-loop correction in progress
+- Next action: correct the repeated full-screen warning invalidation exposed by the
+  authorized exact-board run, then rebuild and retest the loop/FPS behavior. Keep
+  compile-time demo support enabled; sensor calibration and vehicle cutover remain
+  separate safety-gated work.
 
 ## Open items
+- Authorized exact-board app `728c4de` passed all four write-time region hashes and
+  booted cleanly, but the retained run exposed repeated 44–56 FPS windows exactly
+  during the full-screen warning and no warning-loop start. NVS confirms warning
+  sound enabled at 77%. Source inspection found that the already-visible 480×480
+  red layer was cleared from `LV_OBJ_FLAG_HIDDEN` on every 13 ms update, forcing a
+  continuous full-panel invalidation and starving the lower-priority audio worker.
+  A red regression now requires edge-triggered overlay visibility before correction.
 - Sprint 6 second-review artifact: the red native fixture failed to compile before
   warning-loop commands existed and the new display/audio contract passed only 4/9.
   The implementation now keeps settings resident, returns from the renderer before
@@ -205,4 +211,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — resident-menu/audio-loop/full-frame correction passes software gates; no flash authorized
+Last updated: 2026-08-15 — exact-board run exposed repeated red-overlay invalidation; correction in progress

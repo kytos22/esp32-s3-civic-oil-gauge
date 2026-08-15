@@ -98,6 +98,7 @@ struct UiWidgets {
   bool menuVisible = false;
   bool menuDirty = false;
   bool warningActive = false;
+  bool fullScreenWarningVisible = false;
   bool unitRendered = false;
   bool temperatureUnitRendered = false;
   bool actionsPending = false;
@@ -105,6 +106,17 @@ struct UiWidgets {
 };
 
 UiWidgets gUi;
+
+void setFullScreenWarningVisible(bool visible) {
+  if (gUi.fullScreenWarningVisible != visible) {
+    if (visible) {
+      lv_obj_clear_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
+    }
+    gUi.fullScreenWarningVisible = visible;
+  }
+}
 
 lv_color_t color(std::uint32_t rgb) {
   return lv_color_hex(rgb);
@@ -259,6 +271,7 @@ void openMenu() {
   if (gUi.menuVisible) {
     return;
   }
+  setFullScreenWarningVisible(false);
   refreshMenuControls();
   lv_obj_clear_flag(gUi.menu, LV_OBJ_FLAG_HIDDEN);
   lv_obj_move_foreground(gUi.menu);
@@ -1013,11 +1026,7 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
             pressureColorValue,
             attentionOpacity);
 
-  if (presentation.fullScreenRedVisible) {
-    lv_obj_clear_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
-  } else {
-    lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
-  }
+  setFullScreenWarningVisible(presentation.fullScreenRedVisible);
 
   char temperatureText[8];
   if (!temperature.valid()) {

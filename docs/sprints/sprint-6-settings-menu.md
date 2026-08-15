@@ -21,6 +21,7 @@
 | 6.6 Physical-review correction | hardware partially verified | red-first compile/0-of-12 contract; then native 21/21 + review 12/12 + full build + exact-board runtime | Corrected image boots at 61–77 FPS; visual no-tearing, no-puff, 0.5 Hz, and persistent-menu proof pending |
 | 6.7 Temperature units and BAR glyph | hardware partially verified | red observed, then native 22/22 + temperature-unit 7/7 + BAR-font 2/2 + full clean build + exact-board flash/digest | Persistent °C/°F presentation and U+002E numeric font are on the exact board; guided touch/render/persistence confirmation remains |
 | 6.8 Resident menu, warning loop, full-frame QSPI buffers | software implemented; hardware pending | red native compile plus 4/9 contract; then native 22/22 + display/audio 9/9 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
+| 6.9 Edge-triggered red overlay | correction implemented; hardware retest pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix | Full-screen visibility changes only on phase edges; settings hides it once |
 
 ## Software evidence
 

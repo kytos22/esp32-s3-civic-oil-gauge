@@ -607,3 +607,23 @@
   harness, or vehicle action is enabled.
 - Supersedes: D-043/AC-33/AC-38 only where warning closed settings, and D-044/AC-32
   only where one double beep was requested per warning episode.
+
+## D-047 — Invalidate the full-screen warning only at visibility edges
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 exact-board correction
+- Decision: Keep the two full-height LVGL draw buffers, but change the 480×480 red
+  warning layer only when its visible/hidden state actually changes. Opening settings
+  explicitly hides that layer once, then the resident-menu early return prevents
+  background rendering. Log the persisted warning mode, sound state, and volume at
+  boot so physical audio evidence is self-contained.
+- Why: Exact-board app `728c4de` passed the write and boot gates but measured 44–56
+  FPS during every full-screen warning and never scheduled the lower-priority audio
+  loop. The renderer was clearing the already-clear hidden flag every 13 ms, causing
+  a complete 480×480 QSPI invalidation on every frame while red was visible. NVS
+  independently confirmed that warning sound was enabled at 77%, excluding a muted
+  setting as the cause.
+- Alternatives rejected (and why): Return to 50-line partial buffers; that restores
+  the reported band tearing. Raise the panel clock above the component's 40 MHz
+  default; no panel-limit evidence justifies overclocking. Raise only audio priority;
+  it would mask the unnecessary display work and leave the FPS failure.
+- Supersedes: D-046 only where it implied full-height buffers alone were sufficient;
+  its menu, audio-loop, demo, and no-TE boundaries remain active.

@@ -364,6 +364,8 @@ def full_frame_and_warning_loop_contract() -> None:
         "require_double_buffer = true" in display_runtime,
         "ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE" in display_runtime,
         "if (gUi.menuVisible)" in renderer,
+        "bool fullScreenWarningVisible = false" in renderer,
+        "if (gUi.fullScreenWarningVisible !=" in renderer,
         "setWarningAudioActive(true)" in main,
         "setWarningAudioActive(false)" in main,
         "while (gWarningActive.load()" in audio,

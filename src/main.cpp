@@ -117,10 +117,14 @@ extern "C" void app_main(void) {
   const bool settingsStoreAvailable = initSettingsStore();
   gSettings = settingsStoreAvailable ? loadGaugeSettings(defaults) : defaults;
   ESP_LOGI(kTag,
-           "Settings loaded: pressure_unit=%u temperature_unit=%u source=%u",
+           "Settings loaded: pressure_unit=%u temperature_unit=%u source=%u "
+           "warning_mode=%u sound=%u volume=%u",
            static_cast<unsigned>(gSettings.pressureUnit),
            static_cast<unsigned>(gSettings.temperatureUnit),
-           static_cast<unsigned>(gSettings.dataSource));
+           static_cast<unsigned>(gSettings.dataSource),
+           static_cast<unsigned>(gSettings.warningVisualMode),
+           gSettings.warningSoundEnabled ? 1U : 0U,
+           static_cast<unsigned>(gSettings.warningVolumePercent));
 
   const OilDisplayRuntime displayRuntime = startOilDisplayRuntime();
   lv_display_t* display = displayRuntime.display;
