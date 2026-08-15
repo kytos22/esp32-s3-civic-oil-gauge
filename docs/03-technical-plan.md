@@ -24,7 +24,7 @@ and alarm math remains isolated so it can run natively without hardware.
 
 Budgets:
 
-- UI refresh: 13 ms application and LVGL cadence; Sprint 1 requires at least 60
+- UI refresh: 20 ms application and LVGL cadence; the active experiment requires at least 50
   completed physical display FPS, measured by the pinned adapter rather than
   inferred from the scheduler.
 - No valid input may exceed 3.3 V at the ADC/ESP32 boundary.
@@ -207,6 +207,10 @@ flowchart LR
   FPS. Its static opaque-red frames intentionally pause completed-frame measurement
   while hidden gauge rendering is frozen. Guided menu/red tearing and final audible
   edge quality remain `HARDWARE/JUDGMENT`.
+- Current Sprint 6 performance experiment: D-049 changes application and LVGL
+  cadence to 20 ms with a 50 completed-FPS target. The ESP32-S3 GPSPI clock remains
+  at its realizable 40 MHz value: its 80 MHz APB source and integer divider cannot
+  produce a physical 50 MHz clock, and 80 MHz is outside the accepted CO5300 limit.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

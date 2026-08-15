@@ -39,14 +39,23 @@
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 exact-board correction runtime-complete
-- Next action: Marcos enables `SONIDO` in the resident menu and judges the final
-  audible loop/edge quality plus menu and red-transition tearing. The assistant-run
-  flash, digest, boot, warning-loop, and dynamic-FPS gates are complete. Keep
-  compile-time demo support enabled; sensor calibration and vehicle cutover remain
-  separate safety-gated work.
+- Phase: 5 — Sprint 6 50 Hz performance experiment
+- Next action: after separate explicit authorization, flash the exact recorded board
+  with the verified 20 ms candidate and compare menu/full-screen-warning tearing,
+  warning-loop audio, and consecutive completed-frame windows against the prior
+  13 ms image. Keep compile-time demo support enabled; sensor calibration and
+  vehicle cutover remain separate safety-gated work.
 
 ## Open items
+- D-049 records why an ESP32-S3 request for 50 MHz QSPI still resolves to 40 MHz:
+  GPSPI is sourced from 80 MHz APB and uses integer divisors. The effective
+  experiment therefore changes application/LVGL cadence to 20 ms and the measured
+  target to 50 completed FPS; 80 MHz remains outside the accepted panel boundary.
+- The software candidate is complete: native tests pass 23/23 and the full ESP-IDF
+  6.0.2 build produced a 754,192-byte application with SHA-256
+  `44ba2a5c69fe8963aefaabf94fc9d4ce0293ebfbf5639da9c2d8c51fe674c964`.
+  Effective configuration retains `CONFIG_OIL_GAUGE_DEMO_MODE=y` and uses
+  `CONFIG_LV_DEF_REFR_PERIOD=20`; QSPI remains 40 MHz. No flash was performed.
 - Authorized exact-board app `728c4de` passed all four write-time region hashes and
   booted cleanly, but the retained run exposed repeated 44–56 FPS windows exactly
   during the full-screen warning and no warning-loop start. NVS confirms warning
@@ -232,4 +241,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-15 — final warning correction flashed and runtime-verified; guided judgment pending
+Last updated: 2026-08-15 — 50 Hz candidate built and software-verified; exact-board comparison awaits separate flash authorization

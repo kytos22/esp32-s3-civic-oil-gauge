@@ -23,9 +23,17 @@
 | 6.8 Resident menu, warning loop, full-frame QSPI buffers | runtime partially verified | red native compile plus 4/9 contract; then native 22/22 + final display/audio 14/14 | Menu freezes gauge rendering and stays open; double beep loops; two 480×480 PSRAM draw buffers replace 50-line bands; no verified TE pin |
 | 6.9 Edge-triggered red overlay | runtime verified; judgment pending | exact-board 44–56 FPS/no-loop reproduction; red verifier 9/11 before fix; six later loop pairs | Full-screen visibility changes only on phase edges; settings hides it once |
 | 6.10 Static-red render freeze | runtime verified; judgment pending | edge-gated 45–57 FPS reproduction; second red verifier 11/14; final 44 dynamic windows at 63–76 FPS | Only the visible pressure value updates during opaque red; dynamic-gauge FPS excludes intentional static phases |
+| 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
 
 ## Software evidence
 
+- The 50 Hz experiment first failed with an expected 20 ms value versus the active
+  13 ms profile. After moving the cadence and reporting target into the shared
+  display profile, native tests pass 23/23. The complete ESP-IDF 6.0.2 build is
+  754,192 bytes with SHA-256
+  `44ba2a5c69fe8963aefaabf94fc9d4ce0293ebfbf5639da9c2d8c51fe674c964`;
+  effective LVGL refresh is 20 ms, demo mode remains enabled, and no flash was
+  performed.
 - Red-first native link failure proved the new settings behavior was absent.
 - Native Unity suite: 19/19 pass.
 - Keel verifier: all checks pass, including 9/9 settings and 11/11 warning

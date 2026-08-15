@@ -63,3 +63,10 @@ Planning assumption: subscription/seat access, therefore no separate marginal to
 Persistent Fahrenheit presentation plus the BAR decimal-font regression adds an
 estimated 0.5–1.0 AI working hour and no additional hardware assembly time. Physical
 AMOLED confirmation is folded into the already pending Sprint 6 exact-board pass.
+
+## Performance experiment amendment — 2026-08-15
+
+Changing the application/LVGL cadence to 20 ms, updating the measurable 50 FPS
+contract, rebuilding, and preparing one exact-board comparison adds an estimated
+0.5–1.0 AI working hour and 10–20 minutes of developer supervision for the later
+authorized flash and visual judgment. It adds no parts or vehicle work.

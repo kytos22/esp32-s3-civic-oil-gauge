@@ -647,3 +647,23 @@
   frame-rate requirement.
 - Supersedes: D-047 only where edge-gating alone was expected to remove all hidden
   rendering; its 40 MHz panel-clock and no-overclock boundary remains active.
+
+## D-049 — Evaluate the gauge at a real 50 Hz cadence without a fictitious 50 MHz QSPI clock
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 performance experiment
+- Decision: Change the application and LVGL refresh period from 13 ms to 20 ms and
+  evaluate the physical gauge against a 50 completed-FPS target. Keep the CO5300
+  QSPI request at the BSP's 40 MHz. Do not configure a nominal 50 MHz value that
+  the ESP32-S3 GPSPI peripheral cannot generate.
+- Why: Marcos requested a 50 MHz / 50 Hz experiment to reduce tearing. ESP-IDF
+  6.0.2 shows that ESP32-S3 GPSPI uses the 80 MHz APB clock with integer divisors;
+  a requested 50 MHz clock resolves to 40 MHz, while the next realizable step is
+  80 MHz. Recording or logging 50 MHz would therefore be false, and 80 MHz would
+  exceed the current CO5300 safety boundary. The 20 ms cadence is independently
+  testable and reduces renderer scheduling pressure while matching the requested
+  50 Hz presentation target.
+- Alternatives rejected (and why): Set `pclk_hz` to 50 MHz; the physical clock
+  remains 40 MHz. Jump to 80 MHz; it is outside the presently accepted panel limit
+  and requires a separate explicit overclock decision. Retain the 13 ms cadence;
+  it does not perform the requested 50 Hz comparison.
+- Supersedes: D-021, D-022, D-032, and D-034 only for the active cadence/FPS target;
+  historical evidence and the 40 MHz/no-TE boundaries remain unchanged.

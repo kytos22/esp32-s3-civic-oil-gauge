@@ -6,6 +6,7 @@
 #include "gauge_core.h"
 #include "gauge_settings.h"
 #include "demo_sequence.h"
+#include "display_profile.h"
 #include "warning_tone_gate.h"
 
 using namespace oilgauge;
@@ -234,6 +235,11 @@ void test_ac06_warning_blink_is_binary_two_hertz() {
   TEST_ASSERT_TRUE(warningBlinkPhaseOn(1'000'000));
 }
 
+void test_display_profile_targets_fifty_hertz() {
+  TEST_ASSERT_EQUAL_UINT32(20U, kUiFramePeriodMs);
+  TEST_ASSERT_EQUAL_UINT32(50U, kDisplayTargetFps);
+}
+
 void test_ac32_warning_tone_gate_starts_and_stops_loop() {
   WarningToneGate gate;
 
@@ -359,6 +365,7 @@ int main(int, char**) {
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
   RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
+  RUN_TEST(test_display_profile_targets_fifty_hertz);
   RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);

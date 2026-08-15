@@ -225,10 +225,16 @@ extern "C" void app_main(void) {
       std::uint32_t fps = 0;
       const esp_err_t fpsResult = esp_lv_adapter_get_fps(display, &fps);
       if (fpsResult == ESP_OK) {
-        if (fps >= 60U) {
-          ESP_LOGI(kTag, "Display FPS: %" PRIu32 " (target >=60)", fps);
+        if (fps >= kDisplayTargetFps) {
+          ESP_LOGI(kTag,
+                   "Display FPS: %" PRIu32 " (target >=%" PRIu32 ")",
+                   fps,
+                   kDisplayTargetFps);
         } else {
-          ESP_LOGW(kTag, "Display FPS: %" PRIu32 " (below target 60)", fps);
+          ESP_LOGW(kTag,
+                   "Display FPS: %" PRIu32 " (below target %" PRIu32 ")",
+                   fps,
+                   kDisplayTargetFps);
         }
       }
     }

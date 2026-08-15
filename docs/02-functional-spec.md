@@ -151,9 +151,9 @@ See `docs/03-technical-plan.md`.
 - **AC-19:** Unit tests and the complete firmware build run successfully in the current environment before any flash.
 - **AC-20:** Real display, ADC, MTS, power, thermal, and vehicle results remain `unverified` until their evidence is stored.
 - **AC-21:** Demo pressure, temperature, and RPM interpolate continuously between
-  the seven synthetic scenes at a 13 ms application cadence; native tests cover
+  the seven synthetic scenes at a 20 ms application cadence; native tests cover
   midpoint, scene boundary, forward progress, and sequence wrap.
-- **AC-22:** The physical demo sustains at least 60 completed display frames per
+- **AC-22:** The physical demo sustains at least 50 completed display frames per
   second over consecutive adapter one-second windows; scheduled cadence alone is
   not accepted as FPS evidence.
 - **AC-23:** Both semantic state labels use 24 px Montserrat, remain right-aligned,

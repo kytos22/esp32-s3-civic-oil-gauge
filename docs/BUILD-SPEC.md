@@ -46,7 +46,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | bar.thickness | `9 px` | both bars |
 | warning.elements.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
 | warning.screen.period | `2 s`, step-end | 0.5 Hz complete cycle; 1 s normal / 1 s opaque red |
-| refresh.period | `13 ms` | application and LVGL target cadence with repeated-audio margin above 60 FPS |
+| refresh.period | `20 ms` | application and LVGL target cadence for the 50 FPS physical experiment |
 | state.font | `Montserrat 24 px` | pressure/temperature semantic state |
 
 Temperature colors are linearly interpolated between:
@@ -118,7 +118,7 @@ Temperature colors are linearly interpolated between:
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
 | temperature below 50 | render `<50` in Celsius or `<122` in Fahrenheit, with an empty temperature bar | valid sample |
-| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 13 ms |
+| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 20 ms |
 
 ## 6. Asset map
 

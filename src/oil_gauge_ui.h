@@ -1,5 +1,6 @@
 #pragma once
 
+#include "display_profile.h"
 #include "gauge_core.h"
 #include "gauge_settings.h"
 #include "lvgl.h"
@@ -7,8 +8,6 @@
 #include <cstdint>
 
 namespace oilgauge {
-
-inline constexpr std::uint32_t kUiFramePeriodMs = 13;
 
 struct OilGaugeUiActions {
   GaugeSettings settings{};
