@@ -19,7 +19,10 @@ tearing or diagonal; its 180-degree mounting orientation is acceptable. D-056
 passes 35/35 display invariants and 27/27 native tests. Clean commit `9b59722`
 produces a 733,232-byte app with SHA-256
 `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`;
-exact-board proof remains pending.
+all four exact-board writes passed hashes. Its 30-second capture has zero
+timeout/error/no-slot/fatal counters, about 0.3–1.1 ms average composition,
+16–21 ms snapshot copies, 13.1 ms DMA and about 17–33 completed FPS. Visual/touch
+judgment remains pending.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact
@@ -114,7 +117,7 @@ contains no application error, reset after startup, or watchdog event.
 
 The board is attached through usbipd-win as `/dev/ttyACM0`, identified by
 Espressif VID/PID `303a:1001` and the exact identifier retained in ignored local
-hardware evidence. D-055 app `aa38f5f` is currently written and all four regions
+hardware evidence. D-056 app `9b59722` is currently written and all four regions
 passed esptool's write-time hash verification. Its bounded runtime capture has
 non-zero completed presentations and no timeout, transfer error, unavailable slot
 or fatal latch; physical orientation, diagonal and smoothness judgment remains.

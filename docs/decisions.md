@@ -909,8 +909,12 @@
   35/35 after it. Native tests pass 27/27. Clean commit `9b59722` produces a
   733,232-byte ESP-IDF 6.0.2 app with SHA-256
   `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`.
-  A separately authorized exact-board run is still required to determine native
-  visual direction, touch alignment and actual composition/presentation timing.
+  The separately authorized exact-board run passed all four write hashes and
+  booted app `9b59722` with TE at 59.522 Hz. Its 30-second capture maintained
+  `timeouts=0 errors=0 no_slot=0 fatal=0`; composition averaged about 0.3–1.1 ms,
+  snapshot copies about 16–21 ms, DMA about 13.1 ms and completed presentation
+  about 17–33 FPS. Native visual direction, touch alignment and tearing judgment
+  still require Marcos's observation.
 - Safety: USB/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
   sensors, ADS1115, MTX-D, 12 V or the vehicle.
 - Supersedes: D-054/D-055 only for logical rotation. D-055's physically proven
