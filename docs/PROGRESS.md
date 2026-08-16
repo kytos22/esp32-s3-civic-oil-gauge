@@ -77,7 +77,10 @@
   through 96, orange at 100 and red progression above 100. It also moves each
   icon/value/unit/bar group down 4 px while leaving headings and dynamic states in
   place. Red evidence was one native color mismatch plus 55/63 display invariants;
-  green is native 27/27 and display/audio 63/63. Complete build remains pending.
+  green is native 27/27 and display/audio 63/63. Clean commit `476cf4d` builds a
+  730,656-byte ESP-IDF 6.0.2 app identified as `pb2-d057-9-g476cf4d`, with
+  SHA-256 `a798b520bd996f1be3d2c4922d15e8a103fb4da8e2f7baa0e653ecfc030248f3`.
+  Exact-board flash and judgment remain pending fresh authorization.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -431,4 +434,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-059 accepted as Physical Baseline 3; D-060 software tests pass pending build
+Last updated: 2026-08-16 — D-059 is Physical Baseline 3; D-060 clean candidate awaits flash authorization

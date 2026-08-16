@@ -1043,7 +1043,10 @@
 - Verification: red evidence is the old color function failing the new stop
   fixture and the old placement passing only 55/63 display invariants. Green is
   27/27 native tests, 63/63 display/audio invariants and the complete Keel
-  verifier. Complete firmware build and exact-board judgment remain pending.
+  verifier. Clean commit `476cf4d` produces a 730,656-byte ESP-IDF 6.0.2 app
+  identified as `pb2-d057-9-g476cf4d`, with SHA-256
+  `a798b520bd996f1be3d2c4922d15e8a103fb4da8e2f7baa0e653ecfc030248f3`.
+  Exact-board judgment remains pending fresh flash authorization.
 - Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
   fresh explicit authorization.
 - Supersedes: D-059 only for temperature color stops and metric-group vertical
