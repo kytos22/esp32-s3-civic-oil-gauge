@@ -171,3 +171,18 @@
 - Rule for next time: inspect a framework's buffer-synchronization path using the
   application's real invalidation areas before assuming that direct rendering means
   zero copies.
+
+## L-011 — Exposed USB pads sit immediately beside the expansion I²C pads
+- Symptom: after wiring the ADS1115, Windows no longer enumerated the ESP32-S3 and
+  usbipd showed only a persisted, disconnected COM entry.
+- Cause: ADS1115 SDA/SCL had accidentally occupied P4/P5, which are GPIO19/20 native
+  USB D−/D+, instead of P6/P7, which are GPIO14/15 I²C SCL/SDA.
+- Fix: with power removed, move the two data leads to P6/P7. The exact `303a:1001`
+  USB device immediately returned and the ADS1115 then probed successfully at 0x48.
+- Where: Phase 5, Sprint 7 bare-ADS1115 bench bring-up.
+- What failed first: relying on pad proximity without rechecking the official
+  schematic and the project's P1–P9 map before applying USB power.
+- Check added: the pinout names both adjacent USB and I²C pairs; AC-42 requires
+  exact USB identity before flash and a successful 0x48 probe after boot.
+- Rule for next time: identify P6/P7 by both position and signal; if uncertain,
+  verify their approximately 2.2 kΩ pull-up path to 3.3 V with power removed.

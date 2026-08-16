@@ -36,7 +36,7 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 diagnostics active | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) software candidate in progress |
+| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 bare-board proof complete | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) AC-42 runtime-proven |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
@@ -56,8 +56,9 @@
 - Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
   accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
   alignment/spacing and the continued absence of tearing on the exact AMOLED.
-- Next action: add a demo-safe ADS1115 diagnostic at address `0x48`, logging raw
-  A0–A3 voltages only. Sensors, conversion calibration and vehicle work remain gated.
+- Next action: validate each ADS1115 channel first at ground and then through a
+  known safe 3.3 V divider. Sensors, conversion calibration and vehicle work remain
+  gated.
 
 ## Open items
 - D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
@@ -66,7 +67,16 @@
   native run failed on the deliberately absent `ads1115_protocol.h`; green is
   29/29. The ESP-IDF path reuses the Waveshare BSP bus, probes `0x48`, registers a
   100 kHz device and logs four explicitly labelled floating-input readings once per
-  second. Complete build and exact-board proof remain pending; no sensors are attached.
+  second. Clean commit `d770bb5` builds app `pb2-d057-17-gd770bb5`, 782,416 bytes,
+  SHA-256 `1a472ab5fb757c8ed4c5e6146e01a9b7e8f92c28b204ea394a647d8bb53eda86`.
+  Marcos authorized the exact-board flash. VID/PID `303a:1001`, ESP32-S3/8 MB PSRAM,
+  USB-Serial/JTAG and MAC matched; all four written regions passed hash verification.
+  Boot found the ADS1115 at `0x48` and repeatedly captured A0–A3 at about
+  0.552–0.562 V while floating. Touch registered, audio opened, demo remained enabled,
+  and the bounded display reports retained `timeouts=0 errors=0 fatal=0`. No sensors
+  are attached. Before enumeration, SDA/SCL had accidentally occupied adjacent exposed
+  USB D−/D+ pads P4/P5; moving them to I²C P6/P7 immediately restored the exact USB
+  device. This wiring fault is resolved and did not require a firmware change.
 - D-062 reconciles the project from Keel v5.3.2 to v5.13.0 after Marcos approved
   the recommended one-time choices: manual autonomy, no automatic forge issue
   activity, no external notifications and pure-logic test-first going forward.

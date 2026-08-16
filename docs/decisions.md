@@ -1115,8 +1115,13 @@
   and ADC integration before any analog front end can introduce ambiguity.
 - Verification: pure-logic policy applied: the first native run failed with
   `fatal error: ads1115_protocol.h: No such file or directory`; implementation then
-  passes 29/29 native tests. Complete firmware build and exact-board runtime remain
-  pending; flashing still requires separate explicit authorization.
+  passes 29/29 native tests. Clean commit `d770bb5` builds app
+  `pb2-d057-17-gd770bb5` (782,416 bytes; SHA-256
+  `1a472ab5fb757c8ed4c5e6146e01a9b7e8f92c28b204ea394a647d8bb53eda86`).
+  The separately authorized exact-board flash matched VID/PID, ESP32-S3/8 MB PSRAM,
+  USB mode and MAC; all four write hashes passed. Runtime found `0x48` and repeatedly
+  read all four floating inputs around 0.552–0.562 V while display, touch and audio
+  initialized and display fault counters remained zero.
 - Safety: no A0–A3 sensor wiring, no 5 V/12 V input, no pressure/temperature
   conversion, no retained ADC value and no vehicle connection.
 - Supersedes: none; D-061 remains Accepted Physical Baseline 4.
