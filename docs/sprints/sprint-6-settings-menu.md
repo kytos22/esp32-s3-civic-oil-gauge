@@ -6,8 +6,8 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: final correction flashed and runtime-verified on the exact board;
-  guided visual, touch, persistence, and audio-edge judgment remains
+- Status: D-054 exact-board transfer failed before visual acceptance; D-055
+  bounded internal-DMA staging passes software tests/build and awaits a new flash
 
 ## Slices
 
@@ -27,10 +27,22 @@
 | 6.12 80 MHz QSPI comparison | runtime verified; visual judgment pending | contract 6/6, native 23/23, full build, exact-board flash/digests; 27 windows at 48–50 FPS, eight matched warning phases, no lock/reset failure in 71.5 s | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
 | 6.13 Official CO5300 GPIO-TE path | exact combined candidate failed; causes partly isolated | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz. `MADCTL 0xA0 -> 0x60` explains the 180-degree inversion; FULL/single-buffer serialization explains about 14.85 FPS; the returned diagonal still needs a one-variable orientation A/B |
 | 6.14 `MADCTL=0xA0` isolation A/B | exact-board isolation complete; visual failure confirmed | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification, bounded runtime and Marcos's visual judgment | `0xA0` restores correct orientation but the diagonal persists. It does not follow the `0x60` address-direction change; FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS |
-| 6.15 Native-scan immutable presenter | software candidate built; hardware pending | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93` | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation, canonical frame plus two direct-PSRAM-DMA snapshots, newest READY generation on GPIO43 TE, release only after DMA done |
+| 6.15 Native-scan immutable presenter | exact-board transport failed | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93`; flash hashes passed but first direct DMA transfer underflowed | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation and immutable ownership were retained; its direct-PSRAM-DMA transport is rejected by D-055 |
+| 6.16 Bounded QSPI staging | software/build pass; hardware pending | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34 and complete ESP-IDF 6.0.2 build | Preserve D-054 scan order and ownership; disable bandwidth-limited direct PSRAM DMA, split each full frame into three-deep 8-row internal-DMA bounce chunks, and latch presenter failure |
 
 ## Software evidence
 
+- D-055 source evidence: the exact D-054 boot produced ESP-IDF's documented
+  `DMA TX underflow detected`; the first color transaction surfaced
+  `ESP_ERR_INVALID_STATE`, and all later two-second windows stayed at
+  `presented=0.000 fps`. The correction first failed to compile because the new
+  transfer-row/queue-depth profile did not exist and its expanded contract passed
+  only 6/13. It now passes native 27/27, the bounded-QSPI contract 13/13 and the
+  display/audio contract 34/34. ESP LCD keeps the snapshots immutable but copies
+  each one through at most three queued 7,680-byte internal DMA buffers; direct
+  PSRAM DMA is disabled while QSPI remains 80 MHz. Any start error or DMA timeout
+  latches a persistent fatal flag and ends the presenter. A complete dirty-tree
+  ESP-IDF 6.0.2 build passes; clean commit/image evidence remains to be recorded.
 - D-054 source evidence: official guidance and exact source tracing replace the
   rejected `TE_SYNC` architecture rather than moving its phase again. The first
   source-contract run passed only 15/33, and the first valid native red failed on
@@ -38,11 +50,13 @@
   34/34 display/audio invariants and 26/26 native tests. It keeps the panel in
   native scan order, rotates dirty LVGL areas in cache-local 32x32 tiles, snapshots
   only at the last flush, selects only the newest complete generation at TE, and
-  cannot select an IN_FLIGHT DMA buffer for rendering. Both snapshots are aligned,
+  cannot select an IN_FLIGHT DMA buffer for rendering. Both snapshots were aligned,
   verified external-DMA-capable and sent with `psram_dma_direct`. Clean commit
   `50dee93` produces a 734,816-byte app with SHA-256
-  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`;
-  exact-board results remain pending.
+  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`.
+  On the separately authorized exact board all four write-time hashes passed and
+  app `50dee93` booted, but direct PSRAM DMA immediately underflowed and no frame
+  completed. D-054 is rejected as a transport implementation before visual review.
 - D-053 source evidence: the revised contract first failed 21/24 while D-051's
   panel orientation calls and log remained. The candidate now makes no post-init
   `esp_lcd_panel_swap_xy()` or `esp_lcd_panel_mirror()` call, reports that it is

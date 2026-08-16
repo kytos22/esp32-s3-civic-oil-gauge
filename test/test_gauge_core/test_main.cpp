@@ -6,6 +6,7 @@
 #include "gauge_core.h"
 #include "gauge_settings.h"
 #include "demo_sequence.h"
+#include "display_clock_profile.h"
 #include "display_profile.h"
 #include "frame_slot_policy.h"
 #include "warning_tone_gate.h"
@@ -277,6 +278,18 @@ void test_ac41_presenter_selects_only_the_newest_complete_frame() {
   TEST_ASSERT_EQUAL_INT(-1, selectNewestReadySlot(unavailable));
 }
 
+void test_ac41_qspi_bounce_profile_stays_inside_reserved_internal_dma() {
+  constexpr std::uint32_t bytesPerRow = 480U * 2U;
+  constexpr std::uint32_t queuedBytes =
+      bytesPerRow * OIL_GAUGE_DISPLAY_TRANSFER_ROWS *
+      OIL_GAUGE_DISPLAY_QUEUE_DEPTH;
+
+  TEST_ASSERT_EQUAL_UINT32(80'000'000U, OIL_GAUGE_DISPLAY_QSPI_HZ);
+  TEST_ASSERT_EQUAL_UINT32(8U, OIL_GAUGE_DISPLAY_TRANSFER_ROWS);
+  TEST_ASSERT_EQUAL_UINT32(3U, OIL_GAUGE_DISPLAY_QUEUE_DEPTH);
+  TEST_ASSERT_LESS_OR_EQUAL_UINT32(24U * 1024U, queuedBytes);
+}
+
 void test_ac32_warning_tone_gate_starts_and_stops_loop() {
   WarningToneGate gate;
 
@@ -406,6 +419,7 @@ int main(int, char**) {
   RUN_TEST(test_ac41_frame_snapshots_never_overwrite_dma);
   RUN_TEST(test_ac41_frame_snapshots_reuse_oldest_ready_generation);
   RUN_TEST(test_ac41_presenter_selects_only_the_newest_complete_frame);
+  RUN_TEST(test_ac41_qspi_bounce_profile_stays_inside_reserved_internal_dma);
   RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);

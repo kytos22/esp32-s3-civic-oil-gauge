@@ -33,7 +33,7 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 native-scan presenter candidate built after two failed GPIO-TE architectures | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 D-054 failed on direct-PSRAM DMA and D-055 is the bounded-bounce correction | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
@@ -43,23 +43,41 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: request new exact-board flash authorization for the clean D-054
-  candidate. The physical pass must check upright orientation,
+- Next action: finish the clean D-055 build/evidence commit, then request new
+  exact-board flash authorization. The physical pass must first prove non-zero
+  completed presentations with no DMA error, then check upright orientation,
   touch mapping, menu scroll, both red transitions, completed-DMA cadence and the
   diagonal. Sensor and vehicle work remain gated.
 
 ## Open items
-- D-054 follows the method now documented by Espressif for diagonal tearing after
+- D-055 keeps D-054's native scan, software rotation and immutable ownership, but
+  removes direct PSRAM-to-GPSPI DMA after the exact board returned the documented
+  `DMA TX underflow` / `ESP_ERR_INVALID_STATE` failure at 80 MHz QSPI. ESP LCD now
+  stages a full snapshot through three queued internal-DMA chunks of eight rows
+  each (23,040 bytes maximum) while retaining the 80 MHz bus. A transfer-start
+  error or completion timeout latches `fatal=1` and stops the presenter rather
+  than leaving a poisoned transaction queue blocked invisibly. Red evidence is
+  the missing-profile native compile plus a 6/13 source contract; green is 27/27
+  native, 13/13 QSPI contract, 34/34 display/audio contract and a complete dirty
+  ESP-IDF 6.0.2 build. Exact-board proof is not authorized yet.
+- D-054 followed the method documented by Espressif for diagonal tearing after
   SPI hardware rotation: the CO5300 returns to native `MADCTL=0x00`, LVGL applies
   the upright 270-degree rotation in PARTIAL mode, and a separate GPIO43-TE task
   presents only immutable full-frame snapshots. One canonical RGB565 framebuffer,
-  two 480x120 draw buffers and two aligned direct-PSRAM-DMA snapshots separate
+  two 480x120 draw buffers and two aligned snapshots separate
   rendering from scanout. The pure slot policy first failed to compile because it
   did not exist; it now passes three AC-41 regressions inside the 26/26 native
   suite. The revised source contract first failed 15/33 and now passes 34/34. Clean
   commit `50dee93` produces a 734,816-byte ESP-IDF 6.0.2 app with SHA-256
   `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`.
-  No flash is authorized by this software result.
+  The exact authorized board and MAC matched before flash and all four written
+  regions passed esptool hash verification. Boot confirmed app `50dee93`, native
+  `MADCTL=0x00`, TE at 59.434 Hz and the intended buffers, but the first direct
+  PSRAM transfer underflowed. ESP LCD returned `ESP_ERR_INVALID_STATE`, the queue
+  then stopped, and every telemetry window remained at `presented=0.000 fps`.
+  D-054 therefore fails before any diagonal/orientation judgment; D-055 supersedes
+  only its transfer path. A post-boot readback retry stopped at 512,000 bytes and
+  was not repeated, per L-004.
 - D-053 red-first changed the display contract and produced the expected 21/24
   failure against the still-oriented source. Green removes all post-init panel
   `swap_xy()`/`mirror()` calls, explicitly preserves Waveshare `MADCTL=0xA0`, and
@@ -83,9 +101,9 @@
   synchronous flush, leaving roughly 30–34 ms of drawing/scheduling rather than
   adding 61–65 ms on top. The diagonal remains unisolated because orientation,
   render mode and buffering changed together. That A/B alone did not reject
-  hardware orientation; D-054 later resolves the category using Espressif's
-  diagonal-tearing guidance plus the repeated exact-board result. Commit `443eb72`
-  is Golden Prototype 1.
+  hardware orientation. D-054 applied Espressif's diagonal-tearing guidance but
+  failed at its direct DMA leg before visual judgment; D-055 retains that scan-order
+  experiment with bounded staging. Commit `443eb72` is Golden Prototype 1.
 - D-051 software candidate is complete. Red-first failed at the former 20 ms
   profile and at 12/18 display invariants; green removes software rotation and the
   custom draw callback, uses CO5300 hardware orientation plus adapter 0.6.3
@@ -323,4 +341,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — native-scan software-rotation presenter built; exact-board proof requires new authorization
+Last updated: 2026-08-16 — D-054 direct DMA failed on hardware; D-055 bounded staging built and exact-board proof requires new authorization

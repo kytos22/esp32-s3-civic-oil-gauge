@@ -138,10 +138,13 @@ the canonical frame is copied into one of two 64-byte-aligned PSRAM snapshots.
 A snapshot progresses `SNAPSHOT → READY → IN_FLIGHT → FREE`; rendering may replace
 an obsolete READY generation but never an IN_FLIGHT one. A dedicated task selects
 only the newest complete READY generation at the next GPIO43 TE rising edge and
-sends the whole 480×480 frame in native scan order. ESP LCD's direct-PSRAM-DMA
-path avoids a hidden post-TE bounce copy, and only `on_color_trans_done` releases
-the snapshot. The exact panel measured about 59.4 TE edges/s, which is the honest
-physical presentation ceiling.
+sends the whole 480×480 frame in native scan order. Direct PSRAM DMA is disabled:
+the exact board proved that its bandwidth-limited ESP-IDF path underflows at this
+80 MHz QSPI load. ESP LCD instead stages three queued 8-row chunks through at
+most 23,040 bytes of internal DMA memory. Only `on_color_trans_done` releases the
+snapshot; a start error or timeout latches a fatal presenter state instead of
+retrying a potentially poisoned queue. The exact panel measured about 59.4 TE
+edges/s, which is the honest physical presentation ceiling.
 
 ## Onboard warning audio
 

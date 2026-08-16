@@ -847,3 +847,40 @@
 - Supersedes: D-051 and D-053 for the active display implementation. Their exact
   hardware evidence remains the reason for this architecture; `443eb72` remains
   Golden Prototype 1 and the rollback reference.
+
+## D-055 — Stage 80 MHz QSPI through bounded internal DMA buffers
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 hardware-failure correction
+- Decision: Preserve D-054's native `MADCTL=0x00`, LVGL 270-degree PARTIAL
+  software rotation, canonical frame, two immutable snapshots and GPIO43 TE
+  presenter. Replace only the unsafe direct PSRAM-to-GPSPI leg: set
+  `psram_dma_direct=false`, cap ESP LCD transfers to eight RGB565 rows (7,680
+  bytes), and allow three queued transactions (23,040 bytes of temporary internal
+  DMA data at most). Keep QSPI at 80 MHz for the controlled A/B. If draw start or
+  completion fails, latch `fatal=1` and stop the presenter; do not retry a panel-IO
+  queue after `ESP_ERR_INVALID_STATE`.
+- Evidence: the exact authorized D-054 flash passed all four write-time hashes and
+  booted app `50dee93`, native scan and 59.434 Hz TE. The first color transfer then
+  logged ESP-IDF's `DMA TX underflow detected`, ESP LCD returned
+  `ESP_ERR_INVALID_STATE`, and every captured window remained at 0 completed FPS.
+  ESP-IDF's SPI Master guide states that direct PSRAM DMA shares MSPI bandwidth
+  and can lose data when GPSPI bandwidth is too high; its own ESP32-S3 test limits
+  the direct path and checks the TX-fail flag. Pointer capability therefore did
+  not validate D-054's throughput assumption.
+- Verification: red was the absent transfer-profile compile failure plus 6/13
+  source contract. Green is native 27/27, QSPI 13/13, display/audio 34/34 and a
+  complete dirty-tree ESP-IDF 6.0.2 build. A clean image and a separately
+  authorized exact-board run remain required; software evidence cannot decide the
+  diagonal, orientation, touch mapping or perceived scroll smoothness.
+- Sources: [ESP-IDF 6.0 SPI Master — transactions with data on PSRAM](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/spi_master.html#transactions-with-data-on-psram),
+  [ESP-IDF v6.0.2 direct-PSRAM transaction test](https://github.com/espressif/esp-idf/blob/v6.0.2/components/esp_driver_spi/test_apps/master/main/test_spi_master.c#L2091-L2168),
+  and the exact-board capture at
+  `.artifacts/hardware/2026-08-16/d054-50dee93-runtime.typescript`.
+- Alternatives rejected (and why): lower the whole QSPI bus to 40 MHz; one
+  480x480 RGB565 frame then needs at least 23.04 ms of payload time and cannot fit
+  the measured 16.82 ms TE period. Keep direct PSRAM DMA and merely reduce chunk
+  size; the bandwidth-limited path and its data-loss mode remain active. Allocate
+  a full 460,800-byte internal frame; the board does not have that internal SRAM
+  budget.
+- Supersedes: D-054 only for its direct PSRAM DMA transport. D-054's scan-order,
+  software-rotation and immutable-buffer ownership decisions remain active;
+  `443eb72` remains Golden Prototype 1.

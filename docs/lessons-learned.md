@@ -108,10 +108,11 @@
   measured presentation rate to about 14.8 FPS.
 - Fix: keep the CO5300 in native `MADCTL=0x00`, use LVGL's documented PARTIAL
   software-rotation path, assemble a canonical native-order frame, copy complete
-  generations into two immutable direct-PSRAM-DMA snapshots, and let a dedicated
+  generations into two immutable PSRAM snapshots, and let a dedicated
   presenter start only the newest READY snapshot at the next GPIO43 TE edge. A
-  slot remains IN_FLIGHT until `on_color_trans_done`; exact-board acceptance of
-  this D-054 implementation remains pending.
+  slot remains IN_FLIGHT until `on_color_trans_done`. D-055 stages bounded chunks
+  through internal DMA after D-054's direct PSRAM transfer failed; exact-board
+  visual acceptance remains pending.
 - Where: Phase 5, Sprint 6 slice 6.15; `src/display_runtime.cpp`,
   `src/frame_slot_policy.h`, and `include/display_clock_override.h`.
 - What failed first: treating hardware rotation as an independent orientation
@@ -119,9 +120,34 @@
   for native scan direction, asynchronous LCD-buffer ownership, or a possible
   post-TE PSRAM staging copy.
 - Check added: three AC-41 native ownership regressions, 34 display/audio source
-  invariants, direct-PSRAM-DMA capability checks at boot, and two-second telemetry
+  invariants, bounded QSPI staging checks, and two-second telemetry
   for completed presentations, TE edges, rotation, snapshot and DMA durations,
   dropped generations, timeouts, transfer errors, and unavailable slots.
 - Rule for next time: establish panel scan order and buffer lifetime before tuning
   clocks or phase offsets; never infer tear-free behavior from a TE wait, an LVGL
   FPS counter, or correct visual orientation alone.
+
+## L-009 — Direct PSRAM DMA is not a zero-cost full-frame path at 80 MHz QSPI
+- Symptom: D-054 booted with the intended native scan and TE signal, then the
+  first full-frame transfer logged `DMA TX underflow detected`; ESP LCD surfaced
+  `ESP_ERR_INVALID_STATE`, and completed presentation stayed at 0 FPS.
+- Cause: `SPI_TRANS_DMA_USE_PSRAM` shares MSPI bandwidth with the running system.
+  ESP-IDF explicitly warns that GPSPI bandwidth must remain below PSRAM bandwidth
+  or data can be lost. The D-054 design treated pointer capability and alignment
+  as sufficient proof, but neither proves sustained bandwidth at 80 MHz QSPI.
+- Fix: keep the immutable PSRAM snapshot, disable direct PSRAM DMA, and let the
+  official SPI/LCD path stage 8-row chunks through three internal DMA buffers
+  (23,040 bytes maximum) while QSPI remains at 80 MHz. Latch and expose presenter
+  failure instead of retrying a transaction queue whose accounting may already be
+  poisoned.
+- Where: Phase 5, Sprint 6 slice 6.16; `include/display_clock_profile.h`,
+  `include/display_clock_override.h`, and `src/display_runtime.cpp`.
+- What failed first: assuming `esp_ptr_dma_ext_capable()` meant the transfer was
+  operational, and accepting a callback/ownership unit test without a real first
+  full-frame DMA test.
+- Check added: an AC-41 native bounded-memory profile, 13 source invariants for
+  the 80 MHz bounce path, a persistent `fatal` telemetry field, and exact-board
+  acceptance that begins with non-zero completed presentations and zero errors.
+- Rule for next time: distinguish addressability from bandwidth; for any direct
+  external-memory DMA mode, read its loss conditions and prove one complete
+  transfer on hardware before optimizing the surrounding pipeline.

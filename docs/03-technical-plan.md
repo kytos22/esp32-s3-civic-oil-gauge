@@ -220,15 +220,17 @@ flowchart LR
   pinned Waveshare BSP target to replace its QSPI IO macro; managed registry sources
   remain byte-for-byte untouched. The UI cadence remains 20 ms so the bus speed is
   the only changed performance variable.
-- Current synchronization correction: D-054 returns the CO5300 to native scan order
+- Current synchronization correction: D-055 retains D-054's native scan order
   and uses LVGL 270-degree PARTIAL software rotation. The first revised source
-  contract failed 15/33 and the native red failed on the absent slot policy; green
-  passes 34/34 plus 26/26 native tests. A canonical framebuffer and two explicit
-  direct-PSRAM-DMA snapshots decouple rendering from the GPIO43-TE presenter, and
-  `on_color_trans_done` is the only release event. Clean commit `50dee93` builds a
-  734,816-byte ESP-IDF 6.0.2 app with SHA-256
-  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`;
-  exact-board proof remains pending.
+  contract failed 15/33 and the native red failed on the absent slot policy; D-054
+  reached 34/34 plus 26/26 before its exact-board direct PSRAM DMA underflow. The
+  D-055 correction first failed on the absent transfer profile and at 6/13 source
+  invariants; green is 27/27 native, 13/13 QSPI and 34/34 display/audio. A
+  canonical framebuffer and two explicit snapshots decouple rendering from the
+  GPIO43-TE presenter. ESP LCD stages each snapshot through three queued 8-row
+  internal-DMA chunks (23,040 bytes maximum), and `on_color_trans_done` is the
+  only release event. A start/completion failure latches `fatal=1`; exact-board
+  D-055 proof remains pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

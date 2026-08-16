@@ -1,14 +1,16 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Current software candidate: D-054 replaces the failed hardware-rotated adapter
-`TE_SYNC` route with native CO5300 scan order, LVGL PARTIAL 270-degree software
-rotation, a canonical framebuffer and two immutable direct-PSRAM-DMA snapshots.
+Current software candidate: D-055 retains D-054's native CO5300 scan order, LVGL
+PARTIAL 270-degree software rotation, canonical framebuffer and two immutable
+PSRAM snapshots, but replaces its failed direct-DMA transport with bounded
+internal staging.
 Only the newest complete READY generation can start on GPIO43 TE, and it remains
-IN_FLIGHT until the LCD completion callback. Red evidence was 15/33 source
-invariants plus a missing-policy native compile failure; green is 34/34 and 26/26.
-Clean commit `50dee93` produces a 734,816-byte ESP-IDF 6.0.2 app with SHA-256
-`d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`. This is
-software evidence only: no D-054 flash or physical acceptance is authorized yet.
+IN_FLIGHT until the LCD completion callback. Three queued 8-row chunks bound
+temporary internal DMA memory to 23,040 bytes while retaining 80 MHz QSPI. Red
+evidence was the missing transfer profile plus 6/13 source invariants; green is
+27/27 native, 13/13 QSPI, 34/34 display/audio and a complete dirty-tree build.
+D-054 app `50dee93` was flashed with write hashes verified, but direct PSRAM DMA
+underflowed and completed presentation stayed at zero. D-055 has not been flashed.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact
@@ -103,12 +105,17 @@ contains no application error, reset after startup, or watchdog event.
 
 The board is attached through usbipd-win 5.3.0 as `/dev/ttyACM0`, identified by
 Espressif VID/PID `303a:1001` and the exact identifier retained in ignored local
-hardware evidence. Final app `9d49ead` is written, every immutable region is
-verified, and its bounded boot is clean. The
+hardware evidence. D-054 app `50dee93` is currently written and all four regions
+passed esptool's write-time hash verification, but it is not an accepted runtime:
+the first direct PSRAM color transfer underflowed and telemetry remained at zero
+completed presentations. The bounded D-055 correction is built but not flashed.
+The
 screen's indoor physical UI passed on 2026-08-14; daylight/night, glare, and
 in-vehicle motion remain unverified. A full factory backup is not available because USB/IP
 stopped both the continuous read and the chunked retry; two 1 MB chunks are not
-restorable. On 2026-08-04 the user explicitly accepted that limitation and authorized
+restorable. A D-054 application-only readback likewise stopped at 512,000 bytes
+and was not retried. On 2026-08-04 the user explicitly accepted the factory-backup
+limitation and authorized
 the calibration-safe demo flash only on this exact serial.
 Follow `docs/ARRIVAL_CHECKLIST.md`, then capture:
 

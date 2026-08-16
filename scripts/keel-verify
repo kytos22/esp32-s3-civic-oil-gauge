@@ -376,7 +376,7 @@ def full_frame_and_warning_loop_contract() -> None:
         "on_color_trans_done" in display_runtime,
         "kDrawBufferRows = 120" in display_runtime,
         "FrameSlotState::inFlight" in display_runtime,
-        "esp_ptr_dma_ext_capable" in display_runtime,
+        "esp_ptr_external_ram" in display_runtime,
         "touch_flags.swap_xy = 0" in display_runtime,
         "touch_flags.mirror_x = 0" in display_runtime,
         "touch_flags.mirror_y = 0" in display_runtime,
@@ -404,6 +404,7 @@ def full_frame_and_warning_loop_contract() -> None:
 
 def display_qspi_clock_contract() -> None:
     root_cmake = text("CMakeLists.txt")
+    display_runtime = text("src/display_runtime.cpp")
     profile = text("include/display_clock_profile.h") if (
         REPO / "include/display_clock_profile.h"
     ).is_file() else ""
@@ -414,13 +415,19 @@ def display_qspi_clock_contract() -> None:
         "display_clock_override.h" in root_cmake,
         "waveshare__esp32_s3_touch_amoled_2_16" in root_cmake,
         "#define OIL_GAUGE_DISPLAY_QSPI_HZ (80 * 1000 * 1000)" in profile,
+        "#define OIL_GAUGE_DISPLAY_TRANSFER_ROWS (8)" in profile,
+        "#define OIL_GAUGE_DISPLAY_QUEUE_DEPTH (3)" in profile,
         '#include "display_clock_profile.h"' in override,
         "#undef CO5300_PANEL_IO_QSPI_CONFIG" in override,
         ".pclk_hz = OIL_GAUGE_DISPLAY_QSPI_HZ" in override,
-        ".psram_dma_direct = true" in override,
+        ".trans_queue_depth = OIL_GAUGE_DISPLAY_QUEUE_DEPTH" in override,
+        ".psram_dma_direct = false" in override,
+        ".max_transfer_sz = kPanelTransferBytes" in display_runtime,
+        "esp_ptr_dma_ext_capable" not in display_runtime,
+        "presenterFailed.store(true" in display_runtime,
     ]
     check(
-        "Sprint 6 80 MHz QSPI experiment",
+        "Sprint 6 80 MHz QSPI bounded-bounce path",
         all(conditions),
         f"{sum(conditions)}/{len(conditions)} project-owned clock override invariants",
     )

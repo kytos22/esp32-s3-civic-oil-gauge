@@ -23,6 +23,7 @@
 #include "freertos/task.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -44,6 +45,12 @@ constexpr int kDrawBufferRows = 120;
 constexpr std::size_t kDrawBufferBytes =
     static_cast<std::size_t>(kDisplayWidth) * kDrawBufferRows *
     kRgb565BytesPerPixel;
+constexpr int kPanelTransferRows = OIL_GAUGE_DISPLAY_TRANSFER_ROWS;
+constexpr std::size_t kPanelTransferBytes =
+    static_cast<std::size_t>(kDisplayWidth) * kPanelTransferRows *
+    kRgb565BytesPerPixel;
+constexpr std::size_t kQueuedBounceBytes =
+    kPanelTransferBytes * OIL_GAUGE_DISPLAY_QUEUE_DEPTH;
 constexpr int kRotationTilePixels = 32;
 constexpr std::size_t kTransmitSlotCount = 2;
 constexpr int64_t kTeProbeDurationUs = 150'000;
@@ -62,6 +69,9 @@ constexpr uint32_t kQspiWriteCommandOpcode = 0x02U << 24;
 
 static_assert(kTransmitSlotCount == 2);
 static_assert(kFrameBytes == 460'800);
+static_assert(kPanelTransferRows > 0);
+static_assert(kDisplayHeight % kPanelTransferRows == 0);
+static_assert(kQueuedBounceBytes <= 24U * 1024U);
 
 struct PipelineStats {
   int64_t windowStartUs = 0;
@@ -104,17 +114,15 @@ struct DisplayPipeline {
   TaskHandle_t presenterTask = nullptr;
   portMUX_TYPE slotMux = portMUX_INITIALIZER_UNLOCKED;
   portMUX_TYPE statsMux = portMUX_INITIALIZER_UNLOCKED;
+  std::atomic_bool presenterFailed{false};
   PipelineStats stats{};
 };
 
 DisplayPipeline gPipeline;
 
 [[nodiscard]] std::uint8_t* allocatePsram(std::size_t bytes,
-                                         bool clear,
-                                         bool dmaCapable = false) {
-  const uint32_t capabilities =
-      MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT |
-      (dmaCapable ? MALLOC_CAP_DMA : 0);
+                                         bool clear) {
+  const uint32_t capabilities = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
   auto* memory = static_cast<std::uint8_t*>(heap_caps_aligned_alloc(
       64, bytes, capabilities));
   if (memory != nullptr && clear) {
@@ -176,7 +184,7 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
       "CO5300 pipeline: presented=%u.%03u fps lvgl=%u snapshots=%u "
       "overwritten=%u dropped=%u TE=%u flushes=%u pixels=%llu "
       "rotate=%lld/%lld us snapshot=%lld/%lld us DMA=%lld/%lld us "
-      "interval=%lld/%lld us timeouts=%u errors=%u no_slot=%u",
+      "interval=%lld/%lld us timeouts=%u errors=%u no_slot=%u fatal=%u",
       static_cast<unsigned>(milliFps / 1000U),
       static_cast<unsigned>(milliFps % 1000U),
       static_cast<unsigned>(snapshot.lvglFrames),
@@ -196,7 +204,8 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
       static_cast<long long>(snapshot.presentationIntervalMaximumUs),
       static_cast<unsigned>(snapshot.teTimeouts),
       static_cast<unsigned>(snapshot.dmaErrors),
-      static_cast<unsigned>(snapshot.noSnapshotSlot));
+      static_cast<unsigned>(snapshot.noSnapshotSlot),
+      pipeline.presenterFailed.load(std::memory_order_relaxed) ? 1U : 0U);
 }
 
 esp_err_t setTeScanLine(esp_lcd_panel_io_handle_t panelIo) {
@@ -416,10 +425,13 @@ void displayPresenterTask(void* argument) {
                static_cast<unsigned long long>(generation),
                esp_err_to_name(drawResult));
       releaseTransmitSlot(pipeline, slot);
+      pipeline.presenterFailed.store(true, std::memory_order_relaxed);
       portENTER_CRITICAL(&pipeline.statsMux);
       ++pipeline.stats.dmaErrors;
       portEXIT_CRITICAL(&pipeline.statsMux);
-      continue;
+      maybeLogTiming(pipeline, esp_timer_get_time());
+      vTaskDelete(nullptr);
+      return;
     }
 
     portENTER_CRITICAL(&pipeline.statsMux);
@@ -439,6 +451,7 @@ void displayPresenterTask(void* argument) {
                "CO5300 generation %llu DMA timed out; preserving its "
                "IN_FLIGHT buffer",
                static_cast<unsigned long long>(generation));
+      pipeline.presenterFailed.store(true, std::memory_order_relaxed);
       portENTER_CRITICAL(&pipeline.statsMux);
       ++pipeline.stats.dmaErrors;
       portEXIT_CRITICAL(&pipeline.statsMux);
@@ -596,8 +609,7 @@ bool initializePipelineResources(DisplayPipeline& pipeline) {
   pipeline.drawBuffers[0] = allocatePsram(kDrawBufferBytes, false);
   pipeline.drawBuffers[1] = allocatePsram(kDrawBufferBytes, false);
   for (std::size_t index = 0; index < kTransmitSlotCount; ++index) {
-    pipeline.transmitBuffers[index] =
-        allocatePsram(kFrameBytes, false, true);
+    pipeline.transmitBuffers[index] = allocatePsram(kFrameBytes, false);
   }
   if (pipeline.canvas == nullptr || pipeline.drawBuffers[0] == nullptr ||
       pipeline.drawBuffers[1] == nullptr ||
@@ -607,10 +619,8 @@ bool initializePipelineResources(DisplayPipeline& pipeline) {
     return false;
   }
   for (const auto* transmitBuffer : pipeline.transmitBuffers) {
-    if (!esp_ptr_external_ram(transmitBuffer) ||
-        !esp_ptr_dma_ext_capable(transmitBuffer)) {
-      ESP_LOGE(kTag,
-               "A transmit snapshot is not direct-PSRAM-DMA capable");
+    if (!esp_ptr_external_ram(transmitBuffer)) {
+      ESP_LOGE(kTag, "A transmit snapshot is not in PSRAM");
       return false;
     }
   }
@@ -699,7 +709,7 @@ OilDisplayRuntime startOilDisplayRuntime() {
   }
 
   const bsp_display_config_t panelConfig{
-      .max_transfer_sz = kFrameBytes,
+      .max_transfer_sz = kPanelTransferBytes,
   };
   if (bsp_display_new(&panelConfig, &gPipeline.panel, &gPipeline.panelIo) !=
       ESP_OK) {
@@ -778,10 +788,13 @@ OilDisplayRuntime startOilDisplayRuntime() {
            "CO5300 synchronization: native scan + LVGL 270 software "
            "rotation + immutable double snapshots + GPIO43 TE");
   ESP_LOGI(kTag,
-           "CO5300 buffers: canvas=%u bytes snapshots=2x%u draw=2x%u",
+           "CO5300 buffers: canvas=%u bytes snapshots=2x%u draw=2x%u "
+           "bounce<=%ux%u internal",
            static_cast<unsigned>(kFrameBytes),
            static_cast<unsigned>(kFrameBytes),
-           static_cast<unsigned>(kDrawBufferBytes));
+           static_cast<unsigned>(kDrawBufferBytes),
+           static_cast<unsigned>(OIL_GAUGE_DISPLAY_QUEUE_DEPTH),
+           static_cast<unsigned>(kPanelTransferBytes));
 
   if (bsp_display_brightness_init() != ESP_OK ||
       esp_lv_adapter_start() != ESP_OK) {

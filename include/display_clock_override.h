@@ -13,13 +13,13 @@
         .dc_gpio_num = -1,                                      \
         .spi_mode = 0,                                          \
         .pclk_hz = OIL_GAUGE_DISPLAY_QSPI_HZ,                   \
-        .trans_queue_depth = 10,                                \
+        .trans_queue_depth = OIL_GAUGE_DISPLAY_QUEUE_DEPTH,     \
         .on_color_trans_done = cb,                              \
         .user_ctx = cb_ctx,                                     \
         .lcd_cmd_bits = 32,                                     \
         .lcd_param_bits = 8,                                    \
         .flags = {                                              \
             .quad_mode = true,                                  \
-            .psram_dma_direct = true,                            \
+            .psram_dma_direct = false,                           \
         },                                                      \
     }
