@@ -780,3 +780,14 @@
   decide the diagonal.
 - Safety: USB/demo-only exact board. No sensors, ADS1115, MTX-D, 12 V or vehicle.
   A build does not authorize a different board or any wiring change.
+- Result: Commit `dbdc856` passed the display/audio contract 24/24, native tests
+  23/23 and a clean ESP-IDF 6.0.2 build. Its 755,744-byte application has SHA-256
+  `7b4ae20345c537cd7a329bc5649153babe43ca1e40bac9a0dcbec471f0e960ce`.
+  The separately authorized exact-board MAC was verified before writing; esptool
+  verified the hash of every written region. The boot capture confirms Waveshare `0xA0`, usable
+  GPIO43 TE at 59.403 Hz and the intended adapter path. Stable dynamic windows were
+  normally 14.82–14.85 FPS, with about 29–31 ms of non-nested draw and 32–36 ms of
+  synchronous flush inside each 62–66 ms render event. This proves orientation was
+  not the only performance problem: FULL/single-buffer `TE_SYNC` remains serialized
+  even after software rotation is absent. Marcos's visual A/B judgment is still
+  required before deciding whether the diagonal follows the address direction.

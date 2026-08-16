@@ -43,17 +43,25 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: D-053 orientation-only candidate is authorized and implemented in
-  source. Complete the ESP-IDF build, verify the exact USB board, flash the demo and
-  collect bounded runtime/visual evidence. Sensor and vehicle work remain gated.
+- Next action: collect Marcos's visual judgment of D-053 for upright orientation
+  and the diagonal while exercising the menu and red warning. The exact-board build,
+  flash and bounded runtime evidence are complete. Sensor and vehicle work remain
+  gated.
 
 ## Open items
 - D-053 red-first changed the display contract and produced the expected 21/24
   failure against the still-oriented source. Green removes all post-init panel
   `swap_xy()`/`mirror()` calls, explicitly preserves Waveshare `MADCTL=0xA0`, and
   adds a per-frame non-nested draw duration while keeping the remaining D-051
-  variables fixed. The contract now passes 24/24 and the native suite passes 23/23;
-  complete firmware build and authorized exact-board evidence are pending.
+  variables fixed. The contract passes 24/24 and the native suite 23/23. The clean
+  ESP-IDF 6.0.2 build at commit `dbdc856` produced a 755,744-byte app with SHA-256
+  `7b4ae20345c537cd7a329bc5649153babe43ca1e40bac9a0dcbec471f0e960ce`.
+  The separately authorized exact-board identity matched before flash and all four
+  written regions passed esptool's hash verification. Runtime measured TE at 59.403 Hz and
+  confirmed `MADCTL=0xA0`, but the serialized FULL/single-buffer path normally
+  transfers only 14.82–14.85 FPS: roughly 29–31 ms draw plus 32–36 ms synchronous
+  flush per 62–66 ms render event. No panic, watchdog or unexpected reset appeared
+  in the bounded capture. Visual orientation/diagonal judgment remains pending.
 - D-052 corrects the earlier over-broad D-051 conclusion. The failed candidate
   changed Waveshare's working `MADCTL=0xA0` to `0x60`, which is the deterministic
   cause of the observed 180-degree inversion. Adapter `TE_SYNC` independently forces
