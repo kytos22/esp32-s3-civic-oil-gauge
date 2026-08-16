@@ -225,8 +225,10 @@ flowchart LR
   contract failed 15/33 and the native red failed on the absent slot policy; green
   passes 34/34 plus 26/26 native tests. A canonical framebuffer and two explicit
   direct-PSRAM-DMA snapshots decouple rendering from the GPIO43-TE presenter, and
-  `on_color_trans_done` is the only release event. The complete ESP-IDF 6.0.2 build
-  passes; final clean binary/hash and exact-board proof remain pending.
+  `on_color_trans_done` is the only release event. Clean commit `50dee93` builds a
+  734,816-byte ESP-IDF 6.0.2 app with SHA-256
+  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`;
+  exact-board proof remains pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

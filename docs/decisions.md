@@ -832,7 +832,10 @@
   accepted as proof.
 - Safety and verification: USB/demo-only; `CONFIG_OIL_GAUGE_DEMO_MODE=y` remains
   mandatory. Add a deterministic slot-ownership regression, source contract,
-  native suite and complete ESP-IDF build. A build does not authorize flashing;
+  native suite and complete ESP-IDF build. Clean commit `50dee93` produces a
+  734,816-byte app with SHA-256
+  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`.
+  A build does not authorize flashing;
   exact-board orientation, touch mapping, diagonal removal and menu/red-transition
   smoothness remain HARDWARE/JUDGMENT and require a new explicit authorization.
 - Alternatives rejected (and why): Keep shifting the TE phase with `MADCTL=0xA0`;

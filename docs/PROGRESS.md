@@ -43,8 +43,8 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: finish the clean software verification of D-054, then request new
-  exact-board flash authorization. The physical pass must check upright orientation,
+- Next action: request new exact-board flash authorization for the clean D-054
+  candidate. The physical pass must check upright orientation,
   touch mapping, menu scroll, both red transitions, completed-DMA cadence and the
   diagonal. Sensor and vehicle work remain gated.
 
@@ -56,9 +56,10 @@
   two 480x120 draw buffers and two aligned direct-PSRAM-DMA snapshots separate
   rendering from scanout. The pure slot policy first failed to compile because it
   did not exist; it now passes three AC-41 regressions inside the 26/26 native
-  suite. The revised source contract first failed 15/33 and now passes 34/34. A
-  complete ESP-IDF 6.0.2 build passes; exact binary evidence will be recorded after
-  the final clean rebuild. No flash is authorized by this software result.
+  suite. The revised source contract first failed 15/33 and now passes 34/34. Clean
+  commit `50dee93` produces a 734,816-byte ESP-IDF 6.0.2 app with SHA-256
+  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`.
+  No flash is authorized by this software result.
 - D-053 red-first changed the display contract and produced the expected 21/24
   failure against the still-oriented source. Green removes all post-init panel
   `swap_xy()`/`mirror()` calls, explicitly preserves Waveshare `MADCTL=0xA0`, and
