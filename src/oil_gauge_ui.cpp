@@ -18,7 +18,7 @@ constexpr std::int32_t kCanvasWidth = 480;
 constexpr std::int32_t kHalfHeight = 240;
 constexpr std::int32_t kContentX = 38;
 constexpr std::int32_t kContentWidth = 404;
-constexpr std::int32_t kBarHeight = 9;
+constexpr std::int32_t kBarHeight = 15;
 
 constexpr std::uint32_t kBlack = 0x000000;
 constexpr std::uint32_t kPrimary = 0xF7F9FB;
@@ -52,15 +52,11 @@ struct UiWidgets {
   lv_obj_t* pressureState = nullptr;
   lv_obj_t* pressureValue = nullptr;
   lv_obj_t* pressureUnit = nullptr;
-  lv_obj_t* pressureLowReference = nullptr;
-  lv_obj_t* pressureOkReference = nullptr;
   lv_obj_t* pressureIcon = nullptr;
   BarWidgets pressureBar{};
   lv_obj_t* temperatureState = nullptr;
   lv_obj_t* temperatureValue = nullptr;
   lv_obj_t* temperatureUnit = nullptr;
-  lv_obj_t* temperatureOptimalReference = nullptr;
-  lv_obj_t* temperatureHotReference = nullptr;
   lv_obj_t* temperatureIcon = nullptr;
   lv_obj_t* brightnessSlider = nullptr;
   lv_obj_t* soundSwitch = nullptr;
@@ -650,7 +646,8 @@ BarWidgets createBar(lv_obj_t* parent,
   for (std::size_t index = 0; index < tickCount; ++index) {
     const std::int32_t tickX = kContentX + static_cast<std::int32_t>(
         std::lround(ticks[index] * static_cast<double>(kContentWidth)));
-    lv_obj_t* tick = createSolid(parent, tickX, y - 2, 1, 13, 0);
+    lv_obj_t* tick =
+        createSolid(parent, tickX, y - 2, 1, kBarHeight + 4, 0);
     lv_obj_set_style_bg_color(tick, color(kPrimary), 0);
     lv_obj_set_style_bg_opa(tick, LV_OPA_30, 0);
   }
@@ -836,24 +833,6 @@ void createOilGaugeUi(lv_obj_t* screen,
   static constexpr double kPressureTicks[] = {0.067, 0.10, 0.533};
   gUi.pressureBar =
       createBar(gUi.gaugeRoot, 184, kPressureTicks, std::size(kPressureTicks));
-  gUi.pressureLowReference = createLabel(gUi.gaugeRoot,
-                                          "Alerta ≤10 PSI",
-                                          kContentX,
-                                          201,
-                                          180,
-                                          16,
-                                          &oil_font_ui_12,
-                                          color(kSecondary),
-                                          LV_TEXT_ALIGN_LEFT);
-  gUi.pressureOkReference = createLabel(gUi.gaugeRoot,
-                                         "OK: 15–80 PSI",
-                                         262,
-                                         201,
-                                         180,
-                                         16,
-                                         &oil_font_ui_12,
-                                         color(kSecondary),
-                                         LV_TEXT_ALIGN_RIGHT);
 
   createLabel(gUi.gaugeRoot,
               "TEMPERATURA ACEITE",
@@ -898,24 +877,6 @@ void createOilGaugeUi(lv_obj_t* screen,
       0.080, 0.284, 0.455, 0.500, 0.568};
   gUi.temperatureBar = createBar(
       gUi.gaugeRoot, 424, kTemperatureTicks, std::size(kTemperatureTicks));
-  gUi.temperatureOptimalReference = createLabel(gUi.gaugeRoot,
-                                                 "Óptimo desde 75 °C",
-                                                 kContentX,
-                                                 441,
-                                                 200,
-                                                 16,
-                                                 &oil_font_ui_12,
-                                                 color(kSecondary),
-                                                 LV_TEXT_ALIGN_LEFT);
-  gUi.temperatureHotReference = createLabel(gUi.gaugeRoot,
-                                             ">94 °C caliente",
-                                             252,
-                                             441,
-                                             190,
-                                             16,
-                                             &oil_font_ui_12,
-                                             color(kSecondary),
-                                             LV_TEXT_ALIGN_RIGHT);
 
   createSettingsMenu(screen);
   createFullScreenWarning(screen);
@@ -980,10 +941,6 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   if (!gUi.unitRendered || gUi.renderedUnit != gUi.settings.pressureUnit) {
     const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
     lv_label_set_text(gUi.pressureUnit, bar ? "BAR" : "PSI");
-    lv_label_set_text(
-        gUi.pressureLowReference, bar ? "Alerta ≤0.7 BAR" : "Alerta ≤10 PSI");
-    lv_label_set_text(
-        gUi.pressureOkReference, bar ? "OK: 1.0–5.5 BAR" : "OK: 15–80 PSI");
     gUi.renderedUnit = gUi.settings.pressureUnit;
     gUi.unitRendered = true;
   }
@@ -992,11 +949,6 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     const bool fahrenheit =
         gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit;
     lv_label_set_text(gUi.temperatureUnit, fahrenheit ? "°F" : "°C");
-    lv_label_set_text(gUi.temperatureOptimalReference,
-                      fahrenheit ? "Óptimo desde 167 °F"
-                                 : "Óptimo desde 75 °C");
-    lv_label_set_text(gUi.temperatureHotReference,
-                      fahrenheit ? ">201 °F caliente" : ">94 °C caliente");
     gUi.renderedTemperatureUnit = gUi.settings.temperatureUnit;
     gUi.temperatureUnitRendered = true;
   }

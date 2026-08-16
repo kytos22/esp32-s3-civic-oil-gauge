@@ -1,8 +1,6 @@
 #include "display_runtime.h"
 
 #include "display_clock_profile.h"
-#include "frame_slot_policy.h"
-
 #include "esp_err.h"
 
 #include "bsp/display.h"
@@ -41,17 +39,13 @@ constexpr std::size_t kRgb565BytesPerPixel = 2;
 constexpr std::size_t kFrameBytes =
     static_cast<std::size_t>(kDisplayWidth) * kDisplayHeight *
     kRgb565BytesPerPixel;
-constexpr int kDrawBufferRows = 120;
-constexpr std::size_t kDrawBufferBytes =
-    static_cast<std::size_t>(kDisplayWidth) * kDrawBufferRows *
-    kRgb565BytesPerPixel;
+constexpr std::size_t kFrameBufferCount = 2;
 constexpr int kPanelTransferRows = OIL_GAUGE_DISPLAY_TRANSFER_ROWS;
 constexpr std::size_t kPanelTransferBytes =
     static_cast<std::size_t>(kDisplayWidth) * kPanelTransferRows *
     kRgb565BytesPerPixel;
 constexpr std::size_t kQueuedBounceBytes =
     kPanelTransferBytes * OIL_GAUGE_DISPLAY_QUEUE_DEPTH;
-constexpr std::size_t kTransmitSlotCount = 2;
 constexpr int64_t kTeProbeDurationUs = 150'000;
 constexpr int64_t kTeMinimumPeriodUs = 8'000;
 constexpr int64_t kTeMaximumPeriodUs = 40'000;
@@ -66,7 +60,6 @@ constexpr uint32_t kPresenterTaskStackBytes = 4096;
 constexpr uint16_t kTeScanLine = 0;
 constexpr uint32_t kQspiWriteCommandOpcode = 0x02U << 24;
 
-static_assert(kTransmitSlotCount == 2);
 static_assert(kFrameBytes == 460'800);
 static_assert(kPanelTransferRows > 0);
 static_assert(kDisplayHeight % kPanelTransferRows == 0);
@@ -74,27 +67,18 @@ static_assert(kQueuedBounceBytes <= 24U * 1024U);
 
 struct PipelineStats {
   int64_t windowStartUs = 0;
-  int64_t composeTotalUs = 0;
-  int64_t composeMaximumUs = 0;
-  int64_t snapshotTotalUs = 0;
-  int64_t snapshotMaximumUs = 0;
   int64_t dmaTotalUs = 0;
   int64_t dmaMaximumUs = 0;
   int64_t presentationIntervalTotalUs = 0;
   int64_t presentationIntervalMaximumUs = 0;
   int64_t previousPresentationStartUs = 0;
-  std::uint64_t composedPixels = 0;
   std::uint32_t teEdges = 0;
   std::uint32_t flushes = 0;
   std::uint32_t lvglFrames = 0;
-  std::uint32_t snapshots = 0;
-  std::uint32_t overwrittenReady = 0;
-  std::uint32_t droppedReady = 0;
   std::uint32_t presented = 0;
   std::uint32_t dmaCompleted = 0;
   std::uint32_t teTimeouts = 0;
   std::uint32_t dmaErrors = 0;
-  std::uint32_t noSnapshotSlot = 0;
   std::uint32_t presentationIntervalCount = 0;
 };
 
@@ -102,16 +86,14 @@ struct DisplayPipeline {
   esp_lcd_panel_handle_t panel = nullptr;
   esp_lcd_panel_io_handle_t panelIo = nullptr;
   lv_display_t* display = nullptr;
-  std::uint8_t* canvas = nullptr;
-  std::uint8_t* drawBuffers[2]{};
-  std::uint8_t* transmitBuffers[kTransmitSlotCount]{};
-  FrameSlotMetadata slots[kTransmitSlotCount]{};
+  std::uint8_t* frameBuffers[kFrameBufferCount]{};
+  std::uint8_t* pendingFrame = nullptr;
   std::uint64_t nextGeneration = 0;
   SemaphoreHandle_t frameReady = nullptr;
   SemaphoreHandle_t teEdge = nullptr;
   SemaphoreHandle_t dmaDone = nullptr;
   TaskHandle_t presenterTask = nullptr;
-  portMUX_TYPE slotMux = portMUX_INITIALIZER_UNLOCKED;
+  portMUX_TYPE frameMux = portMUX_INITIALIZER_UNLOCKED;
   portMUX_TYPE statsMux = portMUX_INITIALIZER_UNLOCKED;
   std::atomic_bool presenterFailed{false};
   PipelineStats stats{};
@@ -162,12 +144,6 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
                 static_cast<int64_t>(snapshot.presented) * 1'000'000'000LL /
                 elapsedUs)
           : 0;
-  const int64_t composeAverageUs =
-      snapshot.flushes > 0 ? snapshot.composeTotalUs / snapshot.flushes : 0;
-  const int64_t snapshotAverageUs =
-      snapshot.snapshots > 0
-          ? snapshot.snapshotTotalUs / snapshot.snapshots
-          : 0;
   const int64_t dmaAverageUs =
       snapshot.dmaCompleted > 0
           ? snapshot.dmaTotalUs / snapshot.dmaCompleted
@@ -180,30 +156,20 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
 
   ESP_LOGI(
       kTag,
-      "CO5300 pipeline: presented=%u.%03u fps lvgl=%u snapshots=%u "
-      "overwritten=%u dropped=%u TE=%u flushes=%u pixels=%llu "
-      "compose=%lld/%lld us snapshot=%lld/%lld us DMA=%lld/%lld us "
-      "interval=%lld/%lld us timeouts=%u errors=%u no_slot=%u fatal=%u",
+      "CO5300 pipeline: presented=%u.%03u fps lvgl=%u TE=%u flushes=%u "
+      "DMA=%lld/%lld us interval=%lld/%lld us timeouts=%u errors=%u "
+      "fatal=%u",
       static_cast<unsigned>(milliFps / 1000U),
       static_cast<unsigned>(milliFps % 1000U),
       static_cast<unsigned>(snapshot.lvglFrames),
-      static_cast<unsigned>(snapshot.snapshots),
-      static_cast<unsigned>(snapshot.overwrittenReady),
-      static_cast<unsigned>(snapshot.droppedReady),
       static_cast<unsigned>(snapshot.teEdges),
       static_cast<unsigned>(snapshot.flushes),
-      static_cast<unsigned long long>(snapshot.composedPixels),
-      static_cast<long long>(composeAverageUs),
-      static_cast<long long>(snapshot.composeMaximumUs),
-      static_cast<long long>(snapshotAverageUs),
-      static_cast<long long>(snapshot.snapshotMaximumUs),
       static_cast<long long>(dmaAverageUs),
       static_cast<long long>(snapshot.dmaMaximumUs),
       static_cast<long long>(intervalAverageUs),
       static_cast<long long>(snapshot.presentationIntervalMaximumUs),
       static_cast<unsigned>(snapshot.teTimeouts),
       static_cast<unsigned>(snapshot.dmaErrors),
-      static_cast<unsigned>(snapshot.noSnapshotSlot),
       pipeline.presenterFailed.load(std::memory_order_relaxed) ? 1U : 0U);
 }
 
@@ -343,53 +309,18 @@ bool IRAM_ATTR onColorTransferDone(
   return highPriorityTaskWoken == pdTRUE;
 }
 
-bool anyReadySlot(DisplayPipeline& pipeline) {
-  bool ready = false;
-  portENTER_CRITICAL(&pipeline.slotMux);
-  ready = selectNewestReadySlot(pipeline.slots) >= 0;
-  portEXIT_CRITICAL(&pipeline.slotMux);
-  return ready;
-}
-
-int claimNewestReadySlot(DisplayPipeline& pipeline,
-                         std::uint64_t& generation) {
-  int selected = -1;
-  std::uint32_t dropped = 0;
-  portENTER_CRITICAL(&pipeline.slotMux);
-  selected = selectNewestReadySlot(pipeline.slots);
-  if (selected >= 0) {
-    generation = pipeline.slots[selected].generation;
-    for (std::size_t index = 0; index < kTransmitSlotCount; ++index) {
-      if (static_cast<int>(index) == selected) {
-        pipeline.slots[index].state = FrameSlotState::inFlight;
-      } else if (pipeline.slots[index].state == FrameSlotState::ready) {
-        pipeline.slots[index].state = FrameSlotState::free;
-        ++dropped;
-      }
-    }
-  }
-  portEXIT_CRITICAL(&pipeline.slotMux);
-
-  if (dropped > 0) {
-    portENTER_CRITICAL(&pipeline.statsMux);
-    pipeline.stats.droppedReady += dropped;
-    portEXIT_CRITICAL(&pipeline.statsMux);
-  }
-  return selected;
-}
-
-void releaseTransmitSlot(DisplayPipeline& pipeline, int slot) {
-  portENTER_CRITICAL(&pipeline.slotMux);
-  pipeline.slots[slot].state = FrameSlotState::free;
-  portEXIT_CRITICAL(&pipeline.slotMux);
-}
-
 void displayPresenterTask(void* argument) {
   auto& pipeline = *static_cast<DisplayPipeline*>(argument);
 
   while (true) {
     xSemaphoreTake(pipeline.frameReady, portMAX_DELAY);
-    if (!anyReadySlot(pipeline)) {
+    std::uint8_t* frame = nullptr;
+    portENTER_CRITICAL(&pipeline.frameMux);
+    frame = pipeline.pendingFrame;
+    pipeline.pendingFrame = nullptr;
+    const std::uint64_t generation = pipeline.nextGeneration;
+    portEXIT_CRITICAL(&pipeline.frameMux);
+    if (frame == nullptr) {
       continue;
     }
 
@@ -402,12 +333,6 @@ void displayPresenterTask(void* argument) {
       maybeLogTiming(pipeline, esp_timer_get_time());
     }
 
-    std::uint64_t generation = 0;
-    const int slot = claimNewestReadySlot(pipeline, generation);
-    if (slot < 0) {
-      continue;
-    }
-
     while (xSemaphoreTake(pipeline.dmaDone, 0) == pdTRUE) {
     }
     const int64_t transferStartUs = esp_timer_get_time();
@@ -417,13 +342,12 @@ void displayPresenterTask(void* argument) {
         0,
         kDisplayWidth,
         kDisplayHeight,
-        pipeline.transmitBuffers[slot]);
+        frame);
     if (drawResult != ESP_OK) {
       ESP_LOGE(kTag,
                "CO5300 generation %llu could not start: %s",
                static_cast<unsigned long long>(generation),
                esp_err_to_name(drawResult));
-      releaseTransmitSlot(pipeline, slot);
       pipeline.presenterFailed.store(true, std::memory_order_relaxed);
       portENTER_CRITICAL(&pipeline.statsMux);
       ++pipeline.stats.dmaErrors;
@@ -447,8 +371,7 @@ void displayPresenterTask(void* argument) {
 
     if (xSemaphoreTake(pipeline.dmaDone, kDmaWaitTicks) != pdTRUE) {
       ESP_LOGE(kTag,
-               "CO5300 generation %llu DMA timed out; preserving its "
-               "IN_FLIGHT buffer",
+               "CO5300 generation %llu DMA timed out; preserving its buffer",
                static_cast<unsigned long long>(generation));
       pipeline.presenterFailed.store(true, std::memory_order_relaxed);
       portENTER_CRITICAL(&pipeline.statsMux);
@@ -459,7 +382,6 @@ void displayPresenterTask(void* argument) {
     }
 
     const int64_t dmaDurationUs = esp_timer_get_time() - transferStartUs;
-    releaseTransmitSlot(pipeline, slot);
     portENTER_CRITICAL(&pipeline.statsMux);
     pipeline.stats.dmaTotalUs += dmaDurationUs;
     pipeline.stats.dmaMaximumUs =
@@ -467,129 +389,36 @@ void displayPresenterTask(void* argument) {
     ++pipeline.stats.presented;
     ++pipeline.stats.dmaCompleted;
     portEXIT_CRITICAL(&pipeline.statsMux);
+    // LVGL may reuse this framebuffer only after the LCD driver reports that
+    // the complete QSPI transfer has finished.
+    lv_display_flush_ready(pipeline.display);
     maybeLogTiming(pipeline, esp_timer_get_time());
   }
 }
 
-bool snapshotCompleteFrame(DisplayPipeline& pipeline) {
-  int selected = -1;
-  bool overwroteReady = false;
-  portENTER_CRITICAL(&pipeline.slotMux);
-  selected = selectSnapshotSlot(pipeline.slots);
-  if (selected >= 0) {
-    overwroteReady =
-        pipeline.slots[selected].state == FrameSlotState::ready;
-    pipeline.slots[selected].generation = ++pipeline.nextGeneration;
-    pipeline.slots[selected].state = FrameSlotState::snapshot;
-  }
-  portEXIT_CRITICAL(&pipeline.slotMux);
-
-  if (selected < 0) {
-    portENTER_CRITICAL(&pipeline.statsMux);
-    ++pipeline.stats.noSnapshotSlot;
-    portEXIT_CRITICAL(&pipeline.statsMux);
-    return false;
-  }
-
-  const int64_t snapshotStartUs = esp_timer_get_time();
-  std::memcpy(pipeline.transmitBuffers[selected],
-              pipeline.canvas,
-              kFrameBytes);
-  const int64_t snapshotDurationUs = esp_timer_get_time() - snapshotStartUs;
-
-  portENTER_CRITICAL(&pipeline.slotMux);
-  pipeline.slots[selected].state = FrameSlotState::ready;
-  portEXIT_CRITICAL(&pipeline.slotMux);
-
-  portENTER_CRITICAL(&pipeline.statsMux);
-  pipeline.stats.snapshotTotalUs += snapshotDurationUs;
-  pipeline.stats.snapshotMaximumUs =
-      std::max(pipeline.stats.snapshotMaximumUs, snapshotDurationUs);
-  ++pipeline.stats.snapshots;
-  if (overwroteReady) {
-    ++pipeline.stats.overwrittenReady;
-  }
-  portEXIT_CRITICAL(&pipeline.statsMux);
-  xSemaphoreGive(pipeline.frameReady);
-  return true;
-}
-
-void copyAreaIntoNativeCanvas(DisplayPipeline& pipeline,
-                              const lv_area_t& area,
-                              const std::uint8_t* pixels) {
-  const int sourceWidth = lv_area_get_width(&area);
-  const int sourceHeight = lv_area_get_height(&area);
-  const uint32_t sourceStride = lv_draw_buf_width_to_stride(
-      sourceWidth, LV_COLOR_FORMAT_RGB565);
-
-  // With LVGL and the controller both in native orientation, dirty areas map
-  // directly into the canonical framebuffer. Store panel-endian RGB565 once so
-  // snapshots remain immutable and immediately ready for the TE presenter.
-  for (int sourceY = 0; sourceY < sourceHeight; ++sourceY) {
-    const auto* source =
-        pixels + static_cast<std::size_t>(sourceY) * sourceStride;
-    auto* destination =
-        pipeline.canvas +
-        (static_cast<std::size_t>(area.y1 + sourceY) * kDisplayWidth +
-         area.x1) *
-            kRgb565BytesPerPixel;
-    std::memcpy(destination,
-                source,
-                static_cast<std::size_t>(sourceWidth) *
-                    kRgb565BytesPerPixel);
-    lv_draw_sw_rgb565_swap(destination, sourceWidth);
-  }
-}
-
 void flushToNativeFrame(lv_display_t* display,
-                        const lv_area_t* area,
+                        const lv_area_t*,
                         std::uint8_t* pixels) {
   auto& pipeline = *static_cast<DisplayPipeline*>(
       lv_display_get_user_data(display));
-  const bool lastFlush = lv_display_flush_is_last(display);
-
-  const int64_t composeStartUs = esp_timer_get_time();
-  copyAreaIntoNativeCanvas(pipeline, *area, pixels);
-  const int64_t composeDurationUs = esp_timer_get_time() - composeStartUs;
-  const std::uint64_t pixelCount =
-      static_cast<std::uint64_t>(lv_area_get_size(area));
-
+  portENTER_CRITICAL(&pipeline.frameMux);
+  pipeline.pendingFrame = pixels;
+  ++pipeline.nextGeneration;
+  portEXIT_CRITICAL(&pipeline.frameMux);
   portENTER_CRITICAL(&pipeline.statsMux);
-  pipeline.stats.composeTotalUs += composeDurationUs;
-  pipeline.stats.composeMaximumUs =
-      std::max(pipeline.stats.composeMaximumUs, composeDurationUs);
-  pipeline.stats.composedPixels += pixelCount;
   ++pipeline.stats.flushes;
+  ++pipeline.stats.lvglFrames;
   portEXIT_CRITICAL(&pipeline.statsMux);
-
-  if (lastFlush) {
-    snapshotCompleteFrame(pipeline);
-    portENTER_CRITICAL(&pipeline.statsMux);
-    ++pipeline.stats.lvglFrames;
-    portEXIT_CRITICAL(&pipeline.statsMux);
-  }
-
-  lv_display_flush_ready(display);
-  maybeLogTiming(pipeline, esp_timer_get_time());
+  xSemaphoreGive(pipeline.frameReady);
 }
 
 bool initializePipelineResources(DisplayPipeline& pipeline) {
-  pipeline.canvas = allocatePsram(kFrameBytes, true);
-  pipeline.drawBuffers[0] = allocatePsram(kDrawBufferBytes, false);
-  pipeline.drawBuffers[1] = allocatePsram(kDrawBufferBytes, false);
-  for (std::size_t index = 0; index < kTransmitSlotCount; ++index) {
-    pipeline.transmitBuffers[index] = allocatePsram(kFrameBytes, false);
+  for (std::size_t index = 0; index < kFrameBufferCount; ++index) {
+    pipeline.frameBuffers[index] = allocatePsram(kFrameBytes, true);
   }
-  if (pipeline.canvas == nullptr || pipeline.drawBuffers[0] == nullptr ||
-      pipeline.drawBuffers[1] == nullptr ||
-      pipeline.transmitBuffers[0] == nullptr ||
-      pipeline.transmitBuffers[1] == nullptr) {
-    ESP_LOGE(kTag, "Unable to allocate native-scan display buffers in PSRAM");
-    return false;
-  }
-  for (const auto* transmitBuffer : pipeline.transmitBuffers) {
-    if (!esp_ptr_external_ram(transmitBuffer)) {
-      ESP_LOGE(kTag, "A transmit snapshot is not in PSRAM");
+  for (const auto* frameBuffer : pipeline.frameBuffers) {
+    if (frameBuffer == nullptr || !esp_ptr_external_ram(frameBuffer)) {
+      ESP_LOGE(kTag, "Unable to allocate a full framebuffer in PSRAM");
       return false;
     }
   }
@@ -714,13 +543,13 @@ OilDisplayRuntime startOilDisplayRuntime() {
     return runtime;
   }
   gPipeline.display = runtime.display;
-  lv_display_set_color_format(runtime.display, LV_COLOR_FORMAT_RGB565);
+  lv_display_set_color_format(runtime.display, LV_COLOR_FORMAT_RGB565_SWAPPED);
   lv_display_set_user_data(runtime.display, &gPipeline);
   lv_display_set_buffers(runtime.display,
-                         gPipeline.drawBuffers[0],
-                         gPipeline.drawBuffers[1],
-                         kDrawBufferBytes,
-                         LV_DISPLAY_RENDER_MODE_PARTIAL);
+                         gPipeline.frameBuffers[0],
+                         gPipeline.frameBuffers[1],
+                         kFrameBytes,
+                         LV_DISPLAY_RENDER_MODE_FULL);
   lv_display_set_flush_cb(runtime.display, flushToNativeFrame);
 
   bsp_display_cfg_t touchBspConfig{};
@@ -752,14 +581,12 @@ OilDisplayRuntime startOilDisplayRuntime() {
                       kTouchReadPeriodMs);
 
   ESP_LOGI(kTag,
-           "CO5300 synchronization: native scan without rotation + immutable "
-           "double snapshots + GPIO43 TE");
+           "CO5300 synchronization: native scan + FULL double framebuffer + "
+           "GPIO43 TE; flush releases only after DMA completion");
   ESP_LOGI(kTag,
-           "CO5300 buffers: canvas=%u bytes snapshots=2x%u draw=2x%u "
+           "CO5300 buffers: full=2x%u bytes RGB565_SWAPPED "
            "bounce<=%ux%u internal",
            static_cast<unsigned>(kFrameBytes),
-           static_cast<unsigned>(kFrameBytes),
-           static_cast<unsigned>(kDrawBufferBytes),
            static_cast<unsigned>(OIL_GAUGE_DISPLAY_QUEUE_DEPTH),
            static_cast<unsigned>(kPanelTransferBytes));
 

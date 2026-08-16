@@ -922,3 +922,35 @@
 - Supersedes: D-054/D-055 only for logical rotation. D-055's physically proven
   scan order, no-tearing result, bounded transport and ownership remain active;
   `443eb72` remains Golden Prototype 1.
+
+## D-057 — Render directly into two complete panel-endian framebuffers
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 performance correction
+- Decision: Keep D-056's native CO5300 scan, native touch coordinates, GPIO43 TE,
+  80 MHz QSPI, bounded eight-row internal DMA staging, and completion-owned
+  framebuffer lifetime. Replace the PARTIAL canvas plus two copied snapshots with
+  two complete PSRAM draw buffers in LVGL `FULL` mode and
+  `RGB565_SWAPPED`. The flush callback queues the complete rendered buffer without
+  copying it; the presenter starts it on TE and calls `lv_display_flush_ready()`
+  only after `on_color_trans_done` has completed the transfer. In the same visual
+  candidate, remove only the four fixed threshold notes below the bars, retain all
+  live state labels, and increase both bars from 9 px to 15 px.
+- Why: D-056 measured the 460,800-byte snapshot copy at 16–21 ms, longer than one
+  59.5 Hz panel period. Pinned LVGL's double-buffered `DIRECT` mode copies every
+  previous invalid area into the next buffer before rendering; its triple-buffer
+  branch copies those areas into two off-screen buffers. Menu scroll invalidates
+  the full 480×480 object, so `DIRECT` would preserve or multiply the measured
+  full-frame copy. `FULL` redraws instead, allows LVGL to render the second buffer
+  while the first is transferred, and removes both the snapshot copy and byte-swap
+  pass.
+- Verification: the revised source contract first failed 34/46, then passes 46/46.
+  Native tests pass 27/27 and the complete ESP-IDF 6.0.2 build succeeds. The
+  731,120-byte candidate has SHA-256
+  `ae6965412023a4440e795576c957ecca659ab195955df0a326b0233b628cce45`.
+  Exact-board cadence, tearing, color order, menu smoothness, and the 15 px visual
+  weight remain unverified until separately authorized hardware testing.
+- Safety: demo-only. No sensor, ADS1115, MTX-D, 12 V, or vehicle connection. No
+  flash without exact-board authorization.
+- Supersedes: D-056 only for its canvas/snapshot/render-mode pipeline and 9 px bar
+  geometry. D-056's accepted native orientation, touch mapping, no-tearing baseline,
+  and D-055's bounded QSPI transport remain binding; `443eb72` remains Golden
+  Prototype 1.

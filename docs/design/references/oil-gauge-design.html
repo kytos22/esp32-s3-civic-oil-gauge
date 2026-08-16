@@ -904,10 +904,6 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;i style=&quot;left:10%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:53.3%&quot;&gt;&lt;/i&gt;
       &lt;/div&gt;
-      &lt;div class=&quot;ogr-context&quot;&gt;
-        &lt;span id=&quot;ogrPressureLowReference&quot;&gt;Alerta ≤10 PSI&lt;/span&gt;
-        &lt;span id=&quot;ogrPressureOkReference&quot;&gt;OK: 15–80 PSI&lt;/span&gt;
-      &lt;/div&gt;
     &lt;/section&gt;
 
     &lt;section class=&quot;ogr-half ogr-temperature&quot; data-state=&quot;optimal&quot;&gt;
@@ -935,10 +931,6 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;i style=&quot;left:45.5%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:50%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:56.8%&quot;&gt;&lt;/i&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;ogr-context&quot;&gt;
-        &lt;span id=&quot;ogrTemperatureOptimalReference&quot;&gt;Óptimo desde 75 °C&lt;/span&gt;
-        &lt;span id=&quot;ogrTemperatureHotReference&quot;&gt;&amp;gt;94 °C caliente&lt;/span&gt;
       &lt;/div&gt;
     &lt;/section&gt;
     &lt;div class=&quot;ogr-full-warning&quot; id=&quot;ogrFullWarning&quot; aria-hidden=&quot;true&quot;&gt;
@@ -1112,7 +1104,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
   #oilGaugeRefinedIcons .ogr-scale {
     position: relative;
-    height: 9px;
+    height: 15px;
     border-radius: 999px;
     background: var(--ogr-line);
   }
@@ -1131,19 +1123,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     position: absolute;
     top: -2px;
     width: 1px;
-    height: 13px;
+    height: 19px;
     background: var(--ogr-white);
     opacity: 0.34;
-  }
-
-  #oilGaugeRefinedIcons .ogr-context {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding-top: 5px;
-    color: var(--ogr-muted);
-    font-size: clamp(10px, 2vw, 12px);
-    letter-spacing: 0.03em;
   }
 
   #oilGaugeRefinedIcons .ogr-controls {
@@ -1298,10 +1280,6 @@ html&gt;body{padding:0}&lt;/style&gt;
     const fullWarningValue = document.getElementById(&#x27;ogrFullWarningValue&#x27;);
     const pressureUnit = document.getElementById(&#x27;ogrPressureUnit&#x27;);
     const temperatureUnit = document.getElementById(&#x27;ogrTemperatureUnit&#x27;);
-    const pressureLowReference = document.getElementById(&#x27;ogrPressureLowReference&#x27;);
-    const pressureOkReference = document.getElementById(&#x27;ogrPressureOkReference&#x27;);
-    const temperatureOptimalReference = document.getElementById(&#x27;ogrTemperatureOptimalReference&#x27;);
-    const temperatureHotReference = document.getElementById(&#x27;ogrTemperatureHotReference&#x27;);
     const pressureState = document.getElementById(&#x27;ogrPressureState&#x27;);
     const temperatureState = document.getElementById(&#x27;ogrTemperatureState&#x27;);
     const pressureFill = document.getElementById(&#x27;ogrPressureFill&#x27;);
@@ -1386,14 +1364,6 @@ html&gt;body{padding:0}&lt;/style&gt;
       fullWarningValue.textContent = pressureDisplay;
       pressureUnit.textContent = bar ? &#x27;BAR&#x27; : &#x27;PSI&#x27;;
       temperatureUnit.textContent = fahrenheit ? &#x27;°F&#x27; : &#x27;°C&#x27;;
-      pressureLowReference.textContent = bar ? &#x27;Alerta ≤0,7 BAR&#x27; : &#x27;Alerta ≤10 PSI&#x27;;
-      pressureOkReference.textContent = bar ? &#x27;OK: 1,0–5,5 BAR&#x27; : &#x27;OK: 15–80 PSI&#x27;;
-      temperatureOptimalReference.textContent = fahrenheit
-        ? &#x27;Óptimo desde 167 °F&#x27;
-        : &#x27;Óptimo desde 75 °C&#x27;;
-      temperatureHotReference.textContent = fahrenheit
-        ? &#x27;&gt;201 °F caliente&#x27;
-        : &#x27;&gt;94 °C caliente&#x27;;
       temperatureValue.textContent = temperatureDisplay;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;

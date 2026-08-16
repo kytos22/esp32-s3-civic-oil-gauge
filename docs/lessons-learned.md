@@ -151,3 +151,23 @@
 - Rule for next time: distinguish addressability from bandwidth; for any direct
   external-memory DMA mode, read its loss conditions and prove one complete
   transfer on hardware before optimizing the surrounding pipeline.
+
+## L-010 — LVGL DIRECT buffering can hide full-frame synchronization copies
+- Symptom: D-056 removed rotation work but menu presentation remained about
+  17–33 FPS, with each full snapshot copy alone measuring 16–21 ms.
+- Cause: replacing the explicit snapshot with LVGL `DIRECT` double/triple buffering
+  would not eliminate that class of work. Pinned LVGL 9.5 records invalidated areas
+  and copies them to the next off-screen buffer before rendering; its triple-buffer
+  path also synchronizes the second off-screen buffer. Menu scrolling invalidates
+  the complete 480×480 menu object.
+- Fix: use two full-screen `RGB565_SWAPPED` buffers in `FULL` mode, queue the
+  rendered pointer directly, and release it only after LCD DMA completion.
+- Where: Phase 5, Sprint 6 slice 6.18; `src/display_runtime.cpp` and pinned
+  `managed_components/lvgl__lvgl/src/core/lv_refr.c`.
+- What failed first: the initial D-057 plan favored `DIRECT` triple buffering before
+  tracing `refr_sync_areas()` against the menu's full-object invalidation behavior.
+- Check added: the 46-row display contract requires `FULL`, two complete buffers,
+  panel-endian rendering, no canvas/snapshot copy, and DMA-completion flush release.
+- Rule for next time: inspect a framework's buffer-synchronization path using the
+  application's real invalidation areas before assuming that direct rendering means
+  zero copies.

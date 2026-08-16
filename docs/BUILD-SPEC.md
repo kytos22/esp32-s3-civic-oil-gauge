@@ -43,7 +43,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | text.secondary | `#9AA4AF` | labels/units; contrast 8.30:1 |
 | pressure.normal | `#FFB020` | normal icon/bar; contrast 11.48:1 |
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
-| bar.thickness | `9 px` | both bars |
+| bar.thickness | `15 px` | both bars; fixed threshold notes below removed |
 | warning.elements.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
 | warning.screen.period | `2 s`, step-end | 0.5 Hz complete cycle; 1 s normal / 1 s opaque red |
 | refresh.period | `20 ms` | application and LVGL target cadence for the 50 FPS physical experiment |
@@ -95,6 +95,8 @@ Temperature colors are linearly interpolated between:
   field together with `PELIGRO` and `PRESIÓN MUY BAJA`; neither warning phase may
   hide the number. The prebuilt layer changes visibility only and is not reordered.
 - Reduced motion holds the warning icon, label, and bar red.
+- Dynamic state labels remain visible. Only the small fixed threshold notes below
+  the two bars are removed.
 - All specified foreground tokens exceed 4.5:1 against black.
 - Indoor physical fidelity, text integrity, warning motion, and handheld-distance
   readability passed from the user-supplied full demo video on 2026-08-14.

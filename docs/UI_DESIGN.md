@@ -16,11 +16,14 @@ Static capture:
 - Vertical 50/50 split: oil pressure top, oil temperature bottom.
 - Each numeric value is centered on the complete horizontal axis. The left
   icon and right unit never displace it.
-- Bars are 9 px thick at 480×480.
-- Numeric values are white; labels/units/references use dimmed white.
+- Bars are 15 px thick at 480×480.
+- Numeric values are white; headings and units use dimmed white.
 - Semantic state labels are right-aligned in 24 px Montserrat for distance
   readability; the physical demo confirms they are unclipped and glanceable at
   handheld distance.
+- Preserve every dynamic semantic state label. Remove only the four small fixed
+  threshold notes that previously sat below the bars; their space belongs to the
+  thicker indicator bars.
 - RPM is never shown. It is only an internal pressure-warning input.
 - A stationary 700 ms press-and-hold opens the settings page; ordinary taps,
   dragging, and scrolling do not alter the driving display.
@@ -96,6 +99,9 @@ Bar, icon, and label use the same continuous interpolation:
 | 138 °C | `255, 45, 56` | Red at sensor display limit |
 
 Interpolate linearly between stops. Normalize the bar from 50–138 °C.
+
+The pressure and temperature threshold marks remain embedded in their bars; only
+the explanatory fixed text beneath them is removed.
 
 ## Settings page
 

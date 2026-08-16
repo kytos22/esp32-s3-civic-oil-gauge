@@ -43,17 +43,23 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: design the next performance correction around the measured
-  16–21 ms full-frame snapshot copy, without weakening D-056's immutable
-  render/DMA ownership. Native orientation is accepted with USB-C on the right,
-  touch aligns, and tearing/diagonal remain absent. Sensor and vehicle work remain
-  gated. In the same D-057 visual revision, remove the semantic captions below
-  both indicator bars (for example `ALERTA` and `ÓPTIMO`) and use the recovered
-  vertical space to make both bars thicker. Keep the numbers, units, reference
-  marks, full-screen danger message, and explicit fault cues. The exact new bar
-  thickness remains a visual choice for the next work block.
+- Next action: after separate exact-board authorization, flash and benchmark the
+  D-057 software candidate. Verify color order, completed presentation cadence,
+  menu scroll, warning transitions, tearing/diagonal absence, retained dynamic
+  state labels, and the 15 px bar weight. Sensor and vehicle work remain gated.
 
 ## Open items
+- D-057 removes the measured full-frame snapshot copy with two complete
+  `RGB565_SWAPPED` PSRAM buffers in LVGL `FULL` mode. The project-owned presenter
+  queues the rendered pointer directly on GPIO43 TE and releases it only after LCD
+  DMA completion. Pinned LVGL `DIRECT` was rejected because its buffer-sync path
+  copies full invalidated menu areas (twice with three buffers). The corrected
+  visual scope removes only the four small fixed threshold notes beneath the bars,
+  preserves every live state label, and raises both bars from 9 px to 15 px. The
+  source contract failed first at 34/46 and now passes 46/46; native tests pass
+  27/27; the complete ESP-IDF 6.0.2 build produces a 731,120-byte app with SHA-256
+  `ae6965412023a4440e795576c957ecca659ab195955df0a326b0233b628cce45`.
+  No flash has been authorized or performed.
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
   orientation: remove `lv_display_set_rotation()`, `lv_display_rotate_area()` and
   `lv_draw_sw_rotate()`. Dirty PARTIAL areas now copy row-for-row into the native
@@ -366,13 +372,8 @@
   terms and bilingual summaries are visible in the repository.
 
 ### Deferred items (consciously postponed work)
-- D-057 display pipeline and visual cleanup — high — next work block: eliminate
-  the 460,800-byte full snapshot copy with an ownership-safe LVGL DIRECT
-  double/triple-buffer design; remove semantic captions below both bars and use
-  that space for thicker indicator bars without removing numeric, unit, warning,
-  or fault information
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-057 performance and indicator-bar visual revision queued for the next work block
+Last updated: 2026-08-16 — D-057 software candidate built; exact-board proof pending authorization
