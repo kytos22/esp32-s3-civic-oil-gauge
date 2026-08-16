@@ -393,7 +393,7 @@ void styleSlider(lv_obj_t* slider) {
 lv_obj_t* createPressureIcon(lv_obj_t* parent) {
   lv_obj_t* icon = lv_obj_create(parent);
   lv_obj_remove_style_all(icon);
-  lv_obj_set_pos(icon, 38, 95);
+  lv_obj_set_pos(icon, 38, 99);
   lv_obj_set_size(icon, 84, 54);
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_add_flag(icon, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
@@ -424,7 +424,7 @@ lv_obj_t* createPressureIcon(lv_obj_t* parent) {
 lv_obj_t* createTemperatureIcon(lv_obj_t* parent) {
   lv_obj_t* icon = lv_obj_create(parent);
   lv_obj_remove_style_all(icon);
-  lv_obj_set_pos(icon, 40, 333);
+  lv_obj_set_pos(icon, 40, 337);
   lv_obj_set_size(icon, 78, 66);
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_add_flag(icon, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
@@ -778,7 +778,7 @@ void createOilGaugeUi(lv_obj_t* screen,
   gUi.pressureValue = createLabel(gUi.gaugeRoot,
                                   "61",
                                   120,
-                                  75,
+                                  79,
                                   240,
                                   106,
                                   &oil_font_value_96,
@@ -788,7 +788,7 @@ void createOilGaugeUi(lv_obj_t* screen,
   gUi.pressureUnit = createLabel(gUi.gaugeRoot,
                                  "PSI",
                                  340,
-                                 119,
+                                 123,
                                  70,
                                  32,
                                  &lv_font_montserrat_24,
@@ -797,7 +797,7 @@ void createOilGaugeUi(lv_obj_t* screen,
 
   static constexpr double kPressureTicks[] = {0.067, 0.10, 0.533};
   gUi.pressureBar =
-      createBar(gUi.gaugeRoot, 184, kPressureTicks, std::size(kPressureTicks));
+      createBar(gUi.gaugeRoot, 188, kPressureTicks, std::size(kPressureTicks));
 
   createLabel(gUi.gaugeRoot,
               "TEMPERATURA ACEITE",
@@ -821,7 +821,7 @@ void createOilGaugeUi(lv_obj_t* screen,
   gUi.temperatureValue = createLabel(gUi.gaugeRoot,
                                      "92",
                                      120,
-                                     315,
+                                     319,
                                      240,
                                      106,
                                      &oil_font_value_96,
@@ -831,7 +831,7 @@ void createOilGaugeUi(lv_obj_t* screen,
   gUi.temperatureUnit = createLabel(gUi.gaugeRoot,
                                     "°C",
                                     340,
-                                    359,
+                                    363,
                                     70,
                                     32,
                                     &lv_font_montserrat_24,
@@ -839,9 +839,9 @@ void createOilGaugeUi(lv_obj_t* screen,
                                     LV_TEXT_ALIGN_LEFT);
 
   static constexpr double kTemperatureTicks[] = {
-      0.080, 0.284, 0.455, 0.500, 0.568};
+      0.114, 0.295, 0.523, 0.568};
   gUi.temperatureBar = createBar(
-      gUi.gaugeRoot, 424, kTemperatureTicks, std::size(kTemperatureTicks));
+      gUi.gaugeRoot, 428, kTemperatureTicks, std::size(kTemperatureTicks));
 
   createSettingsMenu(screen);
   createFullScreenWarning(screen);

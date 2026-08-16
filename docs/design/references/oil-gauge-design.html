@@ -926,10 +926,9 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-scale&quot; aria-hidden=&quot;true&quot;&gt;
         &lt;span class=&quot;ogr-fill&quot; id=&quot;ogrTemperatureFill&quot;&gt;&lt;/span&gt;
-        &lt;i style=&quot;left:8%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:28.4%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:45.5%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:50%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:11.4%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:29.5%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:52.3%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:56.8%&quot;&gt;&lt;/i&gt;
       &lt;/div&gt;
     &lt;/section&gt;
@@ -1049,6 +1048,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    transform: translateY(4px);
   }
 
   #oilGaugeRefinedIcons .ogr-icon {
@@ -1107,6 +1107,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     height: 21px;
     border-radius: 999px;
     background: var(--ogr-line);
+    transform: translateY(4px);
   }
 
   #oilGaugeRefinedIcons .ogr-fill {
@@ -1300,10 +1301,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     const temperatureColor = (temperature) =&gt; {
       const stops = [
         [50, [30, 132, 255]],
-        [57, [30, 132, 255]],
-        [75, [174, 205, 167]],
-        [89, [174, 205, 167]],
-        [94, [234, 190, 82]],
+        [59, [30, 132, 255]],
+        [76, [174, 205, 167]],
+        [90, [174, 205, 167]],
+        [96, [234, 190, 82]],
         [100, [255, 118, 28]],
         [138, [255, 45, 56]]
       ];

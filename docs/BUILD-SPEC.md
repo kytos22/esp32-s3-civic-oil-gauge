@@ -54,10 +54,10 @@ Temperature colors are linearly interpolated between:
 | °C | Color | Contrast on black |
 |---:|---|---:|
 | 50 | `#1E84FF` | 5.80:1 |
-| 57 | `#1E84FF` | 5.80:1 |
-| 75 | `#AECDA7` | 12.09:1 |
-| 89 | `#AECDA7` | 12.09:1 |
-| 94 | `#EABE52` | 11.99:1 |
+| 59 | `#1E84FF` | 5.80:1 |
+| 76 | `#AECDA7` | 12.09:1 |
+| 90 | `#AECDA7` | 12.09:1 |
+| 96 | `#EABE52` | 11.99:1 |
 | 100 | `#FF761C` | 7.86:1 |
 | 138 | `#FF2D38` | 5.68:1 |
 

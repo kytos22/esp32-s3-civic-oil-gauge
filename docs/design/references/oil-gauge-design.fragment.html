@@ -50,10 +50,9 @@
       </div>
       <div class="ogr-scale" aria-hidden="true">
         <span class="ogr-fill" id="ogrTemperatureFill"></span>
-        <i style="left:8%"></i>
-        <i style="left:28.4%"></i>
-        <i style="left:45.5%"></i>
-        <i style="left:50%"></i>
+        <i style="left:11.4%"></i>
+        <i style="left:29.5%"></i>
+        <i style="left:52.3%"></i>
         <i style="left:56.8%"></i>
       </div>
     </section>
@@ -173,6 +172,7 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    transform: translateY(4px);
   }
 
   #oilGaugeRefinedIcons .ogr-icon {
@@ -231,6 +231,7 @@
     height: 21px;
     border-radius: 999px;
     background: var(--ogr-line);
+    transform: translateY(4px);
   }
 
   #oilGaugeRefinedIcons .ogr-fill {
@@ -424,10 +425,10 @@
     const temperatureColor = (temperature) => {
       const stops = [
         [50, [30, 132, 255]],
-        [57, [30, 132, 255]],
-        [75, [174, 205, 167]],
-        [89, [174, 205, 167]],
-        [94, [234, 190, 82]],
+        [59, [30, 132, 255]],
+        [76, [174, 205, 167]],
+        [90, [174, 205, 167]],
+        [96, [234, 190, 82]],
         [100, [255, 118, 28]],
         [138, [255, 45, 56]]
       ];

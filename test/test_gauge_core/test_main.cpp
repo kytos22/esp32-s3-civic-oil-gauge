@@ -153,10 +153,10 @@ void test_temperature_color_stops_and_interpolation() {
   };
   constexpr Case cases[] = {
       {50.0, 30, 132, 255},
-      {57.0, 30, 132, 255},
-      {75.0, 174, 205, 167},
-      {89.0, 174, 205, 167},
-      {94.0, 234, 190, 82},
+      {59.0, 30, 132, 255},
+      {76.0, 174, 205, 167},
+      {90.0, 174, 205, 167},
+      {96.0, 234, 190, 82},
       {100.0, 255, 118, 28},
       {138.0, 255, 45, 56},
       {147.0, 255, 45, 56},
@@ -168,7 +168,7 @@ void test_temperature_color_stops_and_interpolation() {
     TEST_ASSERT_EQUAL_UINT8(expected.blue, actual.blue);
   }
 
-  const RgbColor midpoint = temperatureColor(66.0);
+  const RgbColor midpoint = temperatureColor(67.5);
   TEST_ASSERT_EQUAL_UINT8(102, midpoint.red);
   TEST_ASSERT_EQUAL_UINT8(169, midpoint.green);
   TEST_ASSERT_EQUAL_UINT8(211, midpoint.blue);

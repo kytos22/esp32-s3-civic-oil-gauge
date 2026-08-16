@@ -138,7 +138,7 @@ See `docs/03-technical-plan.md`.
 - **AC-06:** At engine-running state and 0–10 PSI, the pressure warning text/icon/bar use a binary 2 Hz flash (250 ms fully visible, 250 ms fully transparent) while the numeric value remains stable; reduced motion uses fixed red.
 - **AC-07:** Pressure 15–80 PSI maps to the approved amber OK state; 11–14 and >80 remain explicitly provisional until threshold validation.
 - **AC-08:** Temperature below 50 °C renders `<50 °C`, starts at blue, and does not show a precise number.
-- **AC-09:** Temperature color interpolation follows the approved stops at 50, 57, 75, 89, 94, 100, and 138 °C.
+- **AC-09:** Temperature color interpolation follows the semantic-aligned stops at 50, 59, 76, 90, 96, 100, and 138 °C.
 - **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–95, hot at 96–100, and very hot above 100 °C; values below the measurable range still render `<50`.
 - **AC-11:** Both numbers are horizontally centered on the complete 480 px axis and the pressure/temperature regions are equal height.
 - **AC-12:** The display background is pure black and bars are 21 px thick in the 480×480 reference coordinate system.

@@ -46,12 +46,12 @@
 - Accepted Physical Baseline 2: D-057 implementation commit `9febd47`. Marcos
   confirmed no tearing, the best menu motion so far, correct warning and colors,
   removal of only the fixed notes, and retention of every dynamic state indicator.
-- D-058 physical judgment: the single rounded endpoint is clean and tearing remains
-  absent; 18 px is still too light. Its synchronized display pipeline remains the
-  active physical baseline for D-059.
-- Next action: obtain Marcos's physical D-059 judgment, especially repeated fast
-  end-to-end brightness drags, 21 px weight, revised thermal states and no tearing.
-  Sensor and vehicle work remain gated.
+- Accepted Physical Baseline 3: D-059 implementation commit `08b04eb`. Marcos
+  confirmed rapid brightness works without blocking, 21 px is optimal and tearing
+  remains absent. The temperature colors and vertical group placement move to
+  D-060 without reopening the accepted transport, brightness or thickness.
+- Next action: build the D-060 color/placement candidate, then request separate
+  exact-board flash authorization. Sensor and vehicle work remain gated.
 
 ## Open items
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
@@ -69,7 +69,15 @@
   binary identity matched before writing; all four regions passed write-hash
   verification. Boot confirms `pb2-d057-6-g08b04eb`, TE 59.511 Hz, DMA about
   13.1–14.6 ms and `timeouts=0 errors=0 fatal=0` throughout a bounded 45-second
-  capture. Physical rapid-slider and visual judgment remain pending.
+  capture. Marcos then confirmed rapid brightness works without blocking, 21 px is
+  optimal and tearing remains absent. The old color-stop mapping is rejected because
+  it did not align with the new semantic bands.
+- D-060 aligns color progression with D-059 semantics: blue through 59 °C,
+  blue-to-green during 60–75, stable light green from 76–90, gradual amber entry
+  through 96, orange at 100 and red progression above 100. It also moves each
+  icon/value/unit/bar group down 4 px while leaving headings and dynamic states in
+  place. Red evidence was one native color mismatch plus 55/63 display invariants;
+  green is native 27/27 and display/audio 63/63. Complete build remains pending.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -423,4 +431,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-059 flashed and runtime-clean; physical rapid-slider/visual judgment pending
+Last updated: 2026-08-16 — D-059 accepted as Physical Baseline 3; D-060 software tests pass pending build

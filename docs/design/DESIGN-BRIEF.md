@@ -37,12 +37,13 @@
 - Pressure normal: `#FFB020`.
 - Pressure warning: `#FF3948`.
 - Temperature stops:
-  `50 #1E84FF`, `57 #1E84FF`, `75 #AECDA7`, `89 #AECDA7`,
-  `94 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
+  `50 #1E84FF`, `59 #1E84FF`, `76 #AECDA7`, `90 #AECDA7`,
+  `96 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
 - Typography: the approved prototype's condensed sans-serif treatment; firmware must
   match its measured placement and weight using build-native glyphs.
 - Geometry: 480×480, equal 240 px regions, values centered at x=240, 21 px bars;
-  no fixed threshold notes below the bars.
+  both icon/value/unit/bar groups sit 4 px below D-059; no fixed threshold notes
+  below the bars.
 - Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
   reference. They are path geometry, not external image assets.
 - Motion: pressure warning uses either a binary 2 Hz element flash, a binary 2 Hz

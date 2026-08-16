@@ -1018,9 +1018,33 @@
   serial/MAC and the binary identity matched; all four regions passed write-time
   hash verification. Boot confirmed `pb2-d057-6-g08b04eb`, TE at 59.511 Hz, DMA
   about 13.1–14.6 ms and zero timeout/error/fatal counters in the bounded capture.
-  Marcos's rapid-slider and visual judgment remain.
+  Marcos confirmed rapid brightness works without blocking, 21 px is optimal and
+  tearing remains absent. He rejected only the temperature color progression as
+  inconsistent with the revised semantic bands.
 - Safety: demo-only. Brightness is clamped to the existing 5–100% safe range. No
   sensors, ADS1115, MTX-D, 12 V, or vehicle connection.
 - Supersedes: D-058 only for 18 px thickness, the prior semantic portions of the
   temperature bands, and the main-task live-brightness apply path. D-058's clean
   endpoint and D-057's physical display baseline remain binding.
+
+## D-060 — Align thermal colors and lower both metric groups
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Retain D-059 as Physical Baseline 3 for transport, brightness,
+  thickness and no-tearing behavior. Replace the legacy color stops with 50/59
+  blue, 76/90 light green, 96 amber, 100 orange and 138 red. This makes warming
+  60–75 the progressive blue-to-green band, optimal 76–90 stable green, 90–96 a
+  gentle warm transition, hot 96–100 amber-to-orange and very hot above 100 the
+  progression toward red. Move only the icon, centered number, unit and bar of
+  both halves down 4 px; headings and dynamic state labels stay fixed.
+- Why: Marcos accepted every D-059 hardware behavior except that the prior
+  50/57/75/89/94/100 stops still represented the superseded semantic thresholds.
+  A uniform 4 px group offset answers the requested small downward adjustment
+  without changing the 50/50 divider or number centering.
+- Verification: red evidence is the old color function failing the new stop
+  fixture and the old placement passing only 55/63 display invariants. Green is
+  27/27 native tests, 63/63 display/audio invariants and the complete Keel
+  verifier. Complete firmware build and exact-board judgment remain pending.
+- Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
+  fresh explicit authorization.
+- Supersedes: D-059 only for temperature color stops and metric-group vertical
+  coordinates. Physical Baseline 3 remains binding for all other behavior.

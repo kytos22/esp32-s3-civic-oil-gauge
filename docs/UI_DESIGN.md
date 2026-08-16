@@ -91,10 +91,10 @@ Bar, icon, and label use the same continuous interpolation:
 | Point | RGB | Meaning |
 |---:|---|---|
 | 50 °C | `30, 132, 255` | Cold blue |
-| 57 °C | `30, 132, 255` | Begin progressive transition |
-| 75 °C | `174, 205, 167` | Light desaturated green |
-| 89 °C | `174, 205, 167` | End stable green |
-| 94 °C | `234, 190, 82` | Yellow/amber |
+| 59 °C | `30, 132, 255` | End cold blue |
+| 76 °C | `174, 205, 167` | Light desaturated green at optimal entry |
+| 90 °C | `174, 205, 167` | Begin gradual warm transition |
+| 96 °C | `234, 190, 82` | Yellow/amber at hot entry |
 | 100 °C | `255, 118, 28` | Orange |
 | 138 °C | `255, 45, 56` | Red at sensor display limit |
 
