@@ -70,8 +70,9 @@
   native compilation failed for the absent fields/helpers/threshold API; green is
   31/31. The new source contract passes 16/16 and verifies the 206,400-byte
   RGB565A8 payload plus the byte-identical source PNG. The complete ESP-IDF 6.0.2
-  build produces a 996,720-byte dirty candidate with SHA-256
-  `503083a4622cf4ac0aaa8b93f31d68d88f2e3bc692c23aae653028aa40e91df5`.
+  build at implementation commit `1cc15f5` produces a 995,856-byte candidate
+  (`pb2-d057-23-g1cc15f5`) with SHA-256
+  `62af1d287378c0d8f7e3668d266241cd0b72ea093728a49df7f41f95c101d906`.
   Exact-board flash and physical judgment
   remain pending fresh authorization.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
