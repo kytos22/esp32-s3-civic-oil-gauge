@@ -224,10 +224,14 @@ See `docs/03-technical-plan.md`.
   96 px font. In particular, one-decimal BAR values use a real U+002E decimal-point
   glyph and never LVGL's missing-glyph rectangle.
 - **AC-41:** The CO5300 remains on the ESP LCD Panel API through the pinned Waveshare
-  BSP and Espressif LVGL adapter. Its QSPI path uses two 480x480 RGB565 draw buffers
-  in PSRAM, so a 480x480 menu or red-warning invalidation is not split by the
-  application into 50-line render bands. Because the board exposes no verified TE
-  signal, final tearing judgment remains an exact-hardware test.
+  BSP and Espressif LVGL adapter lifecycle. The controller scans in native
+  `MADCTL=0x00`; LVGL supplies the upright 270-degree orientation in PARTIAL mode
+  through two 480x120 RGB565 draw buffers. Dirty areas update one canonical
+  native-order framebuffer, and only a complete last-flush snapshot may become
+  READY. GPIO43 TE gates one immutable full-screen QSPI transfer; the snapshot
+  remains IN_FLIGHT until `on_color_trans_done` and direct PSRAM DMA is required.
+  Exact hardware must confirm correct orientation/touch, no diagonal during menu
+  scroll or red transitions, and the measured approximately 59.4 Hz physical ceiling.
 
 ## Estimate
 

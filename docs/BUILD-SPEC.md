@@ -141,11 +141,14 @@ None.
 - `src/oil_gauge_ui.cpp` consumes those decisions in a fixed 480×480 LVGL renderer;
   `src/main.cpp` and `src/demo_sequence.cpp` supply deterministic continuous demo
   or calibration-gate frames.
-- The Waveshare CO5300 QSPI panel remains on `esp_lcd_panel` through
-  `esp_lvgl_adapter`. The project-owned runtime calls the BSP's public panel/touch
-  primitives and registers two full 480×480 RGB565 PSRAM draw buffers instead of
-  `bsp_display_start()`'s 50-line partial buffers. No TE GPIO is verified on this
-  board, so exact-panel observation remains required.
+- The Waveshare CO5300 QSPI panel remains on `esp_lcd_panel`; the project-owned
+  runtime uses the adapter for LVGL lifecycle/locking and touch, while owning the
+  display flush/presenter. The panel scans at native `MADCTL=0x00`, LVGL rotates
+  270 degrees through two 480×120 PARTIAL draw buffers, and dirty areas update a
+  canonical full frame. Two aligned PSRAM-DMA snapshots provide explicit
+  READY/IN_FLIGHT ownership. GPIO43 TE starts only the newest complete full-frame
+  transfer and `on_color_trans_done` releases it. Exact-panel observation remains
+  required for orientation, touch, diagonal removal and smoothness.
 - Icon geometry is ported from the editable reference without transformation of
   silhouette or proportion; DR-001 raises the thermometer marks and extends its stem.
 - The fixed coordinate system is used directly; no responsive or adaptive layout.

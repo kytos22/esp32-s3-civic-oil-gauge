@@ -95,3 +95,33 @@
   from post-boot immutable-region verification.
 - Rule for next time: never use an initial OTA-data blob as an immutable post-boot
   reference.
+
+## L-008 — TE cannot correct a scan-order mismatch caused by panel rotation
+- Symptom: the first GPIO43 TE candidate was rotated 180 degrees; correcting its
+  CO5300 `MADCTL` value to the upright `0xA0` orientation retained one diagonal
+  tear, while Golden Prototype 1 had no diagonal without TE synchronization.
+- Cause: the full frame was synchronized to vertical blank but transmitted in the
+  address order produced by the controller's 90/270-degree hardware rotation. That
+  write wave no longer follows the panel's native refresh scan, so waiting for TE
+  alone cannot prevent the two waves from crossing diagonally. The synchronous
+  adapter path also serialized software work and the LCD transfer, reducing the
+  measured presentation rate to about 14.8 FPS.
+- Fix: keep the CO5300 in native `MADCTL=0x00`, use LVGL's documented PARTIAL
+  software-rotation path, assemble a canonical native-order frame, copy complete
+  generations into two immutable direct-PSRAM-DMA snapshots, and let a dedicated
+  presenter start only the newest READY snapshot at the next GPIO43 TE edge. A
+  slot remains IN_FLIGHT until `on_color_trans_done`; exact-board acceptance of
+  this D-054 implementation remains pending.
+- Where: Phase 5, Sprint 6 slice 6.15; `src/display_runtime.cpp`,
+  `src/frame_slot_policy.h`, and `include/display_clock_override.h`.
+- What failed first: treating hardware rotation as an independent orientation
+  detail, then using the adapter's FULL/single-buffer TE mode without accounting
+  for native scan direction, asynchronous LCD-buffer ownership, or a possible
+  post-TE PSRAM staging copy.
+- Check added: three AC-41 native ownership regressions, 34 display/audio source
+  invariants, direct-PSRAM-DMA capability checks at boot, and two-second telemetry
+  for completed presentations, TE edges, rotation, snapshot and DMA durations,
+  dropped generations, timeouts, transfer errors, and unavailable slots.
+- Rule for next time: establish panel scan order and buffer lifetime before tuning
+  clocks or phase offsets; never infer tear-free behavior from a TE wait, an LVGL
+  FPS counter, or correct visual orientation alone.

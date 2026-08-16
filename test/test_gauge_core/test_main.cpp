@@ -7,6 +7,7 @@
 #include "gauge_settings.h"
 #include "demo_sequence.h"
 #include "display_profile.h"
+#include "frame_slot_policy.h"
 #include "warning_tone_gate.h"
 
 using namespace oilgauge;
@@ -240,6 +241,42 @@ void test_display_profile_feeds_the_sixty_hertz_panel() {
   TEST_ASSERT_EQUAL_UINT32(60U, kDisplayTargetFps);
 }
 
+void test_ac41_frame_snapshots_never_overwrite_dma() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::inFlight, 8},
+      {FrameSlotState::ready, 7},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectSnapshotSlot(slots));
+
+  const FrameSlotMetadata protectedSlots[] = {
+      {FrameSlotState::inFlight, 8},
+      {FrameSlotState::snapshot, 9},
+  };
+  TEST_ASSERT_EQUAL_INT(-1, selectSnapshotSlot(protectedSlots));
+}
+
+void test_ac41_frame_snapshots_reuse_oldest_ready_generation() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::ready, 12},
+      {FrameSlotState::ready, 9},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectSnapshotSlot(slots));
+}
+
+void test_ac41_presenter_selects_only_the_newest_complete_frame() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::ready, 31},
+      {FrameSlotState::ready, 32},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectNewestReadySlot(slots));
+
+  const FrameSlotMetadata unavailable[] = {
+      {FrameSlotState::snapshot, 33},
+      {FrameSlotState::inFlight, 32},
+  };
+  TEST_ASSERT_EQUAL_INT(-1, selectNewestReadySlot(unavailable));
+}
+
 void test_ac32_warning_tone_gate_starts_and_stops_loop() {
   WarningToneGate gate;
 
@@ -366,6 +403,9 @@ int main(int, char**) {
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
   RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
   RUN_TEST(test_display_profile_feeds_the_sixty_hertz_panel);
+  RUN_TEST(test_ac41_frame_snapshots_never_overwrite_dma);
+  RUN_TEST(test_ac41_frame_snapshots_reuse_oldest_ready_generation);
+  RUN_TEST(test_ac41_presenter_selects_only_the_newest_complete_frame);
   RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);

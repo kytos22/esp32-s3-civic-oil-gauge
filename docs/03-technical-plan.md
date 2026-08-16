@@ -24,9 +24,10 @@ and alarm math remains isolated so it can run natively without hardware.
 
 Budgets:
 
-- UI refresh: 20 ms application and LVGL cadence; the active experiment requires at least 50
-  completed physical display FPS, measured by the pinned adapter rather than
-  inferred from the scheduler.
+- UI producer and LVGL refresh: 15 ms. GPIO43 TE is the sole presentation clock;
+  the exact panel measured about 59.4 Hz, so the candidate ceiling is about 59.4
+  unique completed transfers per second. Measure `on_color_trans_done`, never a
+  scheduler or LVGL-only counter.
 - No valid input may exceed 3.3 V at the ADC/ESP32 boundary.
 - Calibrated pressure error target: ≤2 PSI in the normal range.
 - Calibrated temperature error target: ≤2 °C from 60–130 °C.
@@ -67,14 +68,15 @@ flowchart LR
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
 | `include/demo_sequence.h` / `src/demo_sequence.cpp` | [E] | Native-testable continuous seven-scene demo interpolation |
 | `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable warning-loop start/stop gate |
-| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Project-owned ESP LCD/LVGL registration with two full-frame PSRAM draw buffers |
+| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Native-scan LVGL software rotation and GPIO-TE full-frame presenter with explicit PSRAM-DMA ownership |
+| `src/frame_slot_policy.h` | [E] | Native-testable READY/SNAPSHOT/IN_FLIGHT slot-selection invariants |
 | `include/gauge_settings.h` / `src/gauge_settings.cpp` | [E] | Native-testable settings sanitization, units, and warning presentation |
 | `src/warning_audio.h` / `src/warning_audio.cpp` | [E] | Non-blocking ES8311/I²S warning-tone worker |
 | `src/settings_store.h` / `src/settings_store.cpp` | [E] | NVS-backed safe preference persistence |
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Nineteen Unity native tests |
+| `test/test_gauge_core/test_main.cpp` | [E] | Twenty-six Unity native tests, including display snapshot ownership |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |
@@ -132,6 +134,7 @@ flowchart LR
 | Onboard warning-audio behavior | audio gate + ESP-IDF audio implementation, `src/main.cpp`, Kconfig/defaults, native tests, functional AC row, test ledger, sprint record, decision log, progress card, complete firmware build and separately authorized physical proof |
 | Settings, units, or warning-presentation behavior | pure settings model, NVS store, `src/main.cpp`, `src/oil_gauge_ui.cpp`, warning audio, native tests, editable prototype, build spec/UI design, functional AC rows, test ledger, sprint record, decision log, progress card, native suite and complete firmware build |
 | Visual state/renderer change | `src/main.cpp`, `src/oil_gauge_ui.cpp`, fonts when applicable, `docs/UI_DESIGN.md`, editable prototype if the binding design changes, new physical capture, affected AC tests |
+| Display scan/buffering/presentation change | `src/display_runtime.cpp`, internal ownership policy, native regression, QSPI override when applicable, functional AC row, build spec, test ledger, sprint record, decision log, progress card, source contract, complete firmware build and separately authorized exact-board proof |
 | Board pin or I²C address | `include/board_pins.h`, `src/main.cpp`, `docs/WAVESHARE_PINOUT.md`, `docs/ARCHITECTURE.md`, arrival checklist |
 | Analog front-end value/component | `include/calibration_config.h`, `docs/ARCHITECTURE.md`, `docs/BOM.md`/CSV, calibration evidence and conversion tests |
 | Automotive power/harness change | `docs/ARCHITECTURE.md`, BOM/CSV, arrival checklist, threat model; only later product code if diagnostics change |
@@ -217,6 +220,13 @@ flowchart LR
   pinned Waveshare BSP target to replace its QSPI IO macro; managed registry sources
   remain byte-for-byte untouched. The UI cadence remains 20 ms so the bus speed is
   the only changed performance variable.
+- Current synchronization correction: D-054 returns the CO5300 to native scan order
+  and uses LVGL 270-degree PARTIAL software rotation. The first revised source
+  contract failed 15/33 and the native red failed on the absent slot policy; green
+  passes 34/34 plus 26/26 native tests. A canonical framebuffer and two explicit
+  direct-PSRAM-DMA snapshots decouple rendering from the GPIO43-TE presenter, and
+  `on_color_trans_done` is the only release event. The complete ESP-IDF 6.0.2 build
+  passes; final clean binary/hash and exact-board proof remain pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

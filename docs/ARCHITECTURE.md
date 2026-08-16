@@ -124,13 +124,32 @@ an RS-232 adapter and must not be connected directly to MTX-D OUT.
 This path is calibration equipment only. Production oil measurements use the
 ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 
+## Display presentation
+
+The CO5300 remains on the Waveshare BSP and ESP LCD Panel API but scans in its
+native `MADCTL=0x00` order. The approved upright view is produced by LVGL
+`LV_DISPLAY_ROTATION_270` in PARTIAL mode; two 480×120 draw buffers rotate dirty
+areas into one canonical, panel-endian RGB565 framebuffer. This follows
+Espressif's documented remedy for diagonal tearing caused by 90/270-degree SPI
+hardware rotation.
+
+Presentation is a separate producer/consumer boundary. At the last LVGL flush,
+the canonical frame is copied into one of two 64-byte-aligned PSRAM snapshots.
+A snapshot progresses `SNAPSHOT → READY → IN_FLIGHT → FREE`; rendering may replace
+an obsolete READY generation but never an IN_FLIGHT one. A dedicated task selects
+only the newest complete READY generation at the next GPIO43 TE rising edge and
+sends the whole 480×480 frame in native scan order. ESP LCD's direct-PSRAM-DMA
+path avoids a hidden post-TE bounce copy, and only `on_color_trans_done` releases
+the snapshot. The exact panel measured about 59.4 TE edges/s, which is the honest
+physical presentation ceiling.
+
 ## Onboard warning audio
 
 The synthetic demo uses the display board's existing ES8311 codec, I²S output
 and integrated speaker. A renderer-independent rising-edge gate requests one
 double beep when pressure state changes into `warning`; a dedicated FreeRTOS
-CPU1-pinned task performs 512-sample blocking PCM writes so the 20 ms CPU0 UI
-loop never waits for
+CPU1-pinned task performs 512-sample blocking PCM writes so the 15 ms UI producer
+never waits for
 audio. The codec is opened and settled once, then remains unmuted at digital zero
 between cues; each enveloped tone is wrapped in 40 ms of zero samples so its edges
 do not toggle the analogue mute path. Initialization or write failure is

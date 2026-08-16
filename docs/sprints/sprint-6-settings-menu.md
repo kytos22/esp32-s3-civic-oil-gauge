@@ -26,10 +26,21 @@
 | 6.11 50 Hz performance experiment | software complete; hardware comparison pending | red 13 ms/60 FPS profile failed the new expectation; then native 23/23 + complete ESP-IDF 6.0.2 build | The 754,192-byte candidate targets 20 ms/50 FPS and keeps physical QSPI at 40 MHz because ESP32-S3 GPSPI cannot generate 50 MHz from its 80 MHz APB source |
 | 6.12 80 MHz QSPI comparison | runtime verified; visual judgment pending | contract 6/6, native 23/23, full build, exact-board flash/digests; 27 windows at 48–50 FPS, eight matched warning phases, no lock/reset failure in 71.5 s | Force-include a project-owned QSPI macro override into the pinned Waveshare BSP without editing managed sources; retain 20 ms/50 FPS |
 | 6.13 Official CO5300 GPIO-TE path | exact combined candidate failed; causes partly isolated | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz. `MADCTL 0xA0 -> 0x60` explains the 180-degree inversion; FULL/single-buffer serialization explains about 14.85 FPS; the returned diagonal still needs a one-variable orientation A/B |
-| 6.14 `MADCTL=0xA0` isolation A/B | exact-board runtime complete; visual judgment pending | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification and bounded runtime | Removing only panel `swap_xy()`/`mirror()` restores Waveshare `0xA0`; TE is 59.403 Hz, but FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS with about 29–31 ms draw plus 32–36 ms flush |
+| 6.14 `MADCTL=0xA0` isolation A/B | exact-board isolation complete; visual failure confirmed | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification, bounded runtime and Marcos's visual judgment | `0xA0` restores correct orientation but the diagonal persists. It does not follow the `0x60` address-direction change; FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS |
+| 6.15 Native-scan immutable presenter | software candidate built; hardware pending | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and complete ESP-IDF 6.0.2 build | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation, canonical frame plus two direct-PSRAM-DMA snapshots, newest READY generation on GPIO43 TE, release only after DMA done |
 
 ## Software evidence
 
+- D-054 source evidence: official guidance and exact source tracing replace the
+  rejected `TE_SYNC` architecture rather than moving its phase again. The first
+  source-contract run passed only 15/33, and the first valid native red failed on
+  the deliberately absent `frame_slot_policy.h`. The implementation now passes
+  34/34 display/audio invariants and 26/26 native tests. It keeps the panel in
+  native scan order, rotates dirty LVGL areas in cache-local 32x32 tiles, snapshots
+  only at the last flush, selects only the newest complete generation at TE, and
+  cannot select an IN_FLIGHT DMA buffer for rendering. Both snapshots are aligned,
+  verified external-DMA-capable and sent with `psram_dma_direct`; final clean-build
+  hash and exact-board results remain pending.
 - D-053 source evidence: the revised contract first failed 21/24 while D-051's
   panel orientation calls and log remained. The candidate now makes no post-init
   `esp_lcd_panel_swap_xy()` or `esp_lcd_panel_mirror()` call, reports that it is
@@ -42,8 +53,9 @@
   verified every written region. The bounded boot/runtime capture confirms `MADCTL=0xA0`, GPIO43
   TE at 59.403 Hz and no panic, watchdog or unexpected reset. Normal dynamic
   windows deliver 14.82–14.85 FPS with approximately 29–31 ms non-nested drawing
-  plus 32–36 ms synchronous flush. Physical orientation and diagonal judgment are
-  pending Marcos's observation.
+  plus 32–36 ms synchronous flush. Marcos confirmed correct orientation and a
+  persistent diagonal. D-053 therefore isolates the inversion from the presentation
+  defect but is not an acceptable display architecture.
 - D-051 red-first evidence: the native suite reached the display-profile assertion
   and failed with `Expected 15 Was 20`; the source contract passed 12/18 because
   the official hardware-orientation and adapter `TE_SYNC` route was not implemented

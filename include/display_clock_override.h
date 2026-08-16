@@ -20,5 +20,6 @@
         .lcd_param_bits = 8,                                    \
         .flags = {                                              \
             .quad_mode = true,                                  \
+            .psram_dma_direct = true,                            \
         },                                                      \
     }

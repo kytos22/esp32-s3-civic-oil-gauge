@@ -789,5 +789,58 @@
   normally 14.82–14.85 FPS, with about 29–31 ms of non-nested draw and 32–36 ms of
   synchronous flush inside each 62–66 ms render event. This proves orientation was
   not the only performance problem: FULL/single-buffer `TE_SYNC` remains serialized
-  even after software rotation is absent. Marcos's visual A/B judgment is still
-  required before deciding whether the diagonal follows the address direction.
+  even after software rotation is absent. Marcos confirmed that `0xA0` restores
+  correct orientation while the diagonal remains. The address-direction change to
+  `0x60` caused the inversion but was not the cause of the diagonal. Preserve this
+  distinction: do not reject hardware orientation broadly, and do not continue
+  shifting TE timing without measuring transfer start/completion against scanout.
+
+## D-054 — Present immutable native-scan frames and rotate with LVGL
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization correction
+- Decision: Replace the rejected FULL/single-buffer adapter `TE_SYNC` path with a
+  project-owned QSPI presenter. Restore the CO5300 to native `MADCTL=0x00`, retain
+  the approved upright appearance with LVGL `LV_DISPLAY_ROTATION_270`, and render
+  through two 120-row PARTIAL draw buffers. Rotate dirty areas into one canonical
+  native-order RGB565 framebuffer. At the last LVGL flush, copy that coherent
+  frame into one of two independently owned transmit snapshots. A dedicated task
+  may start only the newest READY snapshot on a GPIO43 TE rising edge, may never
+  modify an IN_FLIGHT snapshot, and may release it only from the ESP LCD
+  `on_color_trans_done` signal. Allocate both snapshots as 64-byte-aligned,
+  external-DMA-capable PSRAM and enable ESP LCD's `psram_dma_direct` path so no
+  hidden full-frame bounce copy begins after TE. Keep 80 MHz QSPI and the 15 ms producer cadence so
+  this correction changes scan order and ownership rather than the already measured
+  bus profile.
+- Why: D-053 proves `0xA0` restores orientation but not the diagonal, while the
+  official Espressif LCD FAQ identifies diagonal tearing after SPI hardware
+  rotation by 90/270 degrees and prescribes LVGL software rotation. LVGL 9.5
+  documents PARTIAL rendering plus `lv_display_rotate_area()` and
+  `lv_draw_sw_rotate()` for that case. The pinned adapter cannot provide the needed
+  combination: its QSPI `TE_SYNC` bridge forces FULL, one buffer, in-place RGB565
+  swap, TE wait and DMA completion before `flush_ready`. ESP-IDF 6.0.2 separately
+  requires the color buffer to remain alive until `on_color_trans_done`.
+- Ownership invariant: LVGL writes only the canonical framebuffer. The presenter
+  reads only a READY snapshot after atomically changing it to IN_FLIGHT. A new
+  complete render may overwrite an older READY snapshot but never an IN_FLIGHT one;
+  the presenter drops every older READY generation before sending the newest. This
+  prevents partial-frame snapshots, use-after-DMA-buffer reuse and out-of-order
+  presentation.
+- Timing boundary: GPIO43 remains the only physical presentation clock. The panel
+  measured about 59.4 Hz, so the honest physical ceiling is about 59.4 unique
+  frames/s rather than a literal 60. Telemetry must separately report completed
+  LVGL frames, snapshots, presented frames, overwritten/dropped generations, TE
+  edges, DMA duration and presentation interval. No LVGL FPS counter alone may be
+  accepted as proof.
+- Safety and verification: USB/demo-only; `CONFIG_OIL_GAUGE_DEMO_MODE=y` remains
+  mandatory. Add a deterministic slot-ownership regression, source contract,
+  native suite and complete ESP-IDF build. A build does not authorize flashing;
+  exact-board orientation, touch mapping, diagonal removal and menu/red-transition
+  smoothness remain HARDWARE/JUDGMENT and require a new explicit authorization.
+- Alternatives rejected (and why): Keep shifting the TE phase with `MADCTL=0xA0`;
+  it does not correct the orthogonal hardware write/scan directions. Send each
+  rotated PARTIAL strip directly; those become native vertical strips and can expose
+  multiple updates within one scan. Reuse one framebuffer for render and DMA; ESP
+  LCD explicitly forbids recycling it before transfer completion. Keep adapter
+  `TE_SYNC`; D-051/D-053 measured its serialized approximately 14.8 FPS result.
+- Supersedes: D-051 and D-053 for the active display implementation. Their exact
+  hardware evidence remains the reason for this architecture; `443eb72` remains
+  Golden Prototype 1 and the rollback reference.

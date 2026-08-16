@@ -1,5 +1,14 @@
 # Playground — Civic ESP32 Oil Gauge
 
+Current software candidate: D-054 replaces the failed hardware-rotated adapter
+`TE_SYNC` route with native CO5300 scan order, LVGL PARTIAL 270-degree software
+rotation, a canonical framebuffer and two immutable direct-PSRAM-DMA snapshots.
+Only the newest complete READY generation can start on GPIO43 TE, and it remains
+IN_FLIGHT until the LCD completion callback. Red evidence was 15/33 source
+invariants plus a missing-policy native compile failure; green is 34/34 and 26/26
+with a complete ESP-IDF 6.0.2 build. This is software evidence only: no D-054 flash
+or physical acceptance is authorized yet.
+
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact
 display. All four write regions and the three immutable post-boot regions passed
