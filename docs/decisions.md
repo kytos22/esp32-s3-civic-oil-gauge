@@ -1144,8 +1144,8 @@
   `f7928e6bac7177ccb3e7226f117f297fa26f66b8aae80f797970978cf0952fb4`). Exact
   ESP32-S3/MAC identity matched, all four written regions passed hash verification,
   and the bounded boot capture confirmed demo mode, touch/audio, ADS1115 `0x48`,
-  usable TE and zero display timeout/error/fatal counters. Physical readability
-  judgment remains pending.
+  usable TE and zero display timeout/error/fatal counters. Marcos then confirmed
+  that all visually inspected aspects appear correct; D-064 is physically accepted.
 - Safety: typography only; demo mode, warning cadence, audio, display transport,
   ADS1115 diagnostics and invalid sensor calibrations are unchanged.
 - Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;

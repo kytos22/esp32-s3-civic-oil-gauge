@@ -75,8 +75,9 @@
   exact ESP32-S3/MAC identity matched and all four written regions passed hash
   verification. A bounded boot capture confirmed ESP-IDF 6.0.2, demo mode,
   usable 59.516 Hz TE, touch/audio initialization, ADS1115 at `0x48`, and display
-  telemetry with `timeouts=0 errors=0 fatal=0`. Exact-board readability and
-  spacing judgment remain pending Marcos's visual confirmation.
+  telemetry with `timeouts=0 errors=0 fatal=0`. Marcos subsequently confirmed
+  that all visually inspected aspects appear correct, accepting the larger/bolder
+  warning typography and spacing without an apparent regression.
 - D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
   sensor conversions. The pure protocol creates single-shot A0–A3 configurations
   at PGA ±4.096 V / 128 SPS and converts signed counts at 125 µV/LSB. Its red-first
