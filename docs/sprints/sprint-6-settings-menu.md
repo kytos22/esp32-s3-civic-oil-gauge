@@ -6,8 +6,8 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: D-057 accepted as Physical Baseline 2; D-058 bar endpoint/weight
-  correction is in software and requires build plus separately authorized flash
+- Status: D-057 accepted as Physical Baseline 2; clean D-058 bar endpoint/weight
+  candidate built and awaiting separately authorized flash
 
 ## Slices
 
@@ -30,8 +30,8 @@
 | 6.15 Native-scan immutable presenter | exact-board transport failed | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93`; flash hashes passed but first direct DMA transfer underflowed | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation and immutable ownership were retained; its direct-PSRAM-DMA transport is rejected by D-055 |
 | 6.16 Bounded QSPI staging | exact-board transport and tearing judgment verified | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34, clean 734,896-byte app `aa38f5f`, exact-board write hashes, 30-second zero-error runtime and Marcos's visual judgment | Preserve D-054 scan order and ownership; internal 8-row bounce chunks remove the DMA underflow, with about 17–35 completed FPS under observed demo load; Marcos confirmed no tearing or diagonal, while the 180-degree logical orientation is accepted for physical mounting |
 | 6.17 Native logical orientation | exact-board accepted | display contract red 31/35, then 35/35; native 27/27, clean 733,232-byte app `9b59722`, exact-board hashes, 30-second zero-error capture and Marcos's visual/touch judgment | USB-C-right orientation and touch align; no tearing/diagonal; menu feels smoother than D-055 but remains low-FPS. Composition falls to about 0.3–1.1 ms average, while 16–21 ms full snapshot copies keep completed presentation near 17–33 FPS |
-| 6.18 Zero-snapshot full-frame presenter and bar cleanup | exact-board transport verified; cadence failed; visual judgment pending | display contract red 34/46, then 46/46; native 27/27; clean app `9febd47`; exact identity and four write hashes; 35-second boot/runtime capture | Two complete `RGB565_SWAPPED` PSRAM buffers in `FULL` mode are released only after DMA completion. Exact board reports TE 59.554 Hz, DMA 13.2–14.6 ms and zero timeout/error/fatal counters, but only about 26.5–29.0 dynamic FPS and about 16 FPS in the lower-activity demo interval. Fixed notes are removed, dynamic states remain, and both bars are 15 px; physical tearing/color/menu judgment pending |
-| 6.19 Accepted baseline and clean bar endpoint | software in progress; hardware pending | D-057 physical judgment plus D-058 red-first display contract | D-057 is Accepted Physical Baseline 2: no tearing, best menu motion yet, warning/colors/notes/live states correct. D-058 keeps that pipeline unchanged, raises bars to 18 px and replaces the square fractional-opacity endpoint with one rounded fill rounded to the nearest pixel |
+| 6.18 Zero-snapshot full-frame presenter and bar cleanup | accepted as Physical Baseline 2 with cadence exception | display contract 46/46; native 27/27; clean app `9febd47`; exact identity/four write hashes; runtime capture; Marcos's judgment | Two complete `RGB565_SWAPPED` PSRAM buffers in `FULL` mode are released only after DMA completion. TE is 59.554 Hz, DMA 13.2–14.6 ms and runtime faults zero, but dynamic presentation is about 26.5–29.0 FPS. Marcos confirmed no tearing, best menu motion yet, correct warning/colors/fixed-note removal/live states; 15 px weight and square endpoint move to D-058 |
+| 6.19 Accepted baseline and clean bar endpoint | software complete; hardware pending | red 45/48, then 48/48; native 27/27; clean full build `c0be6df` | D-058 keeps D-057's pipeline unchanged, raises bars to 18 px and replaces the square fractional-opacity endpoint with one rounded fill rounded to the nearest pixel. The 730,496-byte app is identified as `pb2-d057-3-gc0be6df`; physical judgment requires separate flash authorization |
 
 ## Software evidence
 

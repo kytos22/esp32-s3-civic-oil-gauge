@@ -976,10 +976,13 @@
   caused by D-022's fractional-opacity square overlapping a rounded fill. A 404 px
   travel already provides fine spatial steps; one rounded object gives a coherent
   antialiased cap without a square/curved transparency seam.
-- Verification: source contract must reject the old 15 px/separate-edge renderer,
-  then pass with 18 px and no edge object. Native tests and a complete ESP-IDF
-  build remain required. Physical weight and endpoint cleanliness remain exact-board
-  judgment and require separate flash authorization.
+- Verification: the source contract rejected the old 15 px/separate-edge renderer
+  at 45/48 and now passes 48/48. Native tests pass 27/27. Clean commit `c0be6df`
+  produces a 730,496-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-3-gc0be6df`, with SHA-256
+  `3ad8e75542bb25dbb27b3b8685e0ce9f2557a4bf5da3c0118e1d22f3d7ae415c`.
+  Physical weight and endpoint cleanliness remain exact-board judgment and require
+  separate flash authorization.
 - Safety: demo-only. Do not connect sensors, ADS1115, MTX-D, 12 V, or the vehicle.
 - Supersedes: D-022 only for the fractional leading-edge object and D-057 only for
   15 px bar geometry. All D-057 display-pipeline and accepted physical behavior

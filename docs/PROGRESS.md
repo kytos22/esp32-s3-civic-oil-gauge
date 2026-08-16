@@ -56,8 +56,13 @@
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
   against the rounded fill. Width now rounds to the nearest physical pixel and a
-  single LVGL rounded object owns the visible endpoint. Exact-board visual proof
-  remains pending and requires separate flash authorization.
+  single LVGL rounded object owns the visible endpoint. The red-first contract
+  failed 45/48 and now passes 48/48; native tests pass 27/27. Clean commit
+  `c0be6df` builds a 730,496-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-3-gc0be6df`, with SHA-256
+  `3ad8e75542bb25dbb27b3b8685e0ce9f2557a4bf5da3c0118e1d22f3d7ae415c`.
+  Exact-board visual proof remains pending and requires separate flash
+  authorization.
 - D-057 removes the measured full-frame snapshot copy with two complete
   `RGB565_SWAPPED` PSRAM buffers in LVGL `FULL` mode. The project-owned presenter
   queues the rendered pointer directly on GPIO43 TE and releases it only after LCD
