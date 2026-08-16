@@ -4,6 +4,7 @@
 #include <initializer_list>
 
 #include "gauge_core.h"
+#include "ads1115_protocol.h"
 #include "gauge_settings.h"
 #include "demo_sequence.h"
 #include "display_clock_profile.h"
@@ -14,6 +15,17 @@
 using namespace oilgauge;
 
 namespace {
+
+void test_ads1115_single_shot_config_and_voltage_scale() {
+  TEST_ASSERT_EQUAL_HEX16(0xC383, ads1115SingleShotConfig(0));
+  TEST_ASSERT_EQUAL_HEX16(0xD383, ads1115SingleShotConfig(1));
+  TEST_ASSERT_EQUAL_HEX16(0xE383, ads1115SingleShotConfig(2));
+  TEST_ASSERT_EQUAL_HEX16(0xF383, ads1115SingleShotConfig(3));
+  TEST_ASSERT_EQUAL_HEX16(0xC383, ads1115SingleShotConfig(7));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-12, 0.0, ads1115RawToVolts(0));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-9, 4.095875, ads1115RawToVolts(32767));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-9, -4.096, ads1115RawToVolts(-32768));
+}
 
 void test_restore_divider() {
   TEST_ASSERT_DOUBLE_WITHIN(1e-9, 5.0,
@@ -421,6 +433,7 @@ void tearDown() {}
 
 int main(int, char**) {
   UNITY_BEGIN();
+  RUN_TEST(test_ads1115_single_shot_config_and_voltage_scale);
   RUN_TEST(test_restore_divider);
   RUN_TEST(test_thermistor_resistance_midscale);
   RUN_TEST(test_thermistor_rejects_open_and_short);

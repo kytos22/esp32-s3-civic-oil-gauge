@@ -1,4 +1,4 @@
-<!-- KEEL:BEGIN — v5.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.13.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -16,7 +16,16 @@ This project is governed by the Keel workflow. Before reading code or changing A
    BEFORE normal work continues, so this project is brought up to date with
    everything the new version requires — new files or directories, new
    project-card lines, this very lock block, questions never asked here.
-2. Then read `docs/PROGRESS.md` (project card, current position, next action),
+2. Then check `docs/continuation-prompt.md` BEFORE the state files — it is the
+   freshest pointer in this project, and it is what lets a bare "continue" start
+   the work with no recap. If it exists, run `scripts/keel-handoff-verify` and
+   obey the verdict: CONTINUE starts at the position it names; STOP discards it
+   as a courier and you resume from the committed state instead, saying so in
+   one line — a stale or foreign hand-off loses its authority, it never stops
+   the session. Absent is ordinary (it is gitignored, so a fresh clone has
+   none). It is a courier and never an authority: where it and the committed
+   state disagree, `docs/PROGRESS.md` wins. Then read
+   `docs/PROGRESS.md` (project card, current position, next action),
    `docs/decisions.md` (decisions are NEVER re-opened on your initiative), and
    `docs/lessons-learned.md` (recorded mistakes are never repeated), plus the
    phase reference SKILL.md names for the current phase. If the project card's
@@ -37,9 +46,18 @@ This project is governed by the Keel workflow. Before reading code or changing A
    customer data). A finding STOPS the commit: warn the user file by file that
    pushing it is a serious security risk, and exclude it via `.gitignore` (already
    tracked: untrack it too; ever pushed: purge history AND rotate the credential)
-   before committing anything.
-5. NEVER end a session mid-work leaving the user with nothing to continue from
-   (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
+   before committing anything. NEVER leave work uncommitted at the end of a block:
+   commit to `develop` or to a work branch bound for it, and where this repository
+   has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
+   offer to publish it — a local commit survives a bad edit, not a dead disk, and
+   work that exists only on one machine is one accident from not existing at all.
+5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
+   working — leaving the user with nothing current to continue from
+   (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
+   must already be on disk and CURRENT at that moment, whatever the autonomy or
+   chaining settings say; if you keep working past it, rewrite the file as the
+   work advances, because a hand-off pointing at an old commit fails its own
+   verification and is worse than none. Produce the continuation prompt from the embedded skill's
    `references/project-state.md`, SHOW it in the conversation ready to copy, and
    WRITE it to `docs/continuation-prompt.md` with its freshness header
    (`Repo` / `Generated` / `Keel` / `Commit` / `Tree` / `Position` / `Handover`). Running low on

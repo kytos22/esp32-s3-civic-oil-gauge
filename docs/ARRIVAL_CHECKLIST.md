@@ -43,7 +43,8 @@
   2026-08-11).
 - [ ] Save the I²C scan.
 - [ ] Confirm built-in peripheral addresses and no conflict at 0x48.
-- [ ] Connect ADS1115 only to 3V3/GND/SDA15/SCL14.
+- [x] Connect ADS1115 only to 3V3/GND/SDA15/SCL14; Marcos measured 3.3 V at VDD
+  before any sensor connection on 2026-08-16.
 - [ ] Verify all four ADC channels first at ground and through a safe 3.3 V divider.
 
 ## MTX-D remains installed

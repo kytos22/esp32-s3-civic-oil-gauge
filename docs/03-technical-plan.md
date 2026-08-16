@@ -18,7 +18,7 @@ and alarm math remains isolated so it can run natively without hardware.
 | Target | Declared support | Current evidence |
 |---|---|---|
 | Waveshare ESP32-S3-Touch-AMOLED-2.16 | 480×480, ESP32-S3R8, 16 MB flash / 8 MB PSRAM | Serialized-font app `701d0b4` flashed and every region verified on the locally recorded exact board; bounded boot proves ESP-IDF 6.0.2, demo mode, 16 MB flash, 8 MB PSRAM, and 480×480 display/touch initialization; corrected physical text appearance pending |
-| ADS1115 bench module | 3.3 V, I²C 0x48 | Code and architecture only |
+| ADS1115 bench module | 3.3 V, I²C 0x48 | Physically wired without sensors; 3.3 V supply measured; diagnostic candidate pending flash |
 | ADS1115-Q1 final design | AEC-Q100 device on custom protected PCB | Planned, not purchased/finalized |
 | Honda Civic Sport 1.5 2017 | switched 12 V automotive environment | Vehicle integration unverified |
 
@@ -63,6 +63,8 @@ flowchart LR
 | `platformio.ini` | [E] | Native Unity test environment only |
 | `partitions.csv` | [E] | 16 MB partition layout |
 | `include/board_pins.h` | [E] | Verified Waveshare pins and ADS1115 address |
+| `include/ads1115_protocol.h` / `src/ads1115_protocol.cpp` | [E] | Native-tested single-shot configuration and raw-voltage scale |
+| `src/ads1115_diagnostics.h` / `src/ads1115_diagnostics.cpp` | [E] | Shared-bus 0x48 probe and raw A0–A3 serial diagnostics |
 | `include/calibration_config.h` | [E] | Invalid-by-default calibration and provisional front end |
 | `include/gauge_core.h` | [E] | Public conversion, filtering, fault, and alarm types/functions |
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
@@ -76,7 +78,7 @@ flowchart LR
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Twenty-six Unity native tests, including display snapshot ownership |
+| `test/test_gauge_core/test_main.cpp` | [E] | Twenty-nine Unity native tests, including ADS1115 protocol and display ownership |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |

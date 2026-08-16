@@ -14,10 +14,13 @@
 - i18n: single-language built product — Spanish status labels, SI/PSI units as specified; source identifiers and documentation in English
 - Installed base: fresh prototype; no released firmware, users, migration, or stored user data
 - Design system: existing approved baseline — `docs/UI_DESIGN.md` and `docs/design/references/`
-- Keel portability: lock + embedded v5.13.0 in `.claude/skills/keel/` and `.agents/skills/keel/`; lock refresh pending reconciliation
+- Keel portability: lock + embedded v5.13.0 in `.claude/skills/keel/` and `.agents/skills/keel/`; reconciled in D-062
 - Assistant config: rules (tools: Codex); permissions and Git hook deferred by D-008
+- Autonomy: manual; issue duty off; Issue sweep interval: n/a; Issue capture: off
+- Notify: none
+- Test-first policy: pure-logic from D-062; existing tests are not retroactive
 - Models: n/a — Codex has no project markdown subagents; checks run inline
-- Keel baseline: v5.3.2
+- Keel baseline: v5.13.0
 - Website intent: no
 - Client budget: no
 - User guide: deferred until the hardware-validated release candidate
@@ -33,13 +36,13 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 D-055 removed tearing and D-056 removes the remaining logical rotation | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 diagnostics active | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) software candidate in progress |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 6 display synchronization architecture
+- Phase: 5 — Sprint 7 ADS1115 bench diagnostics
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
@@ -53,10 +56,22 @@
 - Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
   accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
   alignment/spacing and the continued absence of tearing on the exact AMOLED.
-- Next action: retain D-061 as the visual/physical baseline and choose the next
-  separately scoped feature. Sensor and vehicle work remain gated.
+- Next action: add a demo-safe ADS1115 diagnostic at address `0x48`, logging raw
+  A0–A3 voltages only. Sensors, conversion calibration and vehicle work remain gated.
 
 ## Open items
+- D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
+  sensor conversions. The pure protocol creates single-shot A0–A3 configurations
+  at PGA ±4.096 V / 128 SPS and converts signed counts at 125 µV/LSB. Its red-first
+  native run failed on the deliberately absent `ads1115_protocol.h`; green is
+  29/29. The ESP-IDF path reuses the Waveshare BSP bus, probes `0x48`, registers a
+  100 kHz device and logs four explicitly labelled floating-input readings once per
+  second. Complete build and exact-board proof remain pending; no sensors are attached.
+- D-062 reconciles the project from Keel v5.3.2 to v5.13.0 after Marcos approved
+  the recommended one-time choices: manual autonomy, no automatic forge issue
+  activity, no external notifications and pure-logic test-first going forward.
+  Both portability locks now byte-match the v5.13.0 canonical block; chaining
+  remains off and no external publication behavior changes.
 - D-061 embeds the supplied temperature and pressure silhouettes as 92 x 72 LVGL
   A8 masks and uses matching transparent PNG masks in the simulator. This retains
   D-060's state-driven icon colors instead of baking the source red/white pixels

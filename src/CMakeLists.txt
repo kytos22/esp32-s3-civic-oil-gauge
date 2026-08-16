@@ -1,6 +1,8 @@
 idf_component_register(
     SRCS
         "main.cpp"
+        "ads1115_diagnostics.cpp"
+        "ads1115_protocol.cpp"
         "demo_sequence.cpp"
         "display_runtime.cpp"
         "gauge_core.cpp"
@@ -18,6 +20,7 @@ idf_component_register(
         "."
         "../include"
     PRIV_REQUIRES
+        esp_driver_i2c
         esp_codec_dev
         esp_timer
         nvs_flash

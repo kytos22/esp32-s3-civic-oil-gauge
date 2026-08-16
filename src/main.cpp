@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "demo_sequence.h"
+#include "ads1115_diagnostics.h"
 #include "display_runtime.h"
 #include "gauge_core.h"
 #include "oil_gauge_ui.h"
@@ -142,6 +143,12 @@ extern "C" void app_main(void) {
       }
     }
   }
+
+#if CONFIG_OIL_GAUGE_ADS1115_DIAGNOSTICS
+  if (!startAds1115Diagnostics(bsp_i2c_get_handle())) {
+    ESP_LOGW(kTag, "Demo continues without ADS1115 diagnostics");
+  }
+#endif
 
   lv_indev_t* input = displayRuntime.input;
   if (input != nullptr) {

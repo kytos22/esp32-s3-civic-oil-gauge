@@ -7,6 +7,13 @@ menu "Civic Oil Gauge"
             Keep this enabled until the installed Innovate pressure and
             temperature sensors have measured, cross-validated calibrations.
 
+    config OIL_GAUGE_ADS1115_DIAGNOSTICS
+        bool "Probe ADS1115 and log raw floating inputs"
+        default y
+        help
+            Bench-only diagnostics at I2C address 0x48. Logs raw A0-A3 counts
+            and ADC pin voltages without enabling sensor conversions.
+
     config OIL_GAUGE_BRIGHTNESS_PERCENT
         int "AMOLED brightness (%)"
         range 5 100

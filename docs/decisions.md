@@ -1085,3 +1085,38 @@
   colors, warning behavior and placement remain binding. D-061 becomes the latest
   accepted visual/physical baseline; D-059 remains the implementation reference
   for serialized brightness and the accepted display transport.
+
+## D-062 — Reconcile Keel v5.13.0 with conservative project controls
+- Date / phase: 2026-08-16 / Phase 5 process maintenance
+- Decision: Refresh both portability-lock blocks from the canonical Keel v5.13.0
+  copy and set the project baseline to v5.13.0. Use manual autonomy, disable the
+  automatic forge issue duty and issue capture, use no external notification
+  channel, retain chaining off, and apply the `pure-logic` test-first policy only
+  to future pure conversion/protocol/state logic.
+- Why: Marcos explicitly approved the recommended reconciliation choices. They
+  preserve the project's existing authorization gates for flashing and publishing
+  while adding reproducible red-first coverage where hardware-independent logic is
+  introduced.
+- Verification: `CLAUDE.md` and `AGENTS.md` lock blocks byte-match the canonical
+  v5.13.0 block. The full Manifest Table 1/Table 3 reconciliation is recorded in
+  `docs/keel-conformance.md`; conditional chaining, website, guide, Phase 6/7 and
+  fan-out artifacts remain not applicable at the current project position.
+- Supersedes: D-008 only by recording the newer operating choices; its deferral of
+  the full assistant-config package remains binding.
+
+## D-063 — Probe the bare ADS1115 before connecting sensors
+- Date / phase: 2026-08-16 / Phase 5, Sprint 7
+- Decision: Reuse the display BSP's existing GPIO15/GPIO14 I²C master bus and probe
+  only ADS1115 address `0x48`. When present, sample A0–A3 as independent single-shot
+  inputs at PGA ±4.096 V and 128 SPS, logging signed counts and ADC-pin volts once
+  per second. Keep demo rendering active and all sensor calibrations invalid.
+- Why: Marcos has wired and powered the ADS1115 at a measured 3.3 V with no sensors
+  attached. Proving address, protocol and shared-bus coexistence now isolates wiring
+  and ADC integration before any analog front end can introduce ambiguity.
+- Verification: pure-logic policy applied: the first native run failed with
+  `fatal error: ads1115_protocol.h: No such file or directory`; implementation then
+  passes 29/29 native tests. Complete firmware build and exact-board runtime remain
+  pending; flashing still requires separate explicit authorization.
+- Safety: no A0–A3 sensor wiring, no 5 V/12 V input, no pressure/temperature
+  conversion, no retained ADC value and no vehicle connection.
+- Supersedes: none; D-061 remains Accepted Physical Baseline 4.

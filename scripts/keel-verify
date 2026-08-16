@@ -503,6 +503,31 @@ def sprint6_physical_revision_contract() -> None:
     )
 
 
+def sprint7_ads1115_diagnostic_contract() -> None:
+    main = text("src/main.cpp")
+    diagnostics = text("src/ads1115_diagnostics.cpp")
+    protocol = text("src/ads1115_protocol.cpp")
+    pins = text("include/board_pins.h")
+    kconfig = text("src/Kconfig.projbuild")
+    conditions = [
+        "CONFIG_OIL_GAUGE_ADS1115_DIAGNOSTICS" in main,
+        "bsp_i2c_get_handle()" in main,
+        "i2c_master_probe(bus, board::kAds1115Address" in diagnostics,
+        "scl_speed_hz = 100000" in diagnostics,
+        "raw-only floating inputs" in diagnostics,
+        "for (std::uint8_t channel = 0; channel < raw.size(); ++channel)" in diagnostics,
+        "ads1115RawToVolts" in protocol,
+        "kAds1115Address = 0x48" in pins,
+        "default y" in kconfig,
+        "oil_gauge_ui" not in diagnostics,
+    ]
+    check(
+        "Sprint 7 ADS1115 bench diagnostics",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} probe/raw-only safety invariants",
+    )
+
+
 def marked_existing_paths() -> None:
     plan = text("docs/03-technical-plan.md")
     missing: list[str] = []
@@ -662,6 +687,7 @@ def main() -> int:
     full_frame_and_warning_loop_contract()
     display_qspi_clock_contract()
     sprint6_physical_revision_contract()
+    sprint7_ads1115_diagnostic_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")

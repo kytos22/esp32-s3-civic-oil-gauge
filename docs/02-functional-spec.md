@@ -234,6 +234,11 @@ See `docs/03-technical-plan.md`.
   remains IN_FLIGHT until `on_color_trans_done` and direct PSRAM DMA is required.
   Exact hardware must confirm correct orientation/touch, no diagonal during menu
   scroll or red transitions, and the measured approximately 59.4 Hz physical ceiling.
+- **AC-42:** With bench diagnostics enabled, firmware probes only the configured
+  ADS1115 address `0x48` on the display's existing I²C bus and logs signed raw
+  counts plus ADC-pin volts for A0–A3 once per second. Missing ADC or channel
+  transactions produce explicit diagnostics and never enable sensor conversion,
+  retain a last-known measurement, or interrupt the accepted demo UI.
 
 ## Estimate
 

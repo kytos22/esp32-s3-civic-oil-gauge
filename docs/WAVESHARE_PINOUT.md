@@ -52,6 +52,10 @@ Project use:
 | CST9220 | 0x5A |
 | QMI8658 | 0x6B |
 
+Bench diagnostic wiring uses P2/P3/P6/P7 only: 3V3, GND, SCL GPIO14 and SDA
+GPIO15. `ADDR` is tied to GND for `0x48`; ALERT and A0–A3 remain disconnected for
+the first probe. The onboard 2.2 kΩ pull-ups remain authoritative.
+
 The board has **2.2 kΩ pull-ups to 3.3 V** on SDA/SCL. A commercial breakout
 may add pull-ups during bench work if the bus remains healthy, but the final
 PCB must not add another strong pair.

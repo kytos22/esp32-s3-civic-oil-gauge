@@ -65,6 +65,12 @@ The ADC runs at **3.3 V** and address `0x48`. An input must never exceed
 VDD + 0.3 V even when the selected PGA full-scale range is larger. Every
 possible 5/12 V signal therefore requires division and protection.
 
+The first firmware integration is deliberately diagnostic-only. It reuses the BSP's
+already-created I²C master bus, probes only `0x48`, registers the ADS1115 at 100 kHz,
+and performs four 128-SPS single-shot readings at PGA ±4.096 V. It logs signed raw
+counts and ADC-pin volts; it does not interpret a floating input as oil data and does
+not enable either installed sensor calibration.
+
 ### Provisional bench front end
 
 These values support characterization only; they are not a final PCB design.
