@@ -43,11 +43,11 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: request new exact-board flash authorization for clean D-055 commit
-  `aa38f5f`. The physical pass must first prove non-zero
-  completed presentations with no DMA error, then check upright orientation,
-  touch mapping, menu scroll, both red transitions, completed-DMA cadence and the
-  diagonal. Sensor and vehicle work remain gated.
+- Next action: collect Marcos's visual judgment of the flashed D-055 candidate:
+  upright orientation, touch mapping, menu scroll, both red transitions and the
+  diagonal. Transport now completes without DMA error, but measured presentation
+  cadence remains load-dependent at about 17–35 FPS. Sensor and vehicle work
+  remain gated.
 
 ## Open items
 - D-055 keeps D-054's native scan, software rotation and immutable ownership, but
@@ -61,7 +61,11 @@
   native, 13/13 QSPI contract and 34/34 display/audio contract. Clean commit
   `aa38f5f` produces a 734,896-byte ESP-IDF 6.0.2 app with SHA-256
   `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
-  Exact-board proof is not authorized yet.
+  The separately authorized exact board matched VID/PID and MAC before all four
+  regions passed write-time hashes. A 30-second boot/runtime capture confirmed
+  app `aa38f5f`, TE at 59.438 Hz, completed presentation at about 17–35 FPS,
+  13.0–13.5 ms DMA duration and `timeouts=0 errors=0 no_slot=0 fatal=0` throughout.
+  Visual orientation/diagonal judgment remains pending.
 - D-054 followed the method documented by Espressif for diagonal tearing after
   SPI hardware rotation: the CO5300 returns to native `MADCTL=0x00`, LVGL applies
   the upright 270-degree rotation in PARTIAL mode, and a separate GPIO43-TE task
@@ -343,4 +347,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-054 direct DMA failed on hardware; D-055 bounded staging built and exact-board proof requires new authorization
+Last updated: 2026-08-16 — D-055 bounded staging flashed; transport passes without DMA errors, visual diagonal judgment pending

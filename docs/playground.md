@@ -12,7 +12,9 @@ evidence was the missing transfer profile plus 6/13 source invariants; green is
 produces a 734,896-byte app with SHA-256
 `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
 D-054 app `50dee93` was flashed with write hashes verified, but direct PSRAM DMA
-underflowed and completed presentation stayed at zero. D-055 has not been flashed.
+underflowed and completed presentation stayed at zero. D-055 app `aa38f5f` is now
+flashed: all four writes passed hashes and its bounded capture completed at about
+17–35 FPS with `timeouts=0 errors=0 no_slot=0 fatal=0`; visual judgment is pending.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact
@@ -105,12 +107,12 @@ contains no application error, reset after startup, or watchdog event.
 
 `⚠ partially verified — HARDWARE`
 
-The board is attached through usbipd-win 5.3.0 as `/dev/ttyACM0`, identified by
+The board is attached through usbipd-win as `/dev/ttyACM0`, identified by
 Espressif VID/PID `303a:1001` and the exact identifier retained in ignored local
-hardware evidence. D-054 app `50dee93` is currently written and all four regions
-passed esptool's write-time hash verification, but it is not an accepted runtime:
-the first direct PSRAM color transfer underflowed and telemetry remained at zero
-completed presentations. The bounded D-055 correction is built but not flashed.
+hardware evidence. D-055 app `aa38f5f` is currently written and all four regions
+passed esptool's write-time hash verification. Its bounded runtime capture has
+non-zero completed presentations and no timeout, transfer error, unavailable slot
+or fatal latch; physical orientation, diagonal and smoothness judgment remains.
 The
 screen's indoor physical UI passed on 2026-08-14; daylight/night, glare, and
 in-vehicle motion remain unverified. A full factory backup is not available because USB/IP
