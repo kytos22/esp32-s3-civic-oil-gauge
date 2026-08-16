@@ -18,7 +18,7 @@
       </div>
       <div class="ogr-scale" aria-hidden="true">
         <span class="ogr-fill" id="ogrPressureFill"></span>
-        <i style="left:6.7%"></i>
+        <i id="ogrPressureWarningTick" style="left:6.7%"></i>
         <i style="left:10%"></i>
         <i style="left:53.3%"></i>
       </div>
@@ -84,6 +84,14 @@
         <option value="screen">Pantalla 0,5 Hz</option>
         <option value="fixed">Fijo</option>
       </select>
+    </label>
+    <label class="form-label" for="ogrPressureWarningInput">
+      Umbral warning <span id="ogrPressureWarningValue">10 PSI</span>
+      <input class="form-range" id="ogrPressureWarningInput" type="range" min="1" max="30" value="10">
+    </label>
+    <label class="form-label" for="ogrBootLogoInput">
+      Logotipo al arrancar <span id="ogrBootLogoValue">1 s</span>
+      <input class="form-range" id="ogrBootLogoInput" type="range" min="0" max="10" value="1">
     </label>
   </div>
 </div>
@@ -405,6 +413,8 @@
     const unitInput = document.getElementById('ogrUnitInput');
     const temperatureUnitInput = document.getElementById('ogrTemperatureUnitInput');
     const warningModeInput = document.getElementById('ogrWarningModeInput');
+    const pressureWarningInput = document.getElementById('ogrPressureWarningInput');
+    const bootLogoInput = document.getElementById('ogrBootLogoInput');
     const pressureValue = document.getElementById('ogrPressureValue');
     const temperatureValue = document.getElementById('ogrTemperatureValue');
     const fullWarningValue = document.getElementById('ogrFullWarningValue');
@@ -413,10 +423,13 @@
     const pressureState = document.getElementById('ogrPressureState');
     const temperatureState = document.getElementById('ogrTemperatureState');
     const pressureFill = document.getElementById('ogrPressureFill');
+    const pressureWarningTick = document.getElementById('ogrPressureWarningTick');
     const temperatureFill = document.getElementById('ogrTemperatureFill');
     const pressureControlValue = document.getElementById('ogrPressureControlValue');
     const rpmControlValue = document.getElementById('ogrRpmControlValue');
     const temperatureControlValue = document.getElementById('ogrTemperatureControlValue');
+    const pressureWarningValue = document.getElementById('ogrPressureWarningValue');
+    const bootLogoValue = document.getElementById('ogrBootLogoValue');
     const formatRpm = new Intl.NumberFormat('es-ES');
     const yellow = [255, 176, 32];
     const red = [255, 57, 72];
@@ -453,9 +466,9 @@
       return toRgb(stops[stops.length - 1][1]);
     };
 
-    const getPressureState = (psi, rpm) => {
+    const getPressureState = (psi, rpm, warningPsi) => {
       if (rpm === 0) return ['stopped', 'Motor parado'];
-      if (psi <= 10) return ['warning', 'Warning'];
+      if (psi <= warningPsi) return ['warning', 'Warning'];
       if (psi < 15) return ['low', 'Presión baja'];
       if (psi <= 80) return ['ok', 'OK'];
       return ['high', 'Presión alta'];
@@ -474,7 +487,8 @@
       const psi = Number(pressureInput.value);
       const rpm = Number(rpmInput.value);
       const temperature = Number(temperatureInput.value);
-      const [pressureKey, pressureLabel] = getPressureState(psi, rpm);
+      const warningPsi = Number(pressureWarningInput.value);
+      const [pressureKey, pressureLabel] = getPressureState(psi, rpm, warningPsi);
       const [temperatureKey, temperatureLabel] = getTemperatureState(temperature);
       const pressureColor = pressureKey === 'warning' ? toRgb(red) : toRgb(yellow);
       const currentTemperatureColor = temperatureColor(temperature);
@@ -499,10 +513,15 @@
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
+      pressureWarningTick.style.left = `${(warningPsi / 150) * 100}%`;
       temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 90) * 100)}%`;
       pressureControlValue.textContent = `${pressureDisplay} ${bar ? 'BAR' : 'PSI'}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${Math.round(displayedTemperature)} ${fahrenheit ? '°F' : '°C'}`;
+      pressureWarningValue.textContent = bar
+        ? `${(warningPsi * 0.0689475729).toFixed(1)} BAR`
+        : `${warningPsi} PSI`;
+      bootLogoValue.textContent = `${bootLogoInput.value} s`;
       pressureHalf.setAttribute('aria-label', `Presión de aceite ${pressureDisplay} ${bar ? 'bar' : 'PSI'}, ${pressureLabel}, motor a ${rpm} RPM`);
       temperatureHalf.setAttribute(
         'aria-label',
@@ -512,7 +531,8 @@
       );
     };
 
-    [pressureInput, rpmInput, temperatureInput, unitInput, temperatureUnitInput, warningModeInput].forEach((input) => {
+    [pressureInput, rpmInput, temperatureInput, unitInput, temperatureUnitInput,
+      warningModeInput, pressureWarningInput, bootLogoInput].forEach((input) => {
       input.addEventListener('input', update);
     });
 

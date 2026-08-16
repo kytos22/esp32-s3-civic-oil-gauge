@@ -894,7 +894,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-scale&quot; aria-hidden=&quot;true&quot;&gt;
         &lt;span class=&quot;ogr-fill&quot; id=&quot;ogrPressureFill&quot;&gt;&lt;/span&gt;
-        &lt;i style=&quot;left:6.7%&quot;&gt;&lt;/i&gt;
+        &lt;i id=&quot;ogrPressureWarningTick&quot; style=&quot;left:6.7%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:10%&quot;&gt;&lt;/i&gt;
         &lt;i style=&quot;left:53.3%&quot;&gt;&lt;/i&gt;
       &lt;/div&gt;
@@ -960,6 +960,14 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;option value=&quot;screen&quot;&gt;Pantalla 0,5 Hz&lt;/option&gt;
         &lt;option value=&quot;fixed&quot;&gt;Fijo&lt;/option&gt;
       &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ogrPressureWarningInput&quot;&gt;
+      Umbral warning &lt;span id=&quot;ogrPressureWarningValue&quot;&gt;10 PSI&lt;/span&gt;
+      &lt;input class=&quot;form-range&quot; id=&quot;ogrPressureWarningInput&quot; type=&quot;range&quot; min=&quot;1&quot; max=&quot;30&quot; value=&quot;10&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ogrBootLogoInput&quot;&gt;
+      Logotipo al arrancar &lt;span id=&quot;ogrBootLogoValue&quot;&gt;1 s&lt;/span&gt;
+      &lt;input class=&quot;form-range&quot; id=&quot;ogrBootLogoInput&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;10&quot; value=&quot;1&quot;&gt;
     &lt;/label&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -1281,6 +1289,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     const unitInput = document.getElementById(&#x27;ogrUnitInput&#x27;);
     const temperatureUnitInput = document.getElementById(&#x27;ogrTemperatureUnitInput&#x27;);
     const warningModeInput = document.getElementById(&#x27;ogrWarningModeInput&#x27;);
+    const pressureWarningInput = document.getElementById(&#x27;ogrPressureWarningInput&#x27;);
+    const bootLogoInput = document.getElementById(&#x27;ogrBootLogoInput&#x27;);
     const pressureValue = document.getElementById(&#x27;ogrPressureValue&#x27;);
     const temperatureValue = document.getElementById(&#x27;ogrTemperatureValue&#x27;);
     const fullWarningValue = document.getElementById(&#x27;ogrFullWarningValue&#x27;);
@@ -1289,10 +1299,13 @@ html&gt;body{padding:0}&lt;/style&gt;
     const pressureState = document.getElementById(&#x27;ogrPressureState&#x27;);
     const temperatureState = document.getElementById(&#x27;ogrTemperatureState&#x27;);
     const pressureFill = document.getElementById(&#x27;ogrPressureFill&#x27;);
+    const pressureWarningTick = document.getElementById(&#x27;ogrPressureWarningTick&#x27;);
     const temperatureFill = document.getElementById(&#x27;ogrTemperatureFill&#x27;);
     const pressureControlValue = document.getElementById(&#x27;ogrPressureControlValue&#x27;);
     const rpmControlValue = document.getElementById(&#x27;ogrRpmControlValue&#x27;);
     const temperatureControlValue = document.getElementById(&#x27;ogrTemperatureControlValue&#x27;);
+    const pressureWarningValue = document.getElementById(&#x27;ogrPressureWarningValue&#x27;);
+    const bootLogoValue = document.getElementById(&#x27;ogrBootLogoValue&#x27;);
     const formatRpm = new Intl.NumberFormat(&#x27;es-ES&#x27;);
     const yellow = [255, 176, 32];
     const red = [255, 57, 72];
@@ -1329,9 +1342,9 @@ html&gt;body{padding:0}&lt;/style&gt;
       return toRgb(stops[stops.length - 1][1]);
     };
 
-    const getPressureState = (psi, rpm) =&gt; {
+    const getPressureState = (psi, rpm, warningPsi) =&gt; {
       if (rpm === 0) return [&#x27;stopped&#x27;, &#x27;Motor parado&#x27;];
-      if (psi &lt;= 10) return [&#x27;warning&#x27;, &#x27;Warning&#x27;];
+      if (psi &lt;= warningPsi) return [&#x27;warning&#x27;, &#x27;Warning&#x27;];
       if (psi &lt; 15) return [&#x27;low&#x27;, &#x27;Presión baja&#x27;];
       if (psi &lt;= 80) return [&#x27;ok&#x27;, &#x27;OK&#x27;];
       return [&#x27;high&#x27;, &#x27;Presión alta&#x27;];
@@ -1350,7 +1363,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       const psi = Number(pressureInput.value);
       const rpm = Number(rpmInput.value);
       const temperature = Number(temperatureInput.value);
-      const [pressureKey, pressureLabel] = getPressureState(psi, rpm);
+      const warningPsi = Number(pressureWarningInput.value);
+      const [pressureKey, pressureLabel] = getPressureState(psi, rpm, warningPsi);
       const [temperatureKey, temperatureLabel] = getTemperatureState(temperature);
       const pressureColor = pressureKey === &#x27;warning&#x27; ? toRgb(red) : toRgb(yellow);
       const currentTemperatureColor = temperatureColor(temperature);
@@ -1375,10 +1389,15 @@ html&gt;body{padding:0}&lt;/style&gt;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
+      pressureWarningTick.style.left = `${(warningPsi / 150) * 100}%`;
       temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 90) * 100)}%`;
       pressureControlValue.textContent = `${pressureDisplay} ${bar ? &#x27;BAR&#x27; : &#x27;PSI&#x27;}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${Math.round(displayedTemperature)} ${fahrenheit ? &#x27;°F&#x27; : &#x27;°C&#x27;}`;
+      pressureWarningValue.textContent = bar
+        ? `${(warningPsi * 0.0689475729).toFixed(1)} BAR`
+        : `${warningPsi} PSI`;
+      bootLogoValue.textContent = `${bootLogoInput.value} s`;
       pressureHalf.setAttribute(&#x27;aria-label&#x27;, `Presión de aceite ${pressureDisplay} ${bar ? &#x27;bar&#x27; : &#x27;PSI&#x27;}, ${pressureLabel}, motor a ${rpm} RPM`);
       temperatureHalf.setAttribute(
         &#x27;aria-label&#x27;,
@@ -1388,7 +1407,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       );
     };
 
-    [pressureInput, rpmInput, temperatureInput, unitInput, temperatureUnitInput, warningModeInput].forEach((input) =&gt; {
+    [pressureInput, rpmInput, temperatureInput, unitInput, temperatureUnitInput,
+      warningModeInput, pressureWarningInput, bootLogoInput].forEach((input) =&gt; {
       input.addEventListener(&#x27;input&#x27;, update);
     });
 

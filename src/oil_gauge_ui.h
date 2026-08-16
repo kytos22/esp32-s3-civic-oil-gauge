@@ -26,6 +26,8 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
                       bool elementsBlinkPhaseOn,
                       bool fullScreenBlinkPhaseOn,
                       const GaugeSettings& settings);
+
+void setOilGaugeBootSplashVisible(bool visible);
 [[nodiscard]] bool oilGaugeFullScreenWarningVisible();
 [[nodiscard]] bool takeOilGaugeUiActions(OilGaugeUiActions& actions);
 

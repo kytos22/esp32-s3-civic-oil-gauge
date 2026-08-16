@@ -345,6 +345,8 @@ void test_settings_are_sanitized_to_safe_ranges() {
   GaugeSettings settings;
   settings.brightnessPercent = 0;
   settings.warningVolumePercent = 255;
+  settings.lowPressureWarningPsi = 0;
+  settings.startupLogoSeconds = 255;
   settings.pressureUnit = static_cast<PressureUnit>(99);
   settings.temperatureUnit = static_cast<TemperatureUnit>(99);
   settings.warningVisualMode = static_cast<WarningVisualMode>(99);
@@ -353,6 +355,8 @@ void test_settings_are_sanitized_to_safe_ranges() {
   const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
   TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
   TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
+  TEST_ASSERT_EQUAL_UINT8(1, sanitized.lowPressureWarningPsi);
+  TEST_ASSERT_EQUAL_UINT8(10, sanitized.startupLogoSeconds);
   TEST_ASSERT_EQUAL_INT(static_cast<int>(PressureUnit::psi),
                         static_cast<int>(sanitized.pressureUnit));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureUnit::celsius),
@@ -361,6 +365,32 @@ void test_settings_are_sanitized_to_safe_ranges() {
                         static_cast<int>(sanitized.warningVisualMode));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::demo),
                         static_cast<int>(sanitized.dataSource));
+}
+
+void test_configurable_pressure_warning_threshold_controls_state() {
+  const ConvertedValue pressure{12.0, Fault::none};
+  const EngineState running{true, 1800};
+
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::warning),
+      static_cast<int>(evaluatePressureState(pressure, running, 12.0)));
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::low),
+      static_cast<int>(evaluatePressureState(pressure, running, 10.0)));
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::engineStopped),
+      static_cast<int>(evaluatePressureState(pressure, {true, 0}, 30.0)));
+}
+
+void test_warning_threshold_uses_selected_display_unit() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 10.0, warningThresholdForDisplay(10, PressureUnit::psi));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-6, 0.689475729, warningThresholdForDisplay(10, PressureUnit::bar));
+  TEST_ASSERT_EQUAL_UINT8(
+      10, warningThresholdPsiFromDisplay(0.7, PressureUnit::bar));
+  TEST_ASSERT_EQUAL_UINT8(
+      18, warningThresholdPsiFromDisplay(18.0, PressureUnit::psi));
 }
 
 void test_sensor_source_can_be_selected_without_enabling_fake_values() {
@@ -457,6 +487,8 @@ int main(int, char**) {
   RUN_TEST(test_ac41_qspi_bounce_profile_stays_inside_reserved_internal_dma);
   RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
   RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
+  RUN_TEST(test_configurable_pressure_warning_threshold_controls_state);
+  RUN_TEST(test_warning_threshold_uses_selected_display_unit);
   RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);
   RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);
   RUN_TEST(test_pressure_units_convert_only_the_display_value);

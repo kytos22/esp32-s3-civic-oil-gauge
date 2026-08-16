@@ -36,13 +36,13 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 bare-board proof complete | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) AC-42 runtime-proven |
+| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 bare-board proof complete; Sprint 8 software candidate complete | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) AC-42 runtime-proven; [Sprint 8](sprints/sprint-8-warning-threshold-startup.md) awaiting exact-board proof |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 7 ADS1115 bench diagnostics
+- Phase: 5 — Sprint 8 configurable warning and startup logo
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
@@ -56,11 +56,24 @@
 - Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
   accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
   alignment/spacing and the continued absence of tearing on the exact AMOLED.
-- Next action: validate each ADS1115 channel first at ground and then through a
-  known safe 3.3 V divider. Sensors, conversion calibration and vehicle work remain
-  gated.
+- Next action: after fresh authorization, flash the Sprint 8 candidate and inspect
+  both new menu sliders, warning-boundary behavior, NVS persistence and the Honda
+  splash at 0/1/10 seconds. ADS1115 grounded/divider validation remains the next
+  separate electrical step; sensors and vehicle work remain gated.
 
 ## Open items
+- D-065 adds a persistent 1–30 PSI low-pressure warning threshold (10 PSI default)
+  and a persistent 0–10 second Honda startup splash (1 second default; 0 disables).
+  The menu presents the canonical threshold in PSI or one-decimal BAR, while the
+  engine-state gate and established warning/audio path remain unchanged. The boot
+  overlay reuses the boost project's 320×215 Honda artwork on opaque black. Red-first
+  native compilation failed for the absent fields/helpers/threshold API; green is
+  31/31. The new source contract passes 16/16 and verifies the 206,400-byte
+  RGB565A8 payload plus the byte-identical source PNG. The complete ESP-IDF 6.0.2
+  build produces a 996,720-byte dirty candidate with SHA-256
+  `503083a4622cf4ac0aaa8b93f31d68d88f2e3bc692c23aae653028aa40e91df5`.
+  Exact-board flash and physical judgment
+  remain pending fresh authorization.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,

@@ -17,13 +17,21 @@ enabled.
 ### `GaugeSettings`
 
 Carries brightness, warning sound enable/volume, pressure unit, temperature unit,
-warning visual mode, and data source. `sanitizeGaugeSettings()` clamps percentages
-to 5–100 and replaces invalid enum representations with safe demo defaults.
+canonical low-pressure warning PSI, startup-logo seconds, warning visual mode, and
+data source. `sanitizeGaugeSettings()` clamps percentages to 5–100, warning pressure
+to 1–30 PSI, startup duration to 0–10 seconds, and replaces invalid enum
+representations with safe demo defaults.
 
 ### `pressureForDisplay()`
 
 Converts canonical PSI to PSI or bar for display only. It never changes thresholds,
 bar fractions, calibration, or alarm evaluation.
+
+### `warningThresholdForDisplay()` and `warningThresholdPsiFromDisplay()`
+
+Convert the canonical whole-PSI warning threshold to the selected menu unit and
+back. BAR presentation uses one decimal place; conversion is clamped to 1–30 PSI.
+Changing the unit alone never rewrites the canonical setting.
 
 ### `TemperatureUnit` and `temperatureForDisplay()`
 

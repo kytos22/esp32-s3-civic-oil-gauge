@@ -352,6 +352,42 @@ def settings_menu_contract() -> None:
     )
 
 
+def configurable_warning_and_boot_logo_contract() -> None:
+    settings_header = text("include/gauge_settings.h")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    main_source = text("src/main.cpp")
+    component = text("src/CMakeLists.txt")
+    logo = text("src/icons/startup_honda.c")
+    logo_source_sha256 = hashlib.sha256(
+        (REPO / "docs/design/assets/startup-honda.png").read_bytes()
+    ).hexdigest()
+    conditions = [
+        "lowPressureWarningPsi = 10" in settings_header,
+        "startupLogoSeconds = 1" in settings_header,
+        "warningThresholdPsiFromDisplay" in settings,
+        '"pressure_warn"' in store,
+        '"boot_seconds"' in store,
+        "gUi.pressureWarningSlider" in renderer,
+        "gUi.startupLogoSlider" in renderer,
+        "gUi.settings.lowPressureWarningPsi" in renderer,
+        "setOilGaugeBootSplashVisible" in main_source,
+        "bootSplashDeadlineUs" in main_source,
+        '"icons/startup_honda.c"' in component,
+        "LV_COLOR_FORMAT_RGB565A8" in logo,
+        ".w = 320" in logo,
+        ".h = 215" in logo,
+        logo.count("0x") == 320 * 215 * 3,
+        logo_source_sha256 == "0b29066d360f6155de2ddfd851fbfe85c181f00035630bd391cf5c25c9897f28",
+    ]
+    check(
+        "Configurable pressure warning and Honda boot logo",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} model/store/menu/runtime/asset invariants",
+    )
+
+
 def full_frame_and_warning_loop_contract() -> None:
     display_runtime = text("src/display_runtime.cpp")
     renderer = text("src/oil_gauge_ui.cpp")
@@ -711,6 +747,7 @@ def main() -> int:
     temperature_units_contract()
     warning_animation_contract()
     settings_menu_contract()
+    configurable_warning_and_boot_logo_contract()
     full_frame_and_warning_loop_contract()
     display_qspi_clock_contract()
     sprint6_physical_revision_contract()

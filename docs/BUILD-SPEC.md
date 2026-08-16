@@ -119,6 +119,8 @@ Temperature colors are linearly interpolated between:
 | data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
+| warning threshold changed | store 1–30 canonical PSI and re-evaluate the engine-gated warning | menu label follows selected PSI/BAR unit |
+| boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
 | temperature below 50 | render `<50` in Celsius or `<122` in Fahrenheit, with an empty temperature bar | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 20 ms |
@@ -129,6 +131,8 @@ The two binding icons are derived from the user-supplied PNG references into
 92 x 72 alpha masks. Firmware embeds LVGL A8 assets and the simulator uses
 matching transparent PNG masks, allowing existing dynamic colors to recolor the
 silhouettes. The original Downloads files are not runtime dependencies.
+The boot overlay reuses the boost-gauge 320 x 215 Honda startup asset unchanged in
+appearance, centered on opaque black and embedded as LVGL RGB565A8 data.
 
 ## 7. External manual setup
 

@@ -67,7 +67,9 @@ void renderDemoFrame(std::uint64_t nowUs) {
       gSettings);
 
   const bool warningActive =
-      evaluatePressureState(pressure, engine) == PressureState::warning;
+      evaluatePressureState(
+          pressure, engine, gSettings.lowPressureWarningPsi) ==
+      PressureState::warning;
   applyWarningAudioState(warningActive);
 }
 
@@ -115,13 +117,16 @@ extern "C" void app_main(void) {
   gSettings = settingsStoreAvailable ? loadGaugeSettings(defaults) : defaults;
   ESP_LOGI(kTag,
            "Settings loaded: pressure_unit=%u temperature_unit=%u source=%u "
-           "warning_mode=%u sound=%u volume=%u",
+           "warning_mode=%u sound=%u volume=%u pressure_warning=%upsi "
+           "boot_logo=%us",
            static_cast<unsigned>(gSettings.pressureUnit),
            static_cast<unsigned>(gSettings.temperatureUnit),
            static_cast<unsigned>(gSettings.dataSource),
            static_cast<unsigned>(gSettings.warningVisualMode),
            gSettings.warningSoundEnabled ? 1U : 0U,
-           static_cast<unsigned>(gSettings.warningVolumePercent));
+           static_cast<unsigned>(gSettings.warningVolumePercent),
+           static_cast<unsigned>(gSettings.lowPressureWarningPsi),
+           static_cast<unsigned>(gSettings.startupLogoSeconds));
 
   const OilDisplayRuntime displayRuntime = startOilDisplayRuntime();
   if (displayRuntime.display == nullptr || displayRuntime.input == nullptr) {
@@ -167,8 +172,12 @@ extern "C" void app_main(void) {
   createOilGaugeUi(lv_screen_active(), gSettings, defaults);
   esp_lv_adapter_unlock();
 
-  std::uint64_t lastFrameUs =
+  const std::uint64_t uiStartedUs =
       static_cast<std::uint64_t>(esp_timer_get_time());
+  const std::uint64_t bootSplashDeadlineUs =
+      uiStartedUs + static_cast<std::uint64_t>(gSettings.startupLogoSeconds) *
+                        1'000'000U;
+  std::uint64_t lastFrameUs = uiStartedUs;
   while (true) {
     const std::uint64_t nowUs =
         static_cast<std::uint64_t>(esp_timer_get_time());
@@ -177,6 +186,8 @@ extern "C" void app_main(void) {
       // the CO5300 TE signal, so replaying missed application ticks adds lag.
       lastFrameUs = nowUs;
       if (esp_lv_adapter_lock(100) == ESP_OK) {
+        setOilGaugeBootSplashVisible(
+            gSettings.startupLogoSeconds > 0 && nowUs < bootSplashDeadlineUs);
         OilGaugeUiActions beforeRender;
         const bool hadBeforeRender = takeOilGaugeUiActions(beforeRender);
         if (hadBeforeRender && beforeRender.applySettings) {

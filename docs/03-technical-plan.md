@@ -77,8 +77,9 @@ flowchart LR
 | `src/settings_store.h` / `src/settings_store.cpp` | [E] | NVS-backed safe preference persistence |
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
+| `src/icons/startup_honda.c` | [E] | Reused 320×215 Honda RGB565A8 startup artwork |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Twenty-nine Unity native tests, including ADS1115 protocol and display ownership |
+| `test/test_gauge_core/test_main.cpp` | [E] | Thirty-one Unity native tests, including ADS1115 protocol, configurable warning threshold and display ownership |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |
@@ -134,7 +135,7 @@ flowchart LR
 | Sensor conversion/calibration math | `include/gauge_core.h`, `src/gauge_core.cpp`, `include/calibration_config.h`, native tests, `docs/CALIBRATION.md`, AC rows, API index |
 | Alarm threshold or engine-state logic | `include/gauge_core.h`, `src/gauge_core.cpp`, `src/main.cpp`, native tests, `docs/UI_DESIGN.md`, functional spec |
 | Onboard warning-audio behavior | audio gate + ESP-IDF audio implementation, `src/main.cpp`, Kconfig/defaults, native tests, functional AC row, test ledger, sprint record, decision log, progress card, complete firmware build and separately authorized physical proof |
-| Settings, units, or warning-presentation behavior | pure settings model, NVS store, `src/main.cpp`, `src/oil_gauge_ui.cpp`, warning audio, native tests, editable prototype, build spec/UI design, functional AC rows, test ledger, sprint record, decision log, progress card, native suite and complete firmware build |
+| Settings, units, warning threshold, startup splash, or warning-presentation behavior | pure settings model, NVS store, `src/main.cpp`, `src/oil_gauge_ui.cpp`, warning audio/assets, native tests, editable prototype, build spec/UI design, functional AC rows, test ledger, sprint record, decision log, progress card, native suite and complete firmware build |
 | Visual state/renderer change | `src/main.cpp`, `src/oil_gauge_ui.cpp`, fonts when applicable, `docs/UI_DESIGN.md`, editable prototype if the binding design changes, new physical capture, affected AC tests |
 | Display scan/buffering/presentation change | `src/display_runtime.cpp`, internal ownership policy, native regression, QSPI override when applicable, functional AC row, build spec, test ledger, sprint record, decision log, progress card, source contract, complete firmware build and separately authorized exact-board proof |
 | Board pin or I²C address | `include/board_pins.h`, `src/main.cpp`, `docs/WAVESHARE_PINOUT.md`, `docs/ARCHITECTURE.md`, arrival checklist |

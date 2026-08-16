@@ -112,7 +112,10 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 - selectable `DEMO` and `SENSORES`; the latter shows `--`, `SIN DATOS`, and
   `CALIBRACIÓN PENDIENTE` in neutral gray without enabling acquisition;
 - separate PSI/bar pressure units and °C/°F temperature units;
+- low-pressure warning threshold, 1–30 PSI, displayed in PSI or BAR according to
+  the selected pressure unit while remaining canonical PSI internally;
 - warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
+- Honda startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
 - read-only diagnostics and a confirmation-protected settings reset;
 - `VOLVER`; there is no inactivity timeout.
 
@@ -136,6 +139,8 @@ and D-045.
 
 The three sliders below the gauge exist only to explore the design. The RPM
 slider proves hidden engine stopped/running logic. None belongs in the driving UI.
+The editable simulator additionally exposes the warning threshold and startup-logo
+duration so these settings can be reviewed without adding controls to the gauge.
 
 ## Implementation restriction
 

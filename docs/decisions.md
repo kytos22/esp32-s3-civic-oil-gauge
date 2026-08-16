@@ -1150,3 +1150,23 @@
   ADS1115 diagnostics and invalid sensor calibrations are unchanged.
 - Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;
   their warning behavior, number visibility and accepted baseline remain binding.
+
+## D-065 — Persist a canonical PSI warning threshold and Honda boot duration
+- Date / phase: 2026-08-17 / Phase 5, Sprint 8
+- Decision: Add a 1–30 PSI low-pressure warning setting with a 10 PSI default and
+  a 0–10 second Honda startup-logo setting with a 1 second default. Store the
+  threshold as whole canonical PSI; PSI presents whole values and BAR presents one
+  decimal without rewriting the setting merely because units changed. A zero-second
+  boot duration disables the splash.
+- Why: Marcos requested user-adjustable warning pressure in the selected unit and
+  the same boot artwork/time control as the boost gauge. Canonical PSI preserves
+  alarm meaning across unit changes and bounded settings remain safe after corrupt
+  NVS input.
+- Verification: test-first compile failed for the absent fields, conversion helpers
+  and threshold-aware state API. The implementation passes 31/31 native tests, the
+  16/16 model/store/menu/runtime/asset contract and a complete ESP-IDF 6.0.2 build.
+  Exact-board flash, visual timing, persistence and touch judgment remain pending.
+- Safety: engine unknown/stopped still suppresses pressure warning; demo mode,
+  calibration gate, display transport and ADS1115 diagnostics remain unchanged.
+- Supersedes: AC-06/D-064 only for the configurable numerical pressure boundary;
+  all warning presentation, cadence and readability decisions remain binding.

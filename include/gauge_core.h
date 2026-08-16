@@ -129,7 +129,8 @@ struct DisplayState {
 
 [[nodiscard]] PressureState evaluatePressureState(
     const ConvertedValue& pressure,
-    const EngineState& engine);
+    const EngineState& engine,
+    double warningThresholdPsi = 10.0);
 
 [[nodiscard]] TemperatureState evaluateTemperatureState(
     const ConvertedValue& temperature);
@@ -141,7 +142,8 @@ struct DisplayState {
     const ConvertedValue& temperature,
     const EngineState& engine,
     bool blinkPhaseOn,
-    bool reducedMotion);
+    bool reducedMotion,
+    double warningThresholdPsi = 10.0);
 
 const char* faultName(Fault fault);
 const char* pressureStateName(PressureState state);

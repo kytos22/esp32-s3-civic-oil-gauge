@@ -29,6 +29,8 @@ struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
+  std::uint8_t lowPressureWarningPsi = 10;
+  std::uint8_t startupLogoSeconds = 1;
   PressureUnit pressureUnit = PressureUnit::psi;
   TemperatureUnit temperatureUnit = TemperatureUnit::celsius;
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
@@ -44,6 +46,10 @@ struct WarningPresentation {
 [[nodiscard]] GaugeSettings sanitizeGaugeSettings(GaugeSettings settings);
 [[nodiscard]] double pressureForDisplay(double pressurePsi,
                                         PressureUnit unit);
+[[nodiscard]] double warningThresholdForDisplay(std::uint8_t pressurePsi,
+                                                PressureUnit unit);
+[[nodiscard]] std::uint8_t warningThresholdPsiFromDisplay(double value,
+                                                          PressureUnit unit);
 [[nodiscard]] double temperatureForDisplay(double temperatureC,
                                            TemperatureUnit unit);
 [[nodiscard]] WarningPresentation evaluateWarningPresentation(

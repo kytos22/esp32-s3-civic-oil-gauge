@@ -139,7 +139,8 @@ AlarmState evaluateAlarms(const ConvertedValue& pressure,
 }
 
 PressureState evaluatePressureState(const ConvertedValue& pressure,
-                                    const EngineState& engine) {
+                                    const EngineState& engine,
+                                    double warningThresholdPsi) {
   if (!pressure.valid() || !std::isfinite(pressure.value) ||
       pressure.value < 0.0) {
     return PressureState::fault;
@@ -150,7 +151,7 @@ PressureState evaluatePressureState(const ConvertedValue& pressure,
   if (!engine.running()) {
     return PressureState::engineStopped;
   }
-  if (pressure.value <= 10.0) {
+  if (pressure.value <= clamp(warningThresholdPsi, 1.0, 30.0)) {
     return PressureState::warning;
   }
   if (pressure.value < 15.0) {
@@ -225,12 +226,14 @@ DisplayState evaluateDisplayState(const ConvertedValue& pressure,
                                   const ConvertedValue& temperature,
                                   const EngineState& engine,
                                   bool blinkPhaseOn,
-                                  bool reducedMotion) {
+                                  bool reducedMotion,
+                                  double warningThresholdPsi) {
   constexpr RgbColor kPressureNormal{255, 176, 32};
   constexpr RgbColor kPressureWarning{255, 57, 72};
 
   DisplayState result;
-  result.pressure = evaluatePressureState(pressure, engine);
+  result.pressure =
+      evaluatePressureState(pressure, engine, warningThresholdPsi);
   result.temperature = evaluateTemperatureState(temperature);
   const bool warning = result.pressure == PressureState::warning;
   result.pressureColor = warning ? kPressureWarning : kPressureNormal;

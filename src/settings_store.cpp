@@ -48,6 +48,12 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "volume", value)) {
     settings.warningVolumePercent = value;
   }
+  if (readU8(handle, "pressure_warn", value)) {
+    settings.lowPressureWarningPsi = value;
+  }
+  if (readU8(handle, "boot_seconds", value)) {
+    settings.startupLogoSeconds = value;
+  }
   if (readU8(handle, "unit", value)) {
     settings.pressureUnit = static_cast<PressureUnit>(value);
   }
@@ -79,6 +85,13 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(handle, "volume", settings.warningVolumePercent);
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "pressure_warn", settings.lowPressureWarningPsi);
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(handle, "boot_seconds", settings.startupLogoSeconds);
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(handle, "unit", static_cast<std::uint8_t>(settings.pressureUnit));

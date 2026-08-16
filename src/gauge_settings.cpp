@@ -1,6 +1,7 @@
 #include "gauge_settings.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace oilgauge {
 
@@ -34,6 +35,10 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
       settings.brightnessPercent, 5, 100);
   settings.warningVolumePercent = std::clamp<std::uint8_t>(
       settings.warningVolumePercent, 5, 100);
+  settings.lowPressureWarningPsi = std::clamp<std::uint8_t>(
+      settings.lowPressureWarningPsi, 1, 30);
+  settings.startupLogoSeconds = std::min<std::uint8_t>(
+      settings.startupLogoSeconds, 10);
   if (!validPressureUnit(settings.pressureUnit)) {
     settings.pressureUnit = PressureUnit::psi;
   }
@@ -51,6 +56,17 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
 
 double pressureForDisplay(double pressurePsi, PressureUnit unit) {
   return unit == PressureUnit::bar ? pressurePsi * kBarPerPsi : pressurePsi;
+}
+
+double warningThresholdForDisplay(std::uint8_t pressurePsi,
+                                  PressureUnit unit) {
+  return pressureForDisplay(pressurePsi, unit);
+}
+
+std::uint8_t warningThresholdPsiFromDisplay(double value, PressureUnit unit) {
+  const double psi = unit == PressureUnit::bar ? value / kBarPerPsi : value;
+  return static_cast<std::uint8_t>(
+      std::clamp<long>(std::lround(psi), 1L, 30L));
 }
 
 double temperatureForDisplay(double temperatureC, TemperatureUnit unit) {

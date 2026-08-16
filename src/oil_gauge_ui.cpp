@@ -32,6 +32,7 @@ constexpr std::uint32_t kWarningRed = 0xFF3948;
 struct BarWidgets {
   lv_obj_t* track = nullptr;
   lv_obj_t* fill = nullptr;
+  lv_obj_t* firstTick = nullptr;
   std::int32_t width = -1;
   RgbColor fillColor{};
   lv_opa_t opacity = LV_OPA_TRANSP;
@@ -46,6 +47,7 @@ struct UiWidgets {
   lv_obj_t* resetConfirm = nullptr;
   lv_obj_t* fullScreenWarning = nullptr;
   lv_obj_t* fullScreenPressureValue = nullptr;
+  lv_obj_t* bootSplash = nullptr;
   lv_obj_t* pressureState = nullptr;
   lv_obj_t* pressureValue = nullptr;
   lv_obj_t* pressureUnit = nullptr;
@@ -58,6 +60,10 @@ struct UiWidgets {
   lv_obj_t* brightnessSlider = nullptr;
   lv_obj_t* soundSwitch = nullptr;
   lv_obj_t* volumeSlider = nullptr;
+  lv_obj_t* pressureWarningSlider = nullptr;
+  lv_obj_t* pressureWarningValue = nullptr;
+  lv_obj_t* startupLogoSlider = nullptr;
+  lv_obj_t* startupLogoValue = nullptr;
   lv_obj_t* demoButton = nullptr;
   lv_obj_t* sensorsButton = nullptr;
   lv_obj_t* unitPsiButton = nullptr;
@@ -73,6 +79,8 @@ struct UiWidgets {
   char pressureStateText[24]{};
   char temperatureValueText[8]{};
   char temperatureStateText[24]{};
+  char pressureWarningText[24]{};
+  char startupLogoText[24]{};
   RgbColor pressureColor{};
   RgbColor temperatureColor{};
   GaugeSettings settings{};
@@ -88,6 +96,7 @@ struct UiWidgets {
   bool menuDirty = false;
   bool warningActive = false;
   bool fullScreenWarningVisible = false;
+  bool bootSplashVisible = false;
   bool unitRendered = false;
   bool temperatureUnitRendered = false;
   bool actionsPending = false;
@@ -194,6 +203,42 @@ void refreshMenuControls() {
       gUi.brightnessSlider, gUi.settings.brightnessPercent, LV_ANIM_OFF);
   lv_slider_set_value(
       gUi.volumeSlider, gUi.settings.warningVolumePercent, LV_ANIM_OFF);
+  const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
+  lv_slider_set_range(gUi.pressureWarningSlider, 1, bar ? 21 : 30);
+  const double threshold = warningThresholdForDisplay(
+      gUi.settings.lowPressureWarningPsi, gUi.settings.pressureUnit);
+  if (gUi.pressureBar.firstTick != nullptr) {
+    const std::int32_t warningTickX =
+        kContentX + static_cast<std::int32_t>(std::lround(
+                        gUi.settings.lowPressureWarningPsi / 150.0 *
+                        static_cast<double>(kContentWidth)));
+    lv_obj_set_x(gUi.pressureBar.firstTick, warningTickX);
+  }
+  lv_slider_set_value(gUi.pressureWarningSlider,
+                      bar ? static_cast<std::int32_t>(std::lround(threshold * 10.0))
+                          : gUi.settings.lowPressureWarningPsi,
+                      LV_ANIM_OFF);
+  char thresholdText[24];
+  if (bar) {
+    std::snprintf(thresholdText, sizeof(thresholdText), "UMBRAL: %.1f BAR", threshold);
+  } else {
+    std::snprintf(thresholdText,
+                  sizeof(thresholdText),
+                  "UMBRAL: %u PSI",
+                  static_cast<unsigned>(gUi.settings.lowPressureWarningPsi));
+  }
+  setLabelTextIfChanged(
+      gUi.pressureWarningValue, gUi.pressureWarningText, thresholdText);
+  lv_slider_set_value(gUi.startupLogoSlider,
+                      gUi.settings.startupLogoSeconds,
+                      LV_ANIM_OFF);
+  char startupText[24];
+  std::snprintf(startupText,
+                sizeof(startupText),
+                "DURACIÓN: %u S",
+                static_cast<unsigned>(gUi.settings.startupLogoSeconds));
+  setLabelTextIfChanged(
+      gUi.startupLogoValue, gUi.startupLogoText, startupText);
   if (gUi.settings.warningSoundEnabled) {
     lv_obj_add_state(gUi.soundSwitch, LV_STATE_CHECKED);
   } else {
@@ -275,6 +320,16 @@ void sliderEvent(lv_event_t* event) {
   } else if (target == gUi.volumeSlider) {
     gUi.settings.warningVolumePercent = static_cast<std::uint8_t>(
         lv_slider_get_value(gUi.volumeSlider));
+  } else if (target == gUi.pressureWarningSlider) {
+    const std::int32_t value = lv_slider_get_value(gUi.pressureWarningSlider);
+    gUi.settings.lowPressureWarningPsi = warningThresholdPsiFromDisplay(
+        gUi.settings.pressureUnit == PressureUnit::bar ? value / 10.0 : value,
+        gUi.settings.pressureUnit);
+    refreshMenuControls();
+  } else if (target == gUi.startupLogoSlider) {
+    gUi.settings.startupLogoSeconds = static_cast<std::uint8_t>(
+        lv_slider_get_value(gUi.startupLogoSlider));
+    refreshMenuControls();
   }
   queueSettingsApply();
 }
@@ -412,7 +467,7 @@ void createSettingsMenu(lv_obj_t* screen) {
   lv_obj_t* content = lv_obj_create(gUi.menu);
   lv_obj_remove_style_all(content);
   lv_obj_set_pos(content, 0, 0);
-  lv_obj_set_size(content, kCanvasWidth, 1050);
+  lv_obj_set_size(content, kCanvasWidth, 1280);
   lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
 
   createLabel(content,
@@ -490,28 +545,69 @@ void createSettingsMenu(lv_obj_t* screen) {
   gUi.unitFahrenheitButton = createMenuButton(
       content, "°F", 194, 702, 150, 50, temperatureUnitEvent);
 
-  createLabel(content, "PARPADEO WARNING", 28, 794, 300, 24,
+  createLabel(content, "AVISO DE PRESIÓN", 28, 786, 300, 24,
+              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
+  gUi.pressureWarningValue = createLabel(content,
+                                         "UMBRAL: 10 PSI",
+                                         28,
+                                         820,
+                                         260,
+                                         24,
+                                         &oil_font_ui_16,
+                                         color(kPrimary),
+                                         LV_TEXT_ALIGN_LEFT);
+  gUi.pressureWarningSlider = lv_slider_create(content);
+  lv_obj_set_pos(gUi.pressureWarningSlider, 28, 858);
+  lv_obj_set_size(gUi.pressureWarningSlider, 424, 16);
+  styleSlider(gUi.pressureWarningSlider);
+  lv_obj_add_event_cb(gUi.pressureWarningSlider,
+                      sliderEvent,
+                      LV_EVENT_VALUE_CHANGED,
+                      nullptr);
+
+  createLabel(content, "PARPADEO WARNING", 28, 918, 300, 24,
               &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
   gUi.warningElementsButton = createMenuButton(
-      content, "ELEMENTOS", 28, 832, 136, 50, warningModeEvent);
+      content, "ELEMENTOS", 28, 956, 136, 50, warningModeEvent);
   gUi.warningScreenButton = createMenuButton(
-      content, "PANTALLA", 172, 832, 136, 50, warningModeEvent);
+      content, "PANTALLA", 172, 956, 136, 50, warningModeEvent);
   gUi.warningFixedButton = createMenuButton(
-      content, "FIJO", 316, 832, 136, 50, warningModeEvent);
+      content, "FIJO", 316, 956, 136, 50, warningModeEvent);
 
-  createLabel(content, "SISTEMA", 28, 924, 220, 24, &oil_font_ui_16,
+  createLabel(content, "LOGOTIPO DE ARRANQUE", 28, 1034, 300, 24,
+              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
+  gUi.startupLogoValue = createLabel(content,
+                                     "DURACIÓN: 1 S",
+                                     28,
+                                     1068,
+                                     260,
+                                     24,
+                                     &oil_font_ui_16,
+                                     color(kPrimary),
+                                     LV_TEXT_ALIGN_LEFT);
+  gUi.startupLogoSlider = lv_slider_create(content);
+  lv_obj_set_pos(gUi.startupLogoSlider, 28, 1106);
+  lv_obj_set_size(gUi.startupLogoSlider, 424, 16);
+  lv_slider_set_range(gUi.startupLogoSlider, 0, 10);
+  styleSlider(gUi.startupLogoSlider);
+  lv_obj_add_event_cb(gUi.startupLogoSlider,
+                      sliderEvent,
+                      LV_EVENT_VALUE_CHANGED,
+                      nullptr);
+
+  createLabel(content, "SISTEMA", 28, 1162, 220, 24, &oil_font_ui_16,
               color(kSecondary), LV_TEXT_ALIGN_LEFT);
   createLabel(content,
               "DEMO · DISPLAY OK · TOUCH OK · AUDIO",
               28,
-              960,
+              1198,
               424,
               20,
               &oil_font_ui_12,
               color(kPrimary),
               LV_TEXT_ALIGN_LEFT);
   createMenuButton(
-      content, "RESTABLECER", 28, 994, 190, 48, resetRequestEvent);
+      content, "RESTABLECER", 28, 1230, 190, 48, resetRequestEvent);
 
   gUi.resetConfirm = createSolid(screen, 30, 125, 420, 230, 18);
   lv_obj_set_style_bg_color(gUi.resetConfirm, color(kPanel), 0);
@@ -578,6 +674,21 @@ void createFullScreenWarning(lv_obj_t* screen) {
   lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
 }
 
+void createBootSplash(lv_obj_t* screen) {
+  gUi.bootSplash = createSolid(screen, 0, 0, kCanvasWidth, kCanvasWidth, 0);
+  lv_obj_set_style_bg_color(gUi.bootSplash, color(kBlack), 0);
+  lv_obj_t* logo = lv_image_create(gUi.bootSplash);
+  lv_obj_remove_style_all(logo);
+  lv_image_set_src(logo, &startup_honda_logo);
+  lv_obj_center(logo);
+  lv_obj_clear_flag(logo, LV_OBJ_FLAG_SCROLLABLE);
+  if (gUi.settings.startupLogoSeconds == 0) {
+    lv_obj_add_flag(gUi.bootSplash, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    gUi.bootSplashVisible = true;
+  }
+}
+
 BarWidgets createBar(lv_obj_t* parent,
                      std::int32_t y,
                      const double* ticks,
@@ -595,6 +706,9 @@ BarWidgets createBar(lv_obj_t* parent,
         std::lround(ticks[index] * static_cast<double>(kContentWidth)));
     lv_obj_t* tick =
         createSolid(parent, tickX, y - 2, 1, kBarHeight + 4, 0);
+    if (index == 0) {
+      widgets.firstTick = tick;
+    }
     lv_obj_set_style_bg_color(tick, color(kPrimary), 0);
     lv_obj_set_style_bg_opa(tick, LV_OPA_30, 0);
   }
@@ -800,6 +914,7 @@ void createOilGaugeUi(lv_obj_t* screen,
 
   createSettingsMenu(screen);
   createFullScreenWarning(screen);
+  createBootSplash(screen);
   refreshMenuControls();
   gUi.created = true;
 }
@@ -818,7 +933,12 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   const bool reducedMotion =
       gUi.settings.warningVisualMode == WarningVisualMode::fixed;
   const DisplayState state = evaluateDisplayState(
-      pressure, temperature, engine, elementsBlinkPhaseOn, reducedMotion);
+      pressure,
+      temperature,
+      engine,
+      elementsBlinkPhaseOn,
+      reducedMotion,
+      gUi.settings.lowPressureWarningPsi);
   const bool warning = state.pressure == PressureState::warning;
   gUi.warningActive = warning;
   if (gUi.menuVisible) {
@@ -943,6 +1063,22 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
             state.temperatureBarFraction,
             temperatureColorValue,
             LV_OPA_COVER);
+}
+
+void setOilGaugeBootSplashVisible(bool visible) {
+  if (!gUi.created || gUi.bootSplash == nullptr) {
+    return;
+  }
+  if (visible == gUi.bootSplashVisible) {
+    return;
+  }
+  if (visible) {
+    lv_obj_clear_flag(gUi.bootSplash, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(gUi.bootSplash);
+  } else {
+    lv_obj_add_flag(gUi.bootSplash, LV_OBJ_FLAG_HIDDEN);
+  }
+  gUi.bootSplashVisible = visible;
 }
 
 bool oilGaugeFullScreenWarningVisible() {
