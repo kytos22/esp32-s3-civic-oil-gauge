@@ -1048,7 +1048,10 @@
   `476cf4d`, but Marcos refined the unflashed contract. The refined red failed to
   compile without the warning state and passed only 61/68 invariants; green is
   28/28 native tests, 68/68 display/audio invariants and the complete Keel verifier.
-  Clean build and exact-board judgment remain pending.
+  Clean commit `c15e63f` produces a 730,640-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-11-gc15e63f`, with SHA-256
+  `8705132d455e5eba09f6cc1e087a471d21975afcdbbcb266d58712e1c12e92d0`.
+  Exact-board judgment remains pending fresh flash authorization.
 - Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
   fresh explicit authorization.
 - Supersedes: D-059 only for temperature color stops and metric-group vertical

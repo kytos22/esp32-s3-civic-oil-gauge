@@ -81,7 +81,11 @@
   group down 4 px while leaving headings and dynamic states in place. The first
   clean D-060 candidate `476cf4d` is superseded before flash by this refined color
   and warning contract. Red was a missing enum/visibility contract and 61/68
-  invariants; green is native 28/28 and display/audio 68/68. Build remains pending.
+  invariants; green is native 28/28 and display/audio 68/68. Clean commit `c15e63f`
+  builds a 730,640-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-11-gc15e63f`, with SHA-256
+  `8705132d455e5eba09f6cc1e087a471d21975afcdbbcb266d58712e1c12e92d0`.
+  Exact-board flash and judgment remain pending fresh authorization.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -435,4 +439,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — refined D-060 tests pass; clean build pending
+Last updated: 2026-08-16 — refined D-060 clean candidate awaits flash authorization
