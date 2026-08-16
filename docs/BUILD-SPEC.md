@@ -43,7 +43,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | text.secondary | `#9AA4AF` | labels/units; contrast 8.30:1 |
 | pressure.normal | `#FFB020` | normal icon/bar; contrast 11.48:1 |
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
-| bar.thickness | `18 px` | both bars; fixed threshold notes below removed |
+| bar.thickness | `21 px` | both bars; fixed threshold notes below removed |
 | warning.elements.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
 | warning.screen.period | `2 s`, step-end | 0.5 Hz complete cycle; 1 s normal / 1 s opaque red |
 | refresh.period | `20 ms` | application and LVGL target cadence for the 50 FPS physical experiment |
@@ -80,10 +80,10 @@ Temperature colors are linearly interpolated between:
 | State | Condition | Label/value | Color | Sprint 0 core |
 |---|---|---|---|---|
 | below range | <50 °C | `FRÍO`, `<50` | blue, empty bar | implemented/tested |
-| cold | 50–69 °C | `FRÍO` | interpolated | implemented/tested |
-| warming | 70–74 °C | `CALENTANDO` | interpolated | implemented/tested |
-| optimal | 75–93 °C | `ÓPTIMO` | interpolated | implemented/tested |
-| hot | 94–100 °C | `CALIENTE` | interpolated | implemented/tested |
+| cold | 50–59 °C | `FRÍO` | interpolated | implemented/tested |
+| warming | 60–75 °C | `CALENTANDO` | interpolated | implemented/tested |
+| optimal | 76–95 °C | `ÓPTIMO` | interpolated | implemented/tested |
+| hot | 96–100 °C | `CALIENTE` | interpolated | implemented/tested |
 | very hot | >100 °C | `MUY CALIENTE` | interpolated to 138 °C | implemented/tested |
 | fault | invalid temperature | explicit fault | non-color cue | implemented/tested |
 

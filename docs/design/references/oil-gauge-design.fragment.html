@@ -228,7 +228,7 @@
 
   #oilGaugeRefinedIcons .ogr-scale {
     position: relative;
-    height: 18px;
+    height: 21px;
     border-radius: 999px;
     background: var(--ogr-line);
   }
@@ -456,9 +456,9 @@
     };
 
     const getTemperatureState = (temperature) => {
-      if (temperature < 70) return ['cold', 'Frío'];
-      if (temperature < 75) return ['warming', 'Calentando'];
-      if (temperature < 94) return ['optimal', 'Óptimo'];
+      if (temperature < 60) return ['cold', 'Frío'];
+      if (temperature < 76) return ['warming', 'Calentando'];
+      if (temperature < 96) return ['optimal', 'Óptimo'];
       if (temperature <= 100) return ['hot', 'Caliente'];
       return ['very-hot', 'Muy caliente'];
     };

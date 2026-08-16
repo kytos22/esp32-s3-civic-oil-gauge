@@ -96,6 +96,7 @@ struct DisplayPipeline {
   portMUX_TYPE frameMux = portMUX_INITIALIZER_UNLOCKED;
   portMUX_TYPE statsMux = portMUX_INITIALIZER_UNLOCKED;
   std::atomic_bool presenterFailed{false};
+  std::atomic_int pendingBrightness{-1};
   PipelineStats stats{};
 };
 
@@ -309,6 +310,20 @@ bool IRAM_ATTR onColorTransferDone(
   return highPriorityTaskWoken == pdTRUE;
 }
 
+void applyPendingBrightness(DisplayPipeline& pipeline) {
+  const int brightnessPercent =
+      pipeline.pendingBrightness.exchange(-1, std::memory_order_acq_rel);
+  if (brightnessPercent < 0) {
+    return;
+  }
+  const esp_err_t result = bsp_display_brightness_set(brightnessPercent);
+  if (result != ESP_OK) {
+    ESP_LOGW(kTag,
+             "Unable to apply coalesced display brightness: %s",
+             esp_err_to_name(result));
+  }
+}
+
 void displayPresenterTask(void* argument) {
   auto& pipeline = *static_cast<DisplayPipeline*>(argument);
 
@@ -389,6 +404,9 @@ void displayPresenterTask(void* argument) {
     ++pipeline.stats.presented;
     ++pipeline.stats.dmaCompleted;
     portEXIT_CRITICAL(&pipeline.statsMux);
+    // Brightness shares the panel IO with frame transport. Coalesce fast slider
+    // events and send command 0x51 only after the prior DMA has completed.
+    applyPendingBrightness(pipeline);
     // LVGL may reuse this framebuffer only after the LCD driver reports that
     // the complete QSPI transfer has finished.
     lv_display_flush_ready(pipeline.display);
@@ -596,6 +614,12 @@ OilDisplayRuntime startOilDisplayRuntime() {
     runtime = {};
   }
   return runtime;
+}
+
+void requestOilDisplayBrightness(std::uint8_t brightnessPercent) {
+  gPipeline.pendingBrightness.store(
+      std::clamp<int>(brightnessPercent, 5, 100),
+      std::memory_order_release);
 }
 
 }  // namespace oilgauge

@@ -41,7 +41,7 @@
   `94 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
 - Typography: the approved prototype's condensed sans-serif treatment; firmware must
   match its measured placement and weight using build-native glyphs.
-- Geometry: 480×480, equal 240 px regions, values centered at x=240, 18 px bars;
+- Geometry: 480×480, equal 240 px regions, values centered at x=240, 21 px bars;
   no fixed threshold notes below the bars.
 - Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
   reference. They are path geometry, not external image assets.
@@ -65,8 +65,8 @@ activation interrupts settings and restores the gauge immediately.
 
 - Pressure: engine state unknown, engine stopped, warning 0–10 PSI while running,
   provisional low 11–14 PSI, OK 15–80 PSI, provisional high above 80 PSI, sensor fault.
-- Temperature: below-range `<50`, cold 50–69, warming 70–74, optimal 75–93,
-  hot 94–100, very hot above 100, sensor fault.
+- Temperature: below-range `<50` shown as cold, cold 50–59, warming 60–75,
+  optimal 76–95, hot 96–100, very hot above 100, sensor fault.
 - System: demo-labelled, ADC missing, calibration missing/raw-only, valid calibrated,
   and per-channel fault.
 - Fixed viewport only: no responsive breakpoints.

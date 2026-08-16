@@ -1104,7 +1104,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
   #oilGaugeRefinedIcons .ogr-scale {
     position: relative;
-    height: 18px;
+    height: 21px;
     border-radius: 999px;
     background: var(--ogr-line);
   }
@@ -1332,9 +1332,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     };
 
     const getTemperatureState = (temperature) =&gt; {
-      if (temperature &lt; 70) return [&#x27;cold&#x27;, &#x27;Frío&#x27;];
-      if (temperature &lt; 75) return [&#x27;warming&#x27;, &#x27;Calentando&#x27;];
-      if (temperature &lt; 94) return [&#x27;optimal&#x27;, &#x27;Óptimo&#x27;];
+      if (temperature &lt; 60) return [&#x27;cold&#x27;, &#x27;Frío&#x27;];
+      if (temperature &lt; 76) return [&#x27;warming&#x27;, &#x27;Calentando&#x27;];
+      if (temperature &lt; 96) return [&#x27;optimal&#x27;, &#x27;Óptimo&#x27;];
       if (temperature &lt;= 100) return [&#x27;hot&#x27;, &#x27;Caliente&#x27;];
       return [&#x27;very-hot&#x27;, &#x27;Muy caliente&#x27;];
     };

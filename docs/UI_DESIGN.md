@@ -16,7 +16,7 @@ Static capture:
 - Vertical 50/50 split: oil pressure top, oil temperature bottom.
 - Each numeric value is centered on the complete horizontal axis. The left
   icon and right unit never displace it.
-- Bars are 18 px thick at 480×480.
+- Bars are 21 px thick at 480×480.
 - Numeric values are white; headings and units use dimmed white.
 - Semantic state labels are right-aligned in 24 px Montserrat for distance
   readability; the physical demo confirms they are unclipped and glanceable at
@@ -80,10 +80,10 @@ Semantic states:
 
 | Temperature | State label |
 |---|---|
-| <70 °C | `FRÍO` |
-| 70–74 °C | `CALENTANDO` |
-| 75–93 °C | `ÓPTIMO` |
-| 94–100 °C | `CALIENTE` |
+| <60 °C | `FRÍO` (`<50` when below measurable range) |
+| 60–75 °C | `CALENTANDO` |
+| 76–95 °C | `ÓPTIMO` |
+| 96–100 °C | `CALIENTE` |
 | >100 °C | `MUY CALIENTE` |
 
 Bar, icon, and label use the same continuous interpolation:

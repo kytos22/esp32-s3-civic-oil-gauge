@@ -85,9 +85,7 @@ void applyUiActions(const OilGaugeUiActions& actions,
                     bool settingsStoreAvailable) {
   if (actions.applySettings) {
     gSettings = sanitizeGaugeSettings(actions.settings);
-    if (bsp_display_brightness_set(gSettings.brightnessPercent) != ESP_OK) {
-      ESP_LOGW(kTag, "Unable to apply display brightness");
-    }
+    requestOilDisplayBrightness(gSettings.brightnessPercent);
     setWarningAudioEnabled(gSettings.warningSoundEnabled);
     if (warningAudioAvailable() &&
         !setWarningAudioVolume(gSettings.warningVolumePercent)) {

@@ -18,7 +18,7 @@ constexpr std::int32_t kCanvasWidth = 480;
 constexpr std::int32_t kHalfHeight = 240;
 constexpr std::int32_t kContentX = 38;
 constexpr std::int32_t kContentWidth = 404;
-constexpr std::int32_t kBarHeight = 18;
+constexpr std::int32_t kBarHeight = 21;
 
 constexpr std::uint32_t kBlack = 0x000000;
 constexpr std::uint32_t kPrimary = 0xF7F9FB;

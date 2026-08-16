@@ -139,9 +139,9 @@ See `docs/03-technical-plan.md`.
 - **AC-07:** Pressure 15–80 PSI maps to the approved amber OK state; 11–14 and >80 remain explicitly provisional until threshold validation.
 - **AC-08:** Temperature below 50 °C renders `<50 °C`, starts at blue, and does not show a precise number.
 - **AC-09:** Temperature color interpolation follows the approved stops at 50, 57, 75, 89, 94, 100, and 138 °C.
-- **AC-10:** Temperature semantic states are cold below 70, warming at 70–74, optimal at 75–93, hot at 94–100, and very hot above 100 °C.
+- **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–95, hot at 96–100, and very hot above 100 °C; values below the measurable range still render `<50`.
 - **AC-11:** Both numbers are horizontally centered on the complete 480 px axis and the pressure/temperature regions are equal height.
-- **AC-12:** The display background is pure black and bars are 9 px thick in the 480×480 reference coordinate system.
+- **AC-12:** The display background is pure black and bars are 21 px thick in the 480×480 reference coordinate system.
 - **AC-13:** Direct pressure agrees with the MTX-D within 2 PSI in the normal range on held-out cold/hot points before cutover.
 - **AC-14:** Direct temperature agrees with the MTX-D within 2 °C from 60–130 °C on held-out points before cutover.
 - **AC-15:** Open/short faults for both sensors are detected before cutover.
@@ -201,6 +201,8 @@ See `docs/03-technical-plan.md`.
   compile-time defaults. `SENSORES` is selectable and persistable while calibration
   is incomplete, but it displays `--` and `SIN DATOS`; it cannot start acquisition
   or create engineering-unit values.
+  Rapid brightness dragging coalesces to the newest value and sends the panel
+  command only after frame DMA completion; it must not block touch or rendering.
 - **AC-35:** PSI/bar changes only displayed pressure values, units, and reference
   labels from canonical PSI; it never changes calibration, bar fraction, thresholds,
   or alarm evaluation.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "lvgl.h"
 
 namespace oilgauge {
@@ -10,5 +12,6 @@ struct OilDisplayRuntime {
 };
 
 [[nodiscard]] OilDisplayRuntime startOilDisplayRuntime();
+void requestOilDisplayBrightness(std::uint8_t brightnessPercent);
 
 }  // namespace oilgauge

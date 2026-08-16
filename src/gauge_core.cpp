@@ -170,13 +170,13 @@ TemperatureState evaluateTemperatureState(
   if (temperature.value < 50.0) {
     return TemperatureState::belowRange;
   }
-  if (temperature.value < 70.0) {
+  if (temperature.value < 60.0) {
     return TemperatureState::cold;
   }
-  if (temperature.value < 75.0) {
+  if (temperature.value < 76.0) {
     return TemperatureState::warming;
   }
-  if (temperature.value < 94.0) {
+  if (temperature.value < 96.0) {
     return TemperatureState::optimal;
   }
   if (temperature.value <= 100.0) {

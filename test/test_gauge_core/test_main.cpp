@@ -134,12 +134,12 @@ void test_temperature_state_boundaries() {
   };
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::belowRange), state(49.9));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(50.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(69.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(70.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(74.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(75.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(93.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(94.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(59.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(60.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(75.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(76.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(95.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(96.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(100.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::veryHot), state(100.1));
 }

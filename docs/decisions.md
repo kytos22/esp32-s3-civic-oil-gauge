@@ -991,3 +991,30 @@
 - Supersedes: D-022 only for the fractional leading-edge object and D-057 only for
   15 px bar geometry. All D-057 display-pipeline and accepted physical behavior
   remains binding; `443eb72` remains Golden Prototype 1.
+
+## D-059 — Serialize brightness with frame DMA and revise temperature bands
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Keep D-058's accepted clean single-object rounded endpoint and
+  no-tearing display pipeline. Increase both bars from 18 px to 21 px. Change
+  semantic temperature bands to cold below 60 °C, warming 60–75 °C, optimal
+  76–95 °C, hot 96–100 °C, and very hot above 100 °C; temperatures below the
+  measurable 50 °C floor still display `<50` and use the cold label. Coalesce
+  rapid brightness changes into one atomic newest value and send CO5300 command
+  `0x51` only from the display presenter after frame DMA completion.
+- Why: Marcos accepted D-058's endpoint and no-tearing result but requested 21 px
+  bars and the revised state ranges. He also reproduced intermittent lock-up when
+  dragging brightness quickly. The prior path called the synchronous BSP panel-IO
+  command from the main task for every collected slider update while the presenter
+  could own the same QSPI IO for frame DMA. Serializing the newest-only command at
+  the already-proven DMA completion boundary removes that concurrent ownership and
+  avoids an arbitrary debounce timer.
+- Verification: red evidence includes the old temperature-boundary native failure,
+  the prior 18 px geometry, and absence of the brightness serialization contract.
+  The implementation passes 27/27 native tests, 55/55 display/audio invariants and
+  the complete Keel verifier. A clean ESP-IDF build and exact-board rapid-slider
+  stress still remain; hardware testing requires fresh flash authorization.
+- Safety: demo-only. Brightness is clamped to the existing 5–100% safe range. No
+  sensors, ADS1115, MTX-D, 12 V, or vehicle connection.
+- Supersedes: D-058 only for 18 px thickness, the prior semantic portions of the
+  temperature bands, and the main-task live-brightness apply path. D-058's clean
+  endpoint and D-057's physical display baseline remain binding.

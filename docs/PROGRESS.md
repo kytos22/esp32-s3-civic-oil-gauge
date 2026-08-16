@@ -46,12 +46,24 @@
 - Accepted Physical Baseline 2: D-057 implementation commit `9febd47`. Marcos
   confirmed no tearing, the best menu motion so far, correct warning and colors,
   removal of only the fixed notes, and retention of every dynamic state indicator.
-- Next action: collect Marcos's physical judgment of D-058's 18 px weight and
-  moving rounded endpoint, while confirming D-057's no-tearing baseline remains.
-  The display pipeline remains byte-for-byte D-057; sensor and vehicle work remain
-  gated.
+- D-058 physical judgment: the single rounded endpoint is clean and tearing remains
+  absent; 18 px is still too light. Its synchronized display pipeline remains the
+  active physical baseline for D-059.
+- Next action: build D-059 with 21 px bars, revised temperature state boundaries,
+  and coalesced post-DMA brightness commands; then request separate exact-board
+  flash authorization. Sensor and vehicle work remain gated.
 
 ## Open items
+- D-059 raises both bars to 21 px and changes temperature semantics to cold below
+  60 °C (still displaying `<50` below measurable range), warming 60–75 °C,
+  optimal 76–95 °C, hot 96–100 °C, and very hot above 100 °C. It also fixes the
+  rapid-brightness lock: UI events only replace one atomic pending value, and the
+  display presenter sends the newest command `0x51` after frame DMA completion,
+  never concurrently from the main task. Red evidence was the old boundary test,
+  prior 18 px geometry and missing serialization contract; the implementation now
+  passes 27/27 native tests and 55/55 display/audio invariants. A complete dirty-tree
+  ESP-IDF build also passes; the clean candidate build and exact-board stress remain
+  pending.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -66,8 +78,8 @@
   `pb2-d057-3-gc0be6df`, native scan, FULL double buffering and GPIO43 TE at
   59.491 Hz. The bounded runtime has DMA about 13.1–14.6 ms and
   `timeouts=0 errors=0 fatal=0`; its cadence remains in D-057's known sub-target
-  range. Exact-board bar weight and endpoint cleanliness still require Marcos's
-  visual judgment.
+  range. Marcos confirmed the endpoint is now clean and tearing remains absent;
+  18 px remains visually too thin and is superseded by D-059's 21 px candidate.
 - D-057 removes the measured full-frame snapshot copy with two complete
   `RGB565_SWAPPED` PSRAM buffers in LVGL `FULL` mode. The project-owned presenter
   queues the rendered pointer directly on GPIO43 TE and releases it only after LCD
@@ -405,4 +417,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-058 flashed with stable transport; bar endpoint judgment pending
+Last updated: 2026-08-16 — D-058 endpoint/no-tearing accepted; D-059 tests and full dirty-tree build pass

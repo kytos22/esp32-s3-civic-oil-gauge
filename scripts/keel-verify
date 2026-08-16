@@ -255,10 +255,10 @@ def approved_geometry() -> None:
     conditions = [
         "480×480" in ui,
         "50/50" in ui,
-        "18 px" in ui,
+        "21 px" in ui,
         "--ogr-yellow: #ffb020" in fragment.lower(),
         "--ogr-danger: #ff3948" in fragment.lower(),
-        "height: 18px" in fragment,
+        "height: 21px" in fragment,
         'id="ogrRpmInput"' in fragment,
         "createSolid(icon, 31, 0, 10, 42, 5)" in renderer,
         "createSolid(icon, 42, 27, 18, 6, 1)" in renderer,
@@ -355,6 +355,7 @@ def settings_menu_contract() -> None:
 def full_frame_and_warning_loop_contract() -> None:
     display_runtime = text("src/display_runtime.cpp")
     renderer = text("src/oil_gauge_ui.cpp")
+    gauge_core = text("src/gauge_core.cpp")
     main = text("src/main.cpp")
     audio = text("src/warning_audio.cpp")
     sdkconfig_defaults = text("sdkconfig.defaults")
@@ -397,9 +398,16 @@ def full_frame_and_warning_loop_contract() -> None:
         "setWarningAudioActive(true)" in main,
         "setWarningAudioActive(false)" in main,
         "while (gWarningActive.load()" in audio,
-        "constexpr std::int32_t kBarHeight = 18" in renderer,
+        "constexpr std::int32_t kBarHeight = 21" in renderer,
         "lv_obj_t* edge" not in renderer,
         "edgeOpacity" not in renderer,
+        "temperature.value < 60.0" in gauge_core,
+        "temperature.value < 76.0" in gauge_core,
+        "temperature.value < 96.0" in gauge_core,
+        "requestOilDisplayBrightness(gSettings.brightnessPercent)" in main,
+        "bsp_display_brightness_set(gSettings.brightnessPercent)" not in main.split("void applyUiActions", 1)[1].split("}  // namespace", 1)[0],
+        "pendingBrightness.exchange" in display_runtime,
+        "applyPendingBrightness(pipeline)" in display_runtime,
         "pressureLowReference" not in renderer,
         "pressureOkReference" not in renderer,
         "temperatureOptimalReference" not in renderer,
