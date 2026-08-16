@@ -16,8 +16,10 @@ underflowed and completed presentation stayed at zero. D-055 app `aa38f5f` is no
 flashed: all four writes passed hashes and its bounded capture completed at about
 17–35 FPS with `timeouts=0 errors=0 no_slot=0 fatal=0`. Marcos confirmed no
 tearing or diagonal; its 180-degree mounting orientation is acceptable. D-056
-passes 35/35 display invariants, 27/27 native tests and a dirty-tree full build;
-clean image and exact-board proof remain pending.
+passes 35/35 display invariants and 27/27 native tests. Clean commit `9b59722`
+produces a 733,232-byte app with SHA-256
+`a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`;
+exact-board proof remains pending.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact

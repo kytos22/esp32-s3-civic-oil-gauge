@@ -224,14 +224,16 @@ flowchart LR
   bounded transport and ownership while removing all LVGL rotation. Dirty PARTIAL
   areas copy directly into the native canvas with panel-endian RGB565. The revised
   source contract failed 31/35 before the implementation and now passes 35/35;
-  native tests pass 27/27 and the complete dirty-tree ESP-IDF 6.0.2 build passes. A
+  native tests pass 27/27. Clean commit `9b59722` produces a 733,232-byte
+  ESP-IDF 6.0.2 app with SHA-256
+  `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`. A
   canonical framebuffer and two explicit snapshots decouple rendering from the
   GPIO43-TE presenter. ESP LCD stages each snapshot through three queued 8-row
   internal-DMA chunks (23,040 bytes maximum), and `on_color_trans_done` is the
   only release event. A start/completion failure latches `fatal=1`. D-055 app
   `aa38f5f` proved this transport with zero errors and Marcos confirmed no tearing
-  or diagonal, but its logical image was rotated 180 degrees. D-056 clean
-  commit/image and separately authorized exact-board proof remain pending.
+  or diagonal, but its logical image was rotated 180 degrees. D-056 separately
+  authorized exact-board proof remains pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

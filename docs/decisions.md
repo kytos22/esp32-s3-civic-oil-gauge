@@ -906,10 +906,11 @@
   value and consumes composition time; the simplest controlled A/B is no rotation
   anywhere above the controller's native scan.
 - Verification: the source contract failed 31/35 before implementation and passes
-  35/35 after it. Native tests pass 27/27 and a complete dirty-tree ESP-IDF 6.0.2
-  build passes. A clean commit/image and separately authorized exact-board run are
-  still required to determine native visual direction, touch alignment and actual
-  composition/presentation timing.
+  35/35 after it. Native tests pass 27/27. Clean commit `9b59722` produces a
+  733,232-byte ESP-IDF 6.0.2 app with SHA-256
+  `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`.
+  A separately authorized exact-board run is still required to determine native
+  visual direction, touch alignment and actual composition/presentation timing.
 - Safety: USB/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
   sensors, ADS1115, MTX-D, 12 V or the vehicle.
 - Supersedes: D-054/D-055 only for logical rotation. D-055's physically proven

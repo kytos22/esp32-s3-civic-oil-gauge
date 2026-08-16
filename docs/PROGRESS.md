@@ -43,8 +43,8 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: finish the clean D-056 commit/build evidence, then request explicit
-  authorization for an exact-board no-rotation A/B. D-055 already proves no
+- Next action: request explicit authorization for the clean D-056 exact-board
+  no-rotation A/B at commit `9b59722`. D-055 already proves no
   tearing or diagonal; D-056 leaves both LVGL and CO5300 in native orientation and
   should reveal the panel's untransformed mounting direction. Sensor and vehicle
   work remain gated.
@@ -55,8 +55,10 @@
   `lv_draw_sw_rotate()`. Dirty PARTIAL areas now copy row-for-row into the native
   canvas with only the required RGB565 byte swap; TE, snapshots, bounded 8-row
   transfers and ownership remain unchanged. The revised display contract first
-  failed 31/35 and now passes 35/35; native tests pass 27/27 and the complete dirty
-  ESP-IDF 6.0.2 build passes. Clean commit/image and exact-board proof remain.
+  failed 31/35 and now passes 35/35; native tests pass 27/27. Clean commit
+  `9b59722` produces a 733,232-byte ESP-IDF 6.0.2 app with SHA-256
+  `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`.
+  Exact-board proof remains separately authorized hardware work.
 - D-055 keeps D-054's native scan, software rotation and immutable ownership, but
   removes direct PSRAM-to-GPSPI DMA after the exact board returned the documented
   `DMA TX underflow` / `ESP_ERR_INVALID_STATE` failure at 80 MHz QSPI. ESP LCD now
@@ -356,4 +358,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-055 physically has no tearing/diagonal; D-056 no-rotation candidate passes dirty-tree software validation
+Last updated: 2026-08-16 — D-055 physically has no tearing/diagonal; clean D-056 no-rotation candidate awaits flash authorization
