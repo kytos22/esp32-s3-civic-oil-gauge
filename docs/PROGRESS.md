@@ -69,7 +69,11 @@
   Clean implementation commit `c0bce25` builds a 780,368-byte ESP-IDF 6.0.2 app
   identified as `pb2-d057-13-gc0bce25`, with SHA-256
   `61d93b65a481a3712babef21f2afdf528645f3f4c77c0a25d48744feb4a4443f`.
-  Exact-board judgment remains pending fresh flash authorization.
+  Marcos authorized the exact-board flash. VID/PID `303a:1001`, ESP32-S3/8 MB
+  PSRAM and the recorded MAC matched; all four written regions passed hash
+  verification. Boot confirms exact app `pb2-d057-13-gc0bce25`, TE 59.620 Hz,
+  DMA about 13.2–14.8 ms and `timeouts=0 errors=0 fatal=0` throughout the bounded
+  capture. Physical icon, unit-size, recoloring and no-tearing judgment remain pending.
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
   60 °C (still displaying `<50` below measurable range), warming 60–75 °C,
   optimal 76–95 °C, hot 96–100 °C, and very hot above 100 °C. It also fixes the
@@ -455,4 +459,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-061 supplied-icon candidate awaits flash authorization
+Last updated: 2026-08-16 — D-061 is on the exact board; physical judgment pending

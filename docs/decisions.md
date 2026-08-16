@@ -1072,7 +1072,11 @@
   Clean implementation commit `c0bce25` produces a 780,368-byte app identified as
   `pb2-d057-13-gc0bce25`, with SHA-256
   `61d93b65a481a3712babef21f2afdf528645f3f4c77c0a25d48744feb4a4443f`.
-  Exact-board visual judgment remains pending a separately authorized flash.
+  Marcos separately authorized the exact-board flash. VID/PID, ESP32-S3/8 MB
+  PSRAM and recorded MAC matched; every written region passed hash verification.
+  Boot confirms exact app `pb2-d057-13-gc0bce25`, TE 59.620 Hz, DMA about
+  13.2–14.8 ms and no timeout/error/fatal counters in the bounded capture.
+  Physical visual judgment remains pending.
 - Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
   fresh explicit authorization.
 - Supersedes: D-060 only for icon silhouettes and unit-label font size. D-060's
