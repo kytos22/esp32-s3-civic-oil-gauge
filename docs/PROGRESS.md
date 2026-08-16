@@ -47,7 +47,11 @@
   16–21 ms full-frame snapshot copy, without weakening D-056's immutable
   render/DMA ownership. Native orientation is accepted with USB-C on the right,
   touch aligns, and tearing/diagonal remain absent. Sensor and vehicle work remain
-  gated.
+  gated. In the same D-057 visual revision, remove the semantic captions below
+  both indicator bars (for example `ALERTA` and `ÓPTIMO`) and use the recovered
+  vertical space to make both bars thicker. Keep the numbers, units, reference
+  marks, full-screen danger message, and explicit fault cues. The exact new bar
+  thickness remains a visual choice for the next work block.
 
 ## Open items
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
@@ -362,8 +366,13 @@
   terms and bilingual summaries are visible in the repository.
 
 ### Deferred items (consciously postponed work)
+- D-057 display pipeline and visual cleanup — high — next work block: eliminate
+  the 460,800-byte full snapshot copy with an ownership-safe LVGL DIRECT
+  double/triple-buffer design; remove semantic captions below both bars and use
+  that space for thicker indicator bars without removing numeric, unit, warning,
+  or fault information
 - Direct-sensor calibration and final analog front end — safety-critical — when hardware and reversible harness are present
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-056 native orientation/touch and no-tearing result accepted; full snapshot copy is the next performance target
+Last updated: 2026-08-16 — D-057 performance and indicator-bar visual revision queued for the next work block
