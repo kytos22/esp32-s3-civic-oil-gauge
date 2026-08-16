@@ -67,7 +67,9 @@
   warning cadence, red background and all other UI remain unchanged. The simulator
   mirrors the 36 px/700-weight typography. Red-first source verification failed
   0/9 before implementation and now passes 11/11; complete ESP-IDF 6.0.2 build
-  passes. Exact-board visual judgment and flash remain pending fresh authorization.
+  passes. Clean commit `bf3faa0` builds app `pb2-d057-19-gbf3faa0`, 787,968 bytes,
+  SHA-256 `95a8a245f8d02f535b12c4f7306c48a35269e79b6cbd8b43f51eb0d0f0cb62e4`.
+  Exact-board visual judgment and flash remain pending fresh authorization.
 - D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
   sensor conversions. The pure protocol creates single-shot A0–A3 configurations
   at PGA ±4.096 V / 128 SPS and converts signed counts at 125 µV/LSB. Its red-first

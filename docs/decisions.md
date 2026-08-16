@@ -1136,7 +1136,10 @@
   the accepted 96 px pressure number or loading an unnecessary complete font.
 - Verification: red-first source contract failed 0/9 before implementation and
   passes 11/11 afterward. The standalone simulator is synchronized and the complete
-  ESP-IDF 6.0.2 firmware build passes. Exact-board visual judgment is pending.
+  ESP-IDF 6.0.2 firmware build passes. Clean commit `bf3faa0` builds app
+  `pb2-d057-19-gbf3faa0` (787,968 bytes; SHA-256
+  `95a8a245f8d02f535b12c4f7306c48a35269e79b6cbd8b43f51eb0d0f0cb62e4`).
+  Exact-board visual judgment is pending.
 - Safety: typography only; demo mode, warning cadence, audio, display transport,
   ADS1115 diagnostics and invalid sensor calibrations are unchanged.
 - Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;
