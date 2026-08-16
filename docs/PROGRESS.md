@@ -46,9 +46,9 @@
 - Accepted Physical Baseline 2: D-057 implementation commit `9febd47`. Marcos
   confirmed no tearing, the best menu motion so far, correct warning and colors,
   removal of only the fixed notes, and retention of every dynamic state indicator.
-- Next action: validate D-058's 18 px bars and clean rounded moving endpoint in the
-  simulator/build, then request separate exact-board flash authorization. The
-  display pipeline remains byte-for-byte D-057; sensor and vehicle work remain
+- Next action: collect Marcos's physical judgment of D-058's 18 px weight and
+  moving rounded endpoint, while confirming D-057's no-tearing baseline remains.
+  The display pipeline remains byte-for-byte D-057; sensor and vehicle work remain
   gated.
 
 ## Open items
@@ -61,8 +61,13 @@
   `c0be6df` builds a 730,496-byte ESP-IDF 6.0.2 app identified as
   `pb2-d057-3-gc0be6df`, with SHA-256
   `3ad8e75542bb25dbb27b3b8685e0ce9f2557a4bf5da3c0118e1d22f3d7ae415c`.
-  Exact-board visual proof remains pending and requires separate flash
-  authorization.
+  Marcos authorized the exact-board flash. The app image and exact board identity
+  matched before all four write hashes passed. Boot confirmed
+  `pb2-d057-3-gc0be6df`, native scan, FULL double buffering and GPIO43 TE at
+  59.491 Hz. The bounded runtime has DMA about 13.1–14.6 ms and
+  `timeouts=0 errors=0 fatal=0`; its cadence remains in D-057's known sub-target
+  range. Exact-board bar weight and endpoint cleanliness still require Marcos's
+  visual judgment.
 - D-057 removes the measured full-frame snapshot copy with two complete
   `RGB565_SWAPPED` PSRAM buffers in LVGL `FULL` mode. The project-owned presenter
   queues the rendered pointer directly on GPIO43 TE and releases it only after LCD
@@ -400,4 +405,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-057 accepted as Physical Baseline 2; D-058 bar cleanup in software
+Last updated: 2026-08-16 — D-058 flashed with stable transport; bar endpoint judgment pending

@@ -981,8 +981,12 @@
   produces a 730,496-byte ESP-IDF 6.0.2 app identified as
   `pb2-d057-3-gc0be6df`, with SHA-256
   `3ad8e75542bb25dbb27b3b8685e0ce9f2557a4bf5da3c0118e1d22f3d7ae415c`.
-  Physical weight and endpoint cleanliness remain exact-board judgment and require
-  separate flash authorization.
+  Marcos authorized the exact-board flash. Image and exact device identity matched,
+  all four write hashes passed, and boot confirmed `pb2-d057-3-gc0be6df`, native
+  scan, FULL double buffering and TE at 59.491 Hz. The bounded capture reports DMA
+  around 13.1–14.6 ms with `timeouts=0 errors=0 fatal=0`; cadence stays within
+  D-057's already accepted exception. Physical weight and endpoint cleanliness
+  remain Marcos's exact-board judgment.
 - Safety: demo-only. Do not connect sensors, ADS1115, MTX-D, 12 V, or the vehicle.
 - Supersedes: D-022 only for the fractional leading-edge object and D-057 only for
   15 px bar geometry. All D-057 display-pipeline and accepted physical behavior

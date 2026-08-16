@@ -6,8 +6,8 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: D-057 accepted as Physical Baseline 2; clean D-058 bar endpoint/weight
-  candidate built and awaiting separately authorized flash
+- Status: D-057 accepted as Physical Baseline 2; D-058 exact-board transport is
+  stable and its 18 px weight/endpoint await Marcos's visual judgment
 
 ## Slices
 
@@ -31,7 +31,7 @@
 | 6.16 Bounded QSPI staging | exact-board transport and tearing judgment verified | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34, clean 734,896-byte app `aa38f5f`, exact-board write hashes, 30-second zero-error runtime and Marcos's visual judgment | Preserve D-054 scan order and ownership; internal 8-row bounce chunks remove the DMA underflow, with about 17–35 completed FPS under observed demo load; Marcos confirmed no tearing or diagonal, while the 180-degree logical orientation is accepted for physical mounting |
 | 6.17 Native logical orientation | exact-board accepted | display contract red 31/35, then 35/35; native 27/27, clean 733,232-byte app `9b59722`, exact-board hashes, 30-second zero-error capture and Marcos's visual/touch judgment | USB-C-right orientation and touch align; no tearing/diagonal; menu feels smoother than D-055 but remains low-FPS. Composition falls to about 0.3–1.1 ms average, while 16–21 ms full snapshot copies keep completed presentation near 17–33 FPS |
 | 6.18 Zero-snapshot full-frame presenter and bar cleanup | accepted as Physical Baseline 2 with cadence exception | display contract 46/46; native 27/27; clean app `9febd47`; exact identity/four write hashes; runtime capture; Marcos's judgment | Two complete `RGB565_SWAPPED` PSRAM buffers in `FULL` mode are released only after DMA completion. TE is 59.554 Hz, DMA 13.2–14.6 ms and runtime faults zero, but dynamic presentation is about 26.5–29.0 FPS. Marcos confirmed no tearing, best menu motion yet, correct warning/colors/fixed-note removal/live states; 15 px weight and square endpoint move to D-058 |
-| 6.19 Accepted baseline and clean bar endpoint | software complete; hardware pending | red 45/48, then 48/48; native 27/27; clean full build `c0be6df` | D-058 keeps D-057's pipeline unchanged, raises bars to 18 px and replaces the square fractional-opacity endpoint with one rounded fill rounded to the nearest pixel. The 730,496-byte app is identified as `pb2-d057-3-gc0be6df`; physical judgment requires separate flash authorization |
+| 6.19 Accepted baseline and clean bar endpoint | exact-board transport verified; visual judgment pending | red 45/48, then 48/48; native 27/27; clean build `c0be6df`; exact identity/four write hashes; bounded runtime | D-058 keeps D-057's pipeline unchanged, raises bars to 18 px and replaces the square fractional-opacity endpoint with one rounded fill rounded to the nearest pixel. Boot confirms `pb2-d057-3-gc0be6df`, TE 59.491 Hz, DMA 13.1–14.6 ms and zero runtime faults; Marcos must judge weight and endpoint cleanliness |
 
 ## Software evidence
 
