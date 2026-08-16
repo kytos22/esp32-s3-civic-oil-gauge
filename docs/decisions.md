@@ -1068,9 +1068,11 @@
   units. A monochrome mask preserves the accepted warning and temperature-color
   behavior while avoiding a runtime dependency on files outside the repository.
 - Verification: source files were visually inspected and hashed before conversion.
-  Native tests pass 28/28, display/audio and asset invariants pass 74/74, and a
-  complete dirty ESP-IDF 6.0.2 build succeeds at 780,368 bytes. Exact-board visual
-  judgment remains pending a separately authorized flash.
+  Native tests pass 28/28 and display/audio and asset invariants pass 74/74.
+  Clean implementation commit `c0bce25` produces a 780,368-byte app identified as
+  `pb2-d057-13-gc0bce25`, with SHA-256
+  `61d93b65a481a3712babef21f2afdf528645f3f4c77c0a25d48744feb4a4443f`.
+  Exact-board visual judgment remains pending a separately authorized flash.
 - Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
   fresh explicit authorization.
 - Supersedes: D-060 only for icon silhouettes and unit-label font size. D-060's

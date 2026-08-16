@@ -65,9 +65,11 @@
   `6fb79a549825379055a942b454fd5c0c248e6027329640fb189daf5b1a5fb06b` and
   `oil pressure black.png` SHA-256
   `77d869eadf8ffab7e8f360ee0e996c85449a4a5112460d481b9ad75a03a11954`.
-  Native tests pass 28/28, display/audio and asset invariants pass 74/74, and the
-  complete dirty ESP-IDF 6.0.2 build succeeds at 780,368 bytes. A clean committed
-  identity and exact-board judgment remain pending.
+  Native tests pass 28/28 and display/audio and asset invariants pass 74/74.
+  Clean implementation commit `c0bce25` builds a 780,368-byte ESP-IDF 6.0.2 app
+  identified as `pb2-d057-13-gc0bce25`, with SHA-256
+  `61d93b65a481a3712babef21f2afdf528645f3f4c77c0a25d48744feb4a4443f`.
+  Exact-board judgment remains pending fresh flash authorization.
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
   60 °C (still displaying `<50` below measurable range), warming 60–75 °C,
   optimal 76–95 °C, hot 96–100 °C, and very hot above 100 °C. It also fixes the
@@ -453,4 +455,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — refined D-060 clean candidate awaits flash authorization
+Last updated: 2026-08-16 — D-061 supplied-icon candidate awaits flash authorization
