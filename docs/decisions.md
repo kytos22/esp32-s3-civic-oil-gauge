@@ -946,8 +946,16 @@
   Native tests pass 27/27 and the complete ESP-IDF 6.0.2 build succeeds. The
   Clean commit `9febd47` produces a 731,104-byte candidate with SHA-256
   `625715cffaeca5c12100aad6754979e24e7bba5c163950b3e837e85dd9160e33`.
-  Exact-board cadence, tearing, color order, menu smoothness, and the 15 px visual
-  weight remain unverified until separately authorized hardware testing.
+  Marcos authorized the exact-board flash. VID/PID, serial and ESP32-S3 MAC
+  matched before every region passed esptool's write hash verification. Boot
+  identifies app `9febd47`, native scan, the FULL double-buffer path and GPIO43
+  TE at 59.554 Hz. A bounded capture records 13.2–14.6 ms DMA with
+  `timeouts=0 errors=0 fatal=0`, but only about 26.5–29.0 completed presentations
+  per second during the dynamic gauge while LVGL produces about 53–58 frames per
+  two-second window; a lower-activity demo interval falls to about 16 FPS. The
+  ownership and transport are valid, but the 50–60 FPS objective is not met.
+  Tearing, color order, menu smoothness and the 15 px visual weight still require
+  Marcos's physical judgment.
 - Safety: demo-only. No sensor, ADS1115, MTX-D, 12 V, or vehicle connection. No
   flash without exact-board authorization.
 - Supersedes: D-056 only for its canvas/snapshot/render-mode pipeline and 9 px bar

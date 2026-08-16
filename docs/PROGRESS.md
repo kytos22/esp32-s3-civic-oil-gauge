@@ -43,10 +43,12 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: after separate exact-board authorization, flash and benchmark the
-  D-057 software candidate. Verify color order, completed presentation cadence,
-  menu scroll, warning transitions, tearing/diagonal absence, retained dynamic
-  state labels, and the 15 px bar weight. Sensor and vehicle work remain gated.
+- Next action: collect Marcos's physical D-057 judgment for color order, menu
+  scroll, warning transitions, tearing/diagonal absence, retained dynamic state
+  labels, and the 15 px bar weight. Then redesign the presenter cadence: the
+  exact-board run is stable but presents only about 26.5–29.0 FPS during the
+  dynamic gauge despite LVGL producing about 53–58 full frames per two-second
+  window. Sensor and vehicle work remain gated.
 
 ## Open items
 - D-057 removes the measured full-frame snapshot copy with two complete
@@ -59,7 +61,14 @@
   source contract failed first at 34/46 and now passes 46/46; native tests pass
   27/27; clean commit `9febd47` produces a 731,104-byte ESP-IDF 6.0.2 app with
   SHA-256 `625715cffaeca5c12100aad6754979e24e7bba5c163950b3e837e85dd9160e33`.
-  No flash has been authorized or performed.
+  Marcos authorized the exact-board flash. VID/PID, USB serial and the ESP32-S3
+  MAC matched before writing; all four write hashes passed. Boot confirmed app
+  `9febd47`, native scan, two FULL `RGB565_SWAPPED` buffers and GPIO43 TE at
+  59.554 Hz. The bounded capture has `timeouts=0 errors=0 fatal=0` and DMA around
+  13.2–14.6 ms, but dynamic presentation is only about 26.5–29.0 FPS and the
+  demo's lower-activity interval is about 16 FPS. D-057 therefore proves correct
+  ownership/transport, but fails the intended 50–60 FPS cadence; physical visual
+  judgment remains pending.
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
   orientation: remove `lv_display_set_rotation()`, `lv_display_rotate_area()` and
   `lv_draw_sw_rotate()`. Dirty PARTIAL areas now copy row-for-row into the native
@@ -376,4 +385,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-057 software candidate built; exact-board proof pending authorization
+Last updated: 2026-08-16 — D-057 exact-board transport stable; cadence failed, visual judgment pending
