@@ -759,3 +759,24 @@
 - Supersedes: D-051 only where its outcome ruled out hardware orientation as a
   category or treated mirror changes as unable to isolate the failure. D-051 remains
   the valid record of the exact failed `c09589f` candidate and its hardware evidence.
+
+## D-053 — Run the orientation-only `MADCTL=0xA0` GPIO-TE diagnostic
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization investigation
+- Decision: With Marcos's explicit authorization, create and exact-board test the
+  first D-052 isolation candidate. Retain D-051's 80 MHz QSPI, GPIO43 rising-edge
+  TE, 15 ms producer/LVGL cadence, FULL render mode, one PSRAM draw buffer and
+  synchronous adapter `TE_SYNC` path. Remove only the post-initialization
+  `swap_xy()`/`mirror()` calls so the Waveshare sequence remains at
+  `MADCTL=0xA0`. Keep demo mode and the existing touch mapping.
+- Why: This is the smallest A/B that can determine whether the 180-degree inversion
+  and diagonal follow the memory-address direction without conflating that result
+  with a new buffering architecture. The source contract must reject any panel
+  orientation call and require an explicit `0xA0` boot statement.
+- Telemetry boundary: Add a non-nested `draw` duration derived per LVGL render by
+  subtracting the enclosed flush duration. Do not patch the managed adapter to split
+  RGB565 swap, TE wait and DMA in this first candidate, because doing so would add
+  another implementation variable. The existing boot TE probe remains the physical
+  59 Hz reference; deeper adapter instrumentation follows only if this A/B cannot
+  decide the diagonal.
+- Safety: USB/demo-only exact board. No sensors, ADS1115, MTX-D, 12 V or vehicle.
+  A build does not authorize a different board or any wiring change.

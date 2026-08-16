@@ -43,13 +43,17 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: after authorization, run a one-variable diagnostic from the failed
-  D-051 candidate: preserve Waveshare `MADCTL=0xA0` while retaining its 80 MHz,
-  GPIO43 TE, FULL/single-buffer and timing configuration, with phase-specific
-  telemetry. No implementation or flash is authorized yet. Sensor and vehicle work
-  remain gated.
+- Next action: D-053 orientation-only candidate is authorized and implemented in
+  source. Complete the ESP-IDF build, verify the exact USB board, flash the demo and
+  collect bounded runtime/visual evidence. Sensor and vehicle work remain gated.
 
 ## Open items
+- D-053 red-first changed the display contract and produced the expected 21/24
+  failure against the still-oriented source. Green removes all post-init panel
+  `swap_xy()`/`mirror()` calls, explicitly preserves Waveshare `MADCTL=0xA0`, and
+  adds a per-frame non-nested draw duration while keeping the remaining D-051
+  variables fixed. The contract now passes 24/24 and the native suite passes 23/23;
+  complete firmware build and authorized exact-board evidence are pending.
 - D-052 corrects the earlier over-broad D-051 conclusion. The failed candidate
   changed Waveshare's working `MADCTL=0xA0` to `0x60`, which is the deterministic
   cause of the observed 180-degree inversion. Adapter `TE_SYNC` independently forces

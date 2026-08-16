@@ -6,7 +6,6 @@
 #include "bsp/esp-bsp.h"
 #include "bsp/touch.h"
 #include "driver/gpio.h"
-#include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_log.h"
 #include "esp_lv_adapter.h"
@@ -36,6 +35,9 @@ struct DisplayTimingStats {
   int64_t previousFlushStartUs = 0;
   int64_t renderTotalUs = 0;
   int64_t renderMaximumUs = 0;
+  int64_t currentRenderFlushUs = 0;
+  int64_t drawTotalUs = 0;
+  int64_t drawMaximumUs = 0;
   int64_t flushTotalUs = 0;
   int64_t flushMaximumUs = 0;
   int64_t flushIntervalTotalUs = 0;
@@ -172,6 +174,8 @@ void resetDisplayTimingWindow(DisplayTimingStats& stats, int64_t nowUs) {
   stats.windowStartUs = nowUs;
   stats.renderTotalUs = 0;
   stats.renderMaximumUs = 0;
+  stats.drawTotalUs = 0;
+  stats.drawMaximumUs = 0;
   stats.flushTotalUs = 0;
   stats.flushMaximumUs = 0;
   stats.flushIntervalTotalUs = 0;
@@ -197,6 +201,8 @@ void logDisplayTimingWindow(DisplayTimingStats& stats, int64_t nowUs) {
           : 0;
   const int64_t renderAverageUs =
       stats.renderCount > 0 ? stats.renderTotalUs / stats.renderCount : 0;
+  const int64_t drawAverageUs =
+      stats.renderCount > 0 ? stats.drawTotalUs / stats.renderCount : 0;
   const int64_t flushAverageUs =
       stats.flushCount > 0 ? stats.flushTotalUs / stats.flushCount : 0;
   const int64_t intervalAverageUs =
@@ -206,7 +212,8 @@ void logDisplayTimingWindow(DisplayTimingStats& stats, int64_t nowUs) {
 
   ESP_LOGI(kTag,
            "CO5300 timing: transferred=%u.%03u fps refreshes=%u flushes=%u "
-           "idle_refresh=%u render=%lld/%lld us flush=%lld/%lld us "
+           "idle_refresh=%u render=%lld/%lld us draw=%lld/%lld us "
+           "flush=%lld/%lld us "
            "interval=%lld/%lld us",
            static_cast<unsigned>(transferredMilliFps / 1000U),
            static_cast<unsigned>(transferredMilliFps % 1000U),
@@ -215,6 +222,8 @@ void logDisplayTimingWindow(DisplayTimingStats& stats, int64_t nowUs) {
            static_cast<unsigned>(stats.refreshWithoutFlushCount),
            static_cast<long long>(renderAverageUs),
            static_cast<long long>(stats.renderMaximumUs),
+           static_cast<long long>(drawAverageUs),
+           static_cast<long long>(stats.drawMaximumUs),
            static_cast<long long>(flushAverageUs),
            static_cast<long long>(stats.flushMaximumUs),
            static_cast<long long>(intervalAverageUs),
@@ -233,12 +242,21 @@ void recordDisplayTiming(lv_event_t* event) {
       break;
     case LV_EVENT_RENDER_START:
       stats.renderStartUs = nowUs;
+      stats.currentRenderFlushUs = 0;
       break;
     case LV_EVENT_RENDER_READY: {
       const int64_t durationUs = nowUs - stats.renderStartUs;
+      const int64_t drawDurationUs =
+          durationUs >= stats.currentRenderFlushUs
+              ? durationUs - stats.currentRenderFlushUs
+              : 0;
       stats.renderTotalUs += durationUs;
       if (durationUs > stats.renderMaximumUs) {
         stats.renderMaximumUs = durationUs;
+      }
+      stats.drawTotalUs += drawDurationUs;
+      if (drawDurationUs > stats.drawMaximumUs) {
+        stats.drawMaximumUs = drawDurationUs;
       }
       ++stats.renderCount;
       break;
@@ -258,6 +276,7 @@ void recordDisplayTiming(lv_event_t* event) {
       break;
     case LV_EVENT_FLUSH_FINISH: {
       const int64_t durationUs = nowUs - stats.flushStartUs;
+      stats.currentRenderFlushUs += durationUs;
       stats.flushTotalUs += durationUs;
       if (durationUs > stats.flushMaximumUs) {
         stats.flushMaximumUs = durationUs;
@@ -326,15 +345,7 @@ OilDisplayRuntime startOilDisplayRuntime() {
   }
 
   (void)setTeScanLine(panelIo);
-  const esp_err_t swapResult = esp_lcd_panel_swap_xy(panel, true);
-  const esp_err_t mirrorResult = esp_lcd_panel_mirror(panel, true, false);
-  if (swapResult != ESP_OK || mirrorResult != ESP_OK) {
-    ESP_LOGE(kTag,
-             "CO5300 hardware orientation failed: swap=%s mirror=%s",
-             esp_err_to_name(swapResult),
-             esp_err_to_name(mirrorResult));
-    return runtime;
-  }
+  ESP_LOGI(kTag, "CO5300 orientation: preserving Waveshare MADCTL=0xA0");
 
   if (!probeTeSignal()) {
     ESP_LOGE(kTag,
@@ -412,8 +423,8 @@ OilDisplayRuntime startOilDisplayRuntime() {
                       kTouchReadPeriodMs);
 
   ESP_LOGI(kTag,
-           "CO5300 synchronization: hardware 90-degree orientation + "
-           "adapter GPIO43 TE_SYNC, single full-frame buffer");
+           "CO5300 synchronization: Waveshare MADCTL=0xA0 + adapter "
+           "GPIO43 TE_SYNC, single full-frame buffer");
 
   if (bsp_display_brightness_init() != ESP_OK ||
       esp_lv_adapter_start() != ESP_OK) {
