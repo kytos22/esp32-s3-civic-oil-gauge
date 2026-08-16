@@ -1125,3 +1125,19 @@
 - Safety: no A0–A3 sensor wiring, no 5 V/12 V input, no pressure/temperature
   conversion, no retained ADC value and no vehicle connection.
 - Supersedes: none; D-061 remains Accepted Physical Baseline 4.
+
+## D-064 — Use bold 36 px text for the full-screen danger message
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 visual-review extension
+- Decision: Render both `PELIGRO` and `PRESIÓN MUY BAJA` with a dedicated
+  Montserrat Bold 36 px embedded subset in centered 404 x 48 boxes. Move only
+  `PELIGRO` upward to y=210; retain the second line at y=266.
+- Why: Marcos found the existing 24 px Medium text too small and thin to read at
+  distance. A dedicated glyph subset increases size and weight without changing
+  the accepted 96 px pressure number or loading an unnecessary complete font.
+- Verification: red-first source contract failed 0/9 before implementation and
+  passes 11/11 afterward. The standalone simulator is synchronized and the complete
+  ESP-IDF 6.0.2 firmware build passes. Exact-board visual judgment is pending.
+- Safety: typography only; demo mode, warning cadence, audio, display transport,
+  ADS1115 diagnostics and invalid sensor calibrations are unchanged.
+- Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;
+  their warning behavior, number visibility and accepted baseline remain binding.

@@ -528,6 +528,33 @@ def sprint7_ads1115_diagnostic_contract() -> None:
     )
 
 
+def warning_typography_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    fonts = text("src/oil_gauge_fonts.h")
+    cmake = text("src/CMakeLists.txt")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    font_path = REPO / "src/fonts/oil_font_warning_36.c"
+    font = text("src/fonts/oil_font_warning_36.c") if font_path.is_file() else ""
+    conditions = [
+        font_path.is_file(),
+        "Montserrat-Bold.ttf" in font,
+        "Size: 36 px" in font,
+        "oil_font_warning_36" in font,
+        "LV_FONT_DECLARE(oil_font_warning_36);" in fonts,
+        '"fonts/oil_font_warning_36.c"' in cmake,
+        renderer.count("&oil_font_warning_36") == 2,
+        re.search(r'"PELIGRO",\s*38,\s*210,\s*404,\s*48', renderer) is not None,
+        re.search(r'"PRESIÓN MUY BAJA",\s*38,\s*266,\s*404,\s*48', renderer) is not None,
+        fragment.count("font-size: clamp(28px, 7.5vw, 36px);") == 2,
+        "font-weight: 700;" in fragment,
+    ]
+    check(
+        "Full-screen warning typography",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} bold 36 px warning invariants",
+    )
+
+
 def marked_existing_paths() -> None:
     plan = text("docs/03-technical-plan.md")
     missing: list[str] = []
@@ -688,6 +715,7 @@ def main() -> int:
     display_qspi_clock_contract()
     sprint6_physical_revision_contract()
     sprint7_ads1115_diagnostic_contract()
+    warning_typography_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")

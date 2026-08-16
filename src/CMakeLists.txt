@@ -14,6 +14,7 @@ idf_component_register(
         "fonts/oil_font_ui_12.c"
         "fonts/oil_font_ui_16.c"
         "fonts/oil_font_ui_24.c"
+        "fonts/oil_font_warning_36.c"
         "fonts/oil_font_value_96.c"
         "icons/oil_icon_assets.c"
     INCLUDE_DIRS

@@ -61,6 +61,13 @@
   gated.
 
 ## Open items
+- D-064 replaces only the two full-screen red-warning message lines from 24 px
+  Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
+  to y=210 and both labels use 404 x 48 centered boxes; the pressure number,
+  warning cadence, red background and all other UI remain unchanged. The simulator
+  mirrors the 36 px/700-weight typography. Red-first source verification failed
+  0/9 before implementation and now passes 11/11; complete ESP-IDF 6.0.2 build
+  passes. Exact-board visual judgment and flash remain pending fresh authorization.
 - D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
   sensor conversions. The pure protocol creates single-shot A0–A3 configurations
   at PGA ±4.096 V / 128 SPS and converts signed counts at 125 µV/LSB. Its red-first

@@ -560,10 +560,10 @@ void createFullScreenWarning(lv_obj_t* screen) {
   createLabel(gUi.fullScreenWarning,
               "PELIGRO",
               38,
-              218,
+              210,
               404,
-              34,
-              &oil_font_ui_24,
+              48,
+              &oil_font_warning_36,
               color(kPrimary),
               LV_TEXT_ALIGN_CENTER);
   createLabel(gUi.fullScreenWarning,
@@ -571,8 +571,8 @@ void createFullScreenWarning(lv_obj_t* screen) {
               38,
               266,
               404,
-              34,
-              &oil_font_ui_24,
+              48,
+              &oil_font_warning_36,
               color(kPrimary),
               LV_TEXT_ALIGN_CENTER);
   lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
