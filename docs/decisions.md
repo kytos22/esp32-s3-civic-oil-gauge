@@ -962,3 +962,25 @@
   geometry. D-056's accepted native orientation, touch mapping, no-tearing baseline,
   and D-055's bounded QSPI transport remain binding; `443eb72` remains Golden
   Prototype 1.
+
+## D-058 — Preserve D-057 and render one clean rounded bar endpoint
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Mark implementation commit `9febd47` as Accepted Physical Baseline 2.
+  Keep its display synchronization, buffer ownership, native orientation, warning,
+  colors, labels and menu behavior unchanged. Increase both indicator bars from
+  15 px to 18 px. Remove the separate one-pixel square leading-edge object and
+  round the single rounded fill object's width to the nearest physical pixel.
+- Why: Marcos confirmed D-057 has no tearing, the best menu motion yet, correct
+  warning and colors, correct removal of only the fixed notes, and every dynamic
+  indicator intact. The remaining visible defect is a halo at the moving endpoint,
+  caused by D-022's fractional-opacity square overlapping a rounded fill. A 404 px
+  travel already provides fine spatial steps; one rounded object gives a coherent
+  antialiased cap without a square/curved transparency seam.
+- Verification: source contract must reject the old 15 px/separate-edge renderer,
+  then pass with 18 px and no edge object. Native tests and a complete ESP-IDF
+  build remain required. Physical weight and endpoint cleanliness remain exact-board
+  judgment and require separate flash authorization.
+- Safety: demo-only. Do not connect sensors, ADS1115, MTX-D, 12 V, or the vehicle.
+- Supersedes: D-022 only for the fractional leading-edge object and D-057 only for
+  15 px bar geometry. All D-057 display-pipeline and accepted physical behavior
+  remains binding; `443eb72` remains Golden Prototype 1.

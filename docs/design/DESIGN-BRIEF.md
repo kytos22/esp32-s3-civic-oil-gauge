@@ -41,7 +41,7 @@
   `94 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
 - Typography: the approved prototype's condensed sans-serif treatment; firmware must
   match its measured placement and weight using build-native glyphs.
-- Geometry: 480×480, equal 240 px regions, values centered at x=240, 15 px bars;
+- Geometry: 480×480, equal 240 px regions, values centered at x=240, 18 px bars;
   no fixed threshold notes below the bars.
 - Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
   reference. They are path geometry, not external image assets.

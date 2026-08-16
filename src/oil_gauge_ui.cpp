@@ -18,7 +18,7 @@ constexpr std::int32_t kCanvasWidth = 480;
 constexpr std::int32_t kHalfHeight = 240;
 constexpr std::int32_t kContentX = 38;
 constexpr std::int32_t kContentWidth = 404;
-constexpr std::int32_t kBarHeight = 15;
+constexpr std::int32_t kBarHeight = 18;
 
 constexpr std::uint32_t kBlack = 0x000000;
 constexpr std::uint32_t kPrimary = 0xF7F9FB;
@@ -31,15 +31,11 @@ constexpr std::uint32_t kWarningRed = 0xFF3948;
 struct BarWidgets {
   lv_obj_t* track = nullptr;
   lv_obj_t* fill = nullptr;
-  lv_obj_t* edge = nullptr;
   std::int32_t width = -1;
-  std::int32_t edgeX = -1;
   RgbColor fillColor{};
   lv_opa_t opacity = LV_OPA_TRANSP;
-  lv_opa_t edgeOpacity = LV_OPA_TRANSP;
   bool colorSet = false;
   bool hidden = false;
-  bool edgeHidden = true;
 };
 
 struct UiWidgets {
@@ -640,8 +636,6 @@ BarWidgets createBar(lv_obj_t* parent,
 
   widgets.fill = createSolid(
       parent, kContentX, y, 1, kBarHeight, LV_RADIUS_CIRCLE);
-  widgets.edge = createSolid(parent, kContentX, y, 1, kBarHeight, 0);
-  lv_obj_add_flag(widgets.edge, LV_OBJ_FLAG_HIDDEN);
 
   for (std::size_t index = 0; index < tickCount; ++index) {
     const std::int32_t tickX = kContentX + static_cast<std::int32_t>(
@@ -660,15 +654,9 @@ void updateBar(BarWidgets& bar,
                lv_opa_t opacity) {
   const double bounded = clamp(fraction, 0.0, 1.0);
   const double exactWidth = bounded * static_cast<double>(kContentWidth);
-  std::int32_t width = static_cast<std::int32_t>(std::floor(exactWidth));
-  double edgeFraction = exactWidth - static_cast<double>(width);
-  if (width >= kContentWidth) {
-    width = kContentWidth;
-    edgeFraction = 0.0;
-  }
+  const std::int32_t width = static_cast<std::int32_t>(std::lround(exactWidth));
   if (!bar.colorSet || !sameColor(bar.fillColor, fillColor)) {
     lv_obj_set_style_bg_color(bar.fill, color(fillColor), 0);
-    lv_obj_set_style_bg_color(bar.edge, color(fillColor), 0);
     bar.fillColor = fillColor;
     bar.colorSet = true;
   }
@@ -692,29 +680,6 @@ void updateBar(BarWidgets& bar,
     }
   }
 
-  const lv_opa_t edgeOpacity = static_cast<lv_opa_t>(std::lround(
-      static_cast<double>(opacity) * edgeFraction));
-  const bool showEdge = width < kContentWidth && edgeOpacity > LV_OPA_TRANSP;
-  if (!showEdge) {
-    if (!bar.edgeHidden) {
-      lv_obj_add_flag(bar.edge, LV_OBJ_FLAG_HIDDEN);
-      bar.edgeHidden = true;
-    }
-  } else {
-    if (bar.edgeHidden) {
-      lv_obj_clear_flag(bar.edge, LV_OBJ_FLAG_HIDDEN);
-      bar.edgeHidden = false;
-    }
-    const std::int32_t edgeX = kContentX + width;
-    if (bar.edgeX != edgeX) {
-      lv_obj_set_x(bar.edge, edgeX);
-      bar.edgeX = edgeX;
-    }
-    if (bar.edgeOpacity != edgeOpacity) {
-      lv_obj_set_style_opa(bar.edge, edgeOpacity, 0);
-      bar.edgeOpacity = edgeOpacity;
-    }
-  }
 }
 
 const char* pressureLabel(PressureState state) {

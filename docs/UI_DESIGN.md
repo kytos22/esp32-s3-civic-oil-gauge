@@ -16,7 +16,7 @@ Static capture:
 - Vertical 50/50 split: oil pressure top, oil temperature bottom.
 - Each numeric value is centered on the complete horizontal axis. The left
   icon and right unit never displace it.
-- Bars are 15 px thick at 480×480.
+- Bars are 18 px thick at 480×480.
 - Numeric values are white; headings and units use dimmed white.
 - Semantic state labels are right-aligned in 24 px Montserrat for distance
   readability; the physical demo confirms they are unclipped and glanceable at

@@ -43,14 +43,21 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: collect Marcos's physical D-057 judgment for color order, menu
-  scroll, warning transitions, tearing/diagonal absence, retained dynamic state
-  labels, and the 15 px bar weight. Then redesign the presenter cadence: the
-  exact-board run is stable but presents only about 26.5–29.0 FPS during the
-  dynamic gauge despite LVGL producing about 53–58 full frames per two-second
-  window. Sensor and vehicle work remain gated.
+- Accepted Physical Baseline 2: D-057 implementation commit `9febd47`. Marcos
+  confirmed no tearing, the best menu motion so far, correct warning and colors,
+  removal of only the fixed notes, and retention of every dynamic state indicator.
+- Next action: validate D-058's 18 px bars and clean rounded moving endpoint in the
+  simulator/build, then request separate exact-board flash authorization. The
+  display pipeline remains byte-for-byte D-057; sensor and vehicle work remain
+  gated.
 
 ## Open items
+- D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
+  increases both bars from 15 px to 18 px and removes the separate square,
+  fractional-opacity leading-edge object that Marcos saw as a transparency halo
+  against the rounded fill. Width now rounds to the nearest physical pixel and a
+  single LVGL rounded object owns the visible endpoint. Exact-board visual proof
+  remains pending and requires separate flash authorization.
 - D-057 removes the measured full-frame snapshot copy with two complete
   `RGB565_SWAPPED` PSRAM buffers in LVGL `FULL` mode. The project-owned presenter
   queues the rendered pointer directly on GPIO43 TE and releases it only after LCD
@@ -67,8 +74,11 @@
   59.554 Hz. The bounded capture has `timeouts=0 errors=0 fatal=0` and DMA around
   13.2–14.6 ms, but dynamic presentation is only about 26.5–29.0 FPS and the
   demo's lower-activity interval is about 16 FPS. D-057 therefore proves correct
-  ownership/transport, but fails the intended 50–60 FPS cadence; physical visual
-  judgment remains pending.
+  ownership/transport, but fails the intended 50–60 FPS cadence. Marcos physically
+  accepted it as Physical Baseline 2: no tearing; best menu motion to date; warning,
+  colors, fixed-note removal and dynamic indicators all correct. The only rejected
+  details were the 15 px weight and the square fractional endpoint artifact now
+  isolated in D-058.
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
   orientation: remove `lv_display_set_rotation()`, `lv_display_rotate_area()` and
   `lv_draw_sw_rotate()`. Dirty PARTIAL areas now copy row-for-row into the native
@@ -385,4 +395,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-057 exact-board transport stable; cadence failed, visual judgment pending
+Last updated: 2026-08-16 — D-057 accepted as Physical Baseline 2; D-058 bar cleanup in software

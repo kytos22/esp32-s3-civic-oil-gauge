@@ -43,7 +43,7 @@ of Keel's Design delivery contract. The approved references are not duplicated.
 | text.secondary | `#9AA4AF` | labels/units; contrast 8.30:1 |
 | pressure.normal | `#FFB020` | normal icon/bar; contrast 11.48:1 |
 | pressure.warning | `#FF3948` | warning; contrast 5.93:1 |
-| bar.thickness | `15 px` | both bars; fixed threshold notes below removed |
+| bar.thickness | `18 px` | both bars; fixed threshold notes below removed |
 | warning.elements.period | `500 ms`, step-end | binary 2 Hz flash; 250 ms on / 250 ms off |
 | warning.screen.period | `2 s`, step-end | 0.5 Hz complete cycle; 1 s normal / 1 s opaque red |
 | refresh.period | `20 ms` | application and LVGL target cadence for the 50 FPS physical experiment |
