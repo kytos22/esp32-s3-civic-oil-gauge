@@ -69,7 +69,14 @@
   0/9 before implementation and now passes 11/11; complete ESP-IDF 6.0.2 build
   passes. Clean commit `bf3faa0` builds app `pb2-d057-19-gbf3faa0`, 787,968 bytes,
   SHA-256 `95a8a245f8d02f535b12c4f7306c48a35269e79b6cbd8b43f51eb0d0f0cb62e4`.
-  Exact-board visual judgment and flash remain pending fresh authorization.
+  Marcos authorized the exact-board flash. The flashed app is
+  `pb2-d057-20-gff4c17c`, 787,968 bytes, SHA-256
+  `f7928e6bac7177ccb3e7226f117f297fa26f66b8aae80f797970978cf0952fb4`;
+  exact ESP32-S3/MAC identity matched and all four written regions passed hash
+  verification. A bounded boot capture confirmed ESP-IDF 6.0.2, demo mode,
+  usable 59.516 Hz TE, touch/audio initialization, ADS1115 at `0x48`, and display
+  telemetry with `timeouts=0 errors=0 fatal=0`. Exact-board readability and
+  spacing judgment remain pending Marcos's visual confirmation.
 - D-063 adds a bench-only ADS1115 path without changing D-061 rendering or enabling
   sensor conversions. The pure protocol creates single-shot A0–A3 configurations
   at PGA ±4.096 V / 128 SPS and converts signed counts at 125 µV/LSB. Its red-first

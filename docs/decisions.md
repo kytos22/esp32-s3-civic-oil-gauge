@@ -1139,7 +1139,13 @@
   ESP-IDF 6.0.2 firmware build passes. Clean commit `bf3faa0` builds app
   `pb2-d057-19-gbf3faa0` (787,968 bytes; SHA-256
   `95a8a245f8d02f535b12c4f7306c48a35269e79b6cbd8b43f51eb0d0f0cb62e4`).
-  Exact-board visual judgment is pending.
+  Marcos authorized the exact-board flash. The resulting app identity is
+  `pb2-d057-20-gff4c17c` (787,968 bytes; SHA-256
+  `f7928e6bac7177ccb3e7226f117f297fa26f66b8aae80f797970978cf0952fb4`). Exact
+  ESP32-S3/MAC identity matched, all four written regions passed hash verification,
+  and the bounded boot capture confirmed demo mode, touch/audio, ADS1115 `0x48`,
+  usable TE and zero display timeout/error/fatal counters. Physical readability
+  judgment remains pending.
 - Safety: typography only; demo mode, warning cadence, audio, display transport,
   ADS1115 diagnostics and invalid sensor calibrations are unchanged.
 - Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;
