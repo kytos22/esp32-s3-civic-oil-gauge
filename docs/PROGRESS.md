@@ -43,10 +43,11 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: collect Marcos's D-056 visual/touch judgment. The exact-board
-  transport and timing capture passes; verify native mounting direction, touch
-  alignment and that tearing/diagonal remain absent. Sensor and vehicle work
-  remain gated.
+- Next action: design the next performance correction around the measured
+  16–21 ms full-frame snapshot copy, without weakening D-056's immutable
+  render/DMA ownership. Native orientation is accepted with USB-C on the right,
+  touch aligns, and tearing/diagonal remain absent. Sensor and vehicle work remain
+  gated.
 
 ## Open items
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
@@ -62,7 +63,10 @@
   TE at 59.522 Hz. A 30-second capture kept
   `timeouts=0 errors=0 no_slot=0 fatal=0`, measured compose averages about
   0.3–1.1 ms, snapshot copies about 16–21 ms, DMA about 13.1 ms and completed
-  presentation about 17–33 FPS. Visual/touch judgment remains pending.
+  presentation about 17–33 FPS. Marcos confirmed USB-C-right native orientation,
+  correct touch, no tearing or diagonal and visibly smoother menu motion than
+  D-055, although menu FPS remain low. The full snapshot copy is now the measured
+  performance bottleneck.
 - D-055 keeps D-054's native scan, software rotation and immutable ownership, but
   removes direct PSRAM-to-GPSPI DMA after the exact board returned the documented
   `DMA TX underflow` / `ESP_ERR_INVALID_STATE` failure at 80 MHz QSPI. ESP LCD now
@@ -362,4 +366,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-056 no-rotation transport passes on hardware; visual/touch judgment pending
+Last updated: 2026-08-16 — D-056 native orientation/touch and no-tearing result accepted; full snapshot copy is the next performance target

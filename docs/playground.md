@@ -22,7 +22,9 @@ produces a 733,232-byte app with SHA-256
 all four exact-board writes passed hashes. Its 30-second capture has zero
 timeout/error/no-slot/fatal counters, about 0.3–1.1 ms average composition,
 16–21 ms snapshot copies, 13.1 ms DMA and about 17–33 completed FPS. Visual/touch
-judgment remains pending.
+judgment now passes: USB-C is on the right, touch aligns, and Marcos observed no
+tearing or diagonal. Menu motion is smoother than D-055 but still visibly low-FPS;
+the full snapshot copy is the next measured optimization boundary.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact

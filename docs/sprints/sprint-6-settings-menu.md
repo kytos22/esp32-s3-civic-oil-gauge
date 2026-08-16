@@ -6,8 +6,8 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: D-055 bounded staging has no tearing/diagonal; D-056 no-rotation A/B
-  passes exact-board transport/timing and awaits visual/touch judgment
+- Status: D-056 native orientation, touch and no-tearing judgment pass; menu FPS
+  remain low and the measured 16–21 ms full snapshot copy is the next target
 
 ## Slices
 
@@ -29,7 +29,7 @@
 | 6.14 `MADCTL=0xA0` isolation A/B | exact-board isolation complete; visual failure confirmed | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification, bounded runtime and Marcos's visual judgment | `0xA0` restores correct orientation but the diagonal persists. It does not follow the `0x60` address-direction change; FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS |
 | 6.15 Native-scan immutable presenter | exact-board transport failed | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93`; flash hashes passed but first direct DMA transfer underflowed | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation and immutable ownership were retained; its direct-PSRAM-DMA transport is rejected by D-055 |
 | 6.16 Bounded QSPI staging | exact-board transport and tearing judgment verified | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34, clean 734,896-byte app `aa38f5f`, exact-board write hashes, 30-second zero-error runtime and Marcos's visual judgment | Preserve D-054 scan order and ownership; internal 8-row bounce chunks remove the DMA underflow, with about 17–35 completed FPS under observed demo load; Marcos confirmed no tearing or diagonal, while the 180-degree logical orientation is accepted for physical mounting |
-| 6.17 Native logical orientation | transport/timing verified; visual judgment pending | display contract red 31/35, then 35/35; native 27/27, clean 733,232-byte app `9b59722`, exact-board hashes and 30-second zero-error capture | Remove all LVGL area/pixel rotation and copy dirty rows directly into the native canvas; composition falls to about 0.3–1.1 ms average, but 16–21 ms full snapshot copies keep completed presentation near 17–33 FPS |
+| 6.17 Native logical orientation | exact-board accepted | display contract red 31/35, then 35/35; native 27/27, clean 733,232-byte app `9b59722`, exact-board hashes, 30-second zero-error capture and Marcos's visual/touch judgment | USB-C-right orientation and touch align; no tearing/diagonal; menu feels smoother than D-055 but remains low-FPS. Composition falls to about 0.3–1.1 ms average, while 16–21 ms full snapshot copies keep completed presentation near 17–33 FPS |
 
 ## Software evidence
 
