@@ -49,9 +49,9 @@
 - D-058 physical judgment: the single rounded endpoint is clean and tearing remains
   absent; 18 px is still too light. Its synchronized display pipeline remains the
   active physical baseline for D-059.
-- Next action: build D-059 with 21 px bars, revised temperature state boundaries,
-  and coalesced post-DMA brightness commands; then request separate exact-board
-  flash authorization. Sensor and vehicle work remain gated.
+- Next action: request separate exact-board authorization to flash and stress D-059,
+  especially repeated fast end-to-end brightness drags. Sensor and vehicle work
+  remain gated.
 
 ## Open items
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
@@ -61,9 +61,11 @@
   display presenter sends the newest command `0x51` after frame DMA completion,
   never concurrently from the main task. Red evidence was the old boundary test,
   prior 18 px geometry and missing serialization contract; the implementation now
-  passes 27/27 native tests and 55/55 display/audio invariants. A complete dirty-tree
-  ESP-IDF build also passes; the clean candidate build and exact-board stress remain
-  pending.
+  passes 27/27 native tests and 55/55 display/audio invariants. Clean commit
+  `08b04eb` builds a 730,672-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-6-g08b04eb`, with SHA-256
+  `64f04f9a9ef40fa02b57e75593c19ee0d1f5f5fd0475b2c863f6f694258efb43`.
+  Exact-board flash and stress remain pending separate authorization.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -417,4 +419,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-058 endpoint/no-tearing accepted; D-059 tests and full dirty-tree build pass
+Last updated: 2026-08-16 — D-059 clean candidate built; exact-board flash/stress pending authorization

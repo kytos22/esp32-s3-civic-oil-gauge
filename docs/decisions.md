@@ -1011,8 +1011,11 @@
 - Verification: red evidence includes the old temperature-boundary native failure,
   the prior 18 px geometry, and absence of the brightness serialization contract.
   The implementation passes 27/27 native tests, 55/55 display/audio invariants and
-  the complete Keel verifier. A clean ESP-IDF build and exact-board rapid-slider
-  stress still remain; hardware testing requires fresh flash authorization.
+  the complete Keel verifier. Clean commit `08b04eb` produces a 730,672-byte
+  ESP-IDF 6.0.2 app identified as `pb2-d057-6-g08b04eb`, with SHA-256
+  `64f04f9a9ef40fa02b57e75593c19ee0d1f5f5fd0475b2c863f6f694258efb43`.
+  Exact-board rapid-slider stress remains; hardware testing requires fresh flash
+  authorization.
 - Safety: demo-only. Brightness is clamped to the existing 5–100% safe range. No
   sensors, ADS1115, MTX-D, 12 V, or vehicle connection.
 - Supersedes: D-058 only for 18 px thickness, the prior semantic portions of the
