@@ -57,8 +57,8 @@
   visual scope removes only the four small fixed threshold notes beneath the bars,
   preserves every live state label, and raises both bars from 9 px to 15 px. The
   source contract failed first at 34/46 and now passes 46/46; native tests pass
-  27/27; the complete ESP-IDF 6.0.2 build produces a 731,120-byte app with SHA-256
-  `ae6965412023a4440e795576c957ecca659ab195955df0a326b0233b628cce45`.
+  27/27; clean commit `9febd47` produces a 731,104-byte ESP-IDF 6.0.2 app with
+  SHA-256 `625715cffaeca5c12100aad6754979e24e7bba5c163950b3e837e85dd9160e33`.
   No flash has been authorized or performed.
 - D-056 follows Marcos's acceptance that physical mounting direction can absorb
   orientation: remove `lv_display_set_rotation()`, `lv_display_rotate_area()` and

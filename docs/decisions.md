@@ -944,8 +944,8 @@
   pass.
 - Verification: the revised source contract first failed 34/46, then passes 46/46.
   Native tests pass 27/27 and the complete ESP-IDF 6.0.2 build succeeds. The
-  731,120-byte candidate has SHA-256
-  `ae6965412023a4440e795576c957ecca659ab195955df0a326b0233b628cce45`.
+  Clean commit `9febd47` produces a 731,104-byte candidate with SHA-256
+  `625715cffaeca5c12100aad6754979e24e7bba5c163950b3e837e85dd9160e33`.
   Exact-board cadence, tearing, color order, menu smoothness, and the 15 px visual
   weight remain unverified until separately authorized hardware testing.
 - Safety: demo-only. No sensor, ADS1115, MTX-D, 12 V, or vehicle connection. No
