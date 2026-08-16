@@ -43,8 +43,8 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: finish the clean D-055 build/evidence commit, then request new
-  exact-board flash authorization. The physical pass must first prove non-zero
+- Next action: request new exact-board flash authorization for clean D-055 commit
+  `aa38f5f`. The physical pass must first prove non-zero
   completed presentations with no DMA error, then check upright orientation,
   touch mapping, menu scroll, both red transitions, completed-DMA cadence and the
   diagonal. Sensor and vehicle work remain gated.
@@ -58,8 +58,10 @@
   error or completion timeout latches `fatal=1` and stops the presenter rather
   than leaving a poisoned transaction queue blocked invisibly. Red evidence is
   the missing-profile native compile plus a 6/13 source contract; green is 27/27
-  native, 13/13 QSPI contract, 34/34 display/audio contract and a complete dirty
-  ESP-IDF 6.0.2 build. Exact-board proof is not authorized yet.
+  native, 13/13 QSPI contract and 34/34 display/audio contract. Clean commit
+  `aa38f5f` produces a 734,896-byte ESP-IDF 6.0.2 app with SHA-256
+  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
+  Exact-board proof is not authorized yet.
 - D-054 followed the method documented by Espressif for diagonal tearing after
   SPI hardware rotation: the CO5300 returns to native `MADCTL=0x00`, LVGL applies
   the upright 270-degree rotation in PARTIAL mode, and a separate GPIO43-TE task

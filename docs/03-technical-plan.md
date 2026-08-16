@@ -230,7 +230,9 @@ flowchart LR
   GPIO43-TE presenter. ESP LCD stages each snapshot through three queued 8-row
   internal-DMA chunks (23,040 bytes maximum), and `on_color_trans_done` is the
   only release event. A start/completion failure latches `fatal=1`; exact-board
-  D-055 proof remains pending.
+  D-055 proof remains pending. Clean commit `aa38f5f` builds a 734,896-byte app
+  with SHA-256
+  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

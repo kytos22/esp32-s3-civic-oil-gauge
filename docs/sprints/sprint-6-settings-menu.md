@@ -6,7 +6,7 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: D-054 exact-board transfer failed before visual acceptance; D-055
+- Status: D-054 exact-board transfer failed before visual acceptance; clean D-055
   bounded internal-DMA staging passes software tests/build and awaits a new flash
 
 ## Slices
@@ -28,7 +28,7 @@
 | 6.13 Official CO5300 GPIO-TE path | exact combined candidate failed; causes partly isolated | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz. `MADCTL 0xA0 -> 0x60` explains the 180-degree inversion; FULL/single-buffer serialization explains about 14.85 FPS; the returned diagonal still needs a one-variable orientation A/B |
 | 6.14 `MADCTL=0xA0` isolation A/B | exact-board isolation complete; visual failure confirmed | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification, bounded runtime and Marcos's visual judgment | `0xA0` restores correct orientation but the diagonal persists. It does not follow the `0x60` address-direction change; FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS |
 | 6.15 Native-scan immutable presenter | exact-board transport failed | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93`; flash hashes passed but first direct DMA transfer underflowed | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation and immutable ownership were retained; its direct-PSRAM-DMA transport is rejected by D-055 |
-| 6.16 Bounded QSPI staging | software/build pass; hardware pending | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34 and complete ESP-IDF 6.0.2 build | Preserve D-054 scan order and ownership; disable bandwidth-limited direct PSRAM DMA, split each full frame into three-deep 8-row internal-DMA bounce chunks, and latch presenter failure |
+| 6.16 Bounded QSPI staging | clean software candidate; hardware pending | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34 and clean 734,896-byte ESP-IDF 6.0.2 app at `aa38f5f` | Preserve D-054 scan order and ownership; disable bandwidth-limited direct PSRAM DMA, split each full frame into three-deep 8-row internal-DMA bounce chunks, and latch presenter failure |
 
 ## Software evidence
 
@@ -41,8 +41,10 @@
   display/audio contract 34/34. ESP LCD keeps the snapshots immutable but copies
   each one through at most three queued 7,680-byte internal DMA buffers; direct
   PSRAM DMA is disabled while QSPI remains 80 MHz. Any start error or DMA timeout
-  latches a persistent fatal flag and ends the presenter. A complete dirty-tree
-  ESP-IDF 6.0.2 build passes; clean commit/image evidence remains to be recorded.
+  latches a persistent fatal flag and ends the presenter. Clean commit `aa38f5f`
+  produces a 734,896-byte ESP-IDF 6.0.2 app with SHA-256
+  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
+  Exact-board proof remains pending and requires new authorization.
 - D-054 source evidence: official guidance and exact source tracing replace the
   rejected `TE_SYNC` architecture rather than moving its phase again. The first
   source-contract run passed only 15/33, and the first valid native red failed on

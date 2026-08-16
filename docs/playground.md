@@ -8,7 +8,9 @@ Only the newest complete READY generation can start on GPIO43 TE, and it remains
 IN_FLIGHT until the LCD completion callback. Three queued 8-row chunks bound
 temporary internal DMA memory to 23,040 bytes while retaining 80 MHz QSPI. Red
 evidence was the missing transfer profile plus 6/13 source invariants; green is
-27/27 native, 13/13 QSPI, 34/34 display/audio and a complete dirty-tree build.
+27/27 native, 13/13 QSPI and 34/34 display/audio. Clean commit `aa38f5f`
+produces a 734,896-byte app with SHA-256
+`92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
 D-054 app `50dee93` was flashed with write hashes verified, but direct PSRAM DMA
 underflowed and completed presentation stayed at zero. D-055 has not been flashed.
 

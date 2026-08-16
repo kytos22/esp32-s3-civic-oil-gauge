@@ -868,8 +868,10 @@
   not validate D-054's throughput assumption.
 - Verification: red was the absent transfer-profile compile failure plus 6/13
   source contract. Green is native 27/27, QSPI 13/13, display/audio 34/34 and a
-  complete dirty-tree ESP-IDF 6.0.2 build. A clean image and a separately
-  authorized exact-board run remain required; software evidence cannot decide the
+  clean ESP-IDF 6.0.2 build. Commit `aa38f5f` produces a 734,896-byte app with
+  SHA-256
+  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
+  A separately authorized exact-board run remains required; software evidence cannot decide the
   diagonal, orientation, touch mapping or perceived scroll smoothness.
 - Sources: [ESP-IDF 6.0 SPI Master — transactions with data on PSRAM](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/spi_master.html#transactions-with-data-on-psram),
   [ESP-IDF v6.0.2 direct-PSRAM transaction test](https://github.com/espressif/esp-idf/blob/v6.0.2/components/esp_driver_spi/test_apps/master/main/test_spi_master.c#L2091-L2168),
