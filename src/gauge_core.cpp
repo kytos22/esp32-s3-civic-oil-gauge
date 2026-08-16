@@ -182,7 +182,10 @@ TemperatureState evaluateTemperatureState(
   if (temperature.value <= 100.0) {
     return TemperatureState::hot;
   }
-  return TemperatureState::veryHot;
+  if (temperature.value < 120.0) {
+    return TemperatureState::veryHot;
+  }
+  return TemperatureState::warning;
 }
 
 RgbColor temperatureColor(double temperatureC) {
@@ -194,10 +197,10 @@ RgbColor temperatureColor(double temperatureC) {
       {50.0, {30, 132, 255}},
       {59.0, {30, 132, 255}},
       {76.0, {174, 205, 167}},
-      {90.0, {174, 205, 167}},
-      {96.0, {234, 190, 82}},
+      {90.0, {234, 190, 82}},
       {100.0, {255, 118, 28}},
-      {138.0, {255, 45, 56}},
+      {120.0, {255, 45, 56}},
+      {140.0, {255, 45, 56}},
   };
 
   if (!std::isfinite(temperatureC) ||
@@ -234,13 +237,17 @@ DisplayState evaluateDisplayState(const ConvertedValue& pressure,
   result.temperatureColor = temperatureColor(temperature.value);
   result.pressureAttentionVisible =
       warning && (reducedMotion || blinkPhaseOn);
+  const bool temperatureWarning =
+      result.temperature == TemperatureState::warning;
+  result.temperatureAttentionVisible =
+      !temperatureWarning || reducedMotion || blinkPhaseOn;
   result.showTemperatureBelowRange =
       result.temperature == TemperatureState::belowRange;
   result.pressureBarFraction =
       pressure.valid() ? clamp(pressure.value / 150.0, 0.0, 1.0) : 0.0;
   result.temperatureBarFraction =
       temperature.valid()
-          ? clamp((temperature.value - 50.0) / 88.0, 0.0, 1.0)
+          ? clamp((temperature.value - 50.0) / 90.0, 0.0, 1.0)
           : 0.0;
   return result;
 }
@@ -297,6 +304,8 @@ const char* temperatureStateName(TemperatureState state) {
       return "hot";
     case TemperatureState::veryHot:
       return "very_hot";
+    case TemperatureState::warning:
+      return "warning";
   }
   return "unknown";
 }

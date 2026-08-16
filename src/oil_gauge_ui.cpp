@@ -80,6 +80,7 @@ struct UiWidgets {
   TemperatureUnit renderedTemperatureUnit = TemperatureUnit::celsius;
   OilGaugeUiActions pendingActions{};
   lv_opa_t pressureAttentionOpacity = LV_OPA_TRANSP;
+  lv_opa_t temperatureAttentionOpacity = LV_OPA_COVER;
   bool pressureColorSet = false;
   bool temperatureColorSet = false;
   bool menuVisible = false;
@@ -717,6 +718,8 @@ const char* temperatureLabel(TemperatureState state) {
       return "CALIENTE";
     case TemperatureState::veryHot:
       return "MUY CALIENTE";
+    case TemperatureState::warning:
+      return "WARNING";
   }
   return "FALLO";
 }
@@ -839,7 +842,7 @@ void createOilGaugeUi(lv_obj_t* screen,
                                     LV_TEXT_ALIGN_LEFT);
 
   static constexpr double kTemperatureTicks[] = {
-      0.114, 0.295, 0.523, 0.568};
+      0.111, 0.289, 0.511, 0.556, 0.778};
   gUi.temperatureBar = createBar(
       gUi.gaugeRoot, 428, kTemperatureTicks, std::size(kTemperatureTicks));
 
@@ -974,6 +977,15 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
     setIconColor(gUi.temperatureIcon, temperatureLvColor);
     gUi.temperatureColor = temperatureColorValue;
     gUi.temperatureColorSet = true;
+  }
+  const lv_opa_t temperatureAttentionOpacity =
+      sensorsPending || state.temperatureAttentionVisible
+          ? LV_OPA_COVER
+          : LV_OPA_TRANSP;
+  if (gUi.temperatureAttentionOpacity != temperatureAttentionOpacity) {
+    lv_obj_set_style_text_opa(
+        gUi.temperatureState, temperatureAttentionOpacity, 0);
+    gUi.temperatureAttentionOpacity = temperatureAttentionOpacity;
   }
   updateBar(gUi.temperatureBar,
             state.temperatureBarFraction,

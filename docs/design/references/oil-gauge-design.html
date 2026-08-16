@@ -926,10 +926,11 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-scale&quot; aria-hidden=&quot;true&quot;&gt;
         &lt;span class=&quot;ogr-fill&quot; id=&quot;ogrTemperatureFill&quot;&gt;&lt;/span&gt;
-        &lt;i style=&quot;left:11.4%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:29.5%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:52.3%&quot;&gt;&lt;/i&gt;
-        &lt;i style=&quot;left:56.8%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:11.1%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:28.9%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:51.1%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:55.6%&quot;&gt;&lt;/i&gt;
+        &lt;i style=&quot;left:77.8%&quot;&gt;&lt;/i&gt;
       &lt;/div&gt;
     &lt;/section&gt;
     &lt;div class=&quot;ogr-full-warning&quot; id=&quot;ogrFullWarning&quot; aria-hidden=&quot;true&quot;&gt;
@@ -950,7 +951,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;/label&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ogrTemperatureInput&quot;&gt;
       Temperatura &lt;span id=&quot;ogrTemperatureControlValue&quot;&gt;92 °C&lt;/span&gt;
-      &lt;input class=&quot;form-range&quot; id=&quot;ogrTemperatureInput&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;138&quot; value=&quot;92&quot;&gt;
+      &lt;input class=&quot;form-range&quot; id=&quot;ogrTemperatureInput&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;140&quot; value=&quot;92&quot;&gt;
     &lt;/label&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ogrUnitInput&quot;&gt;
       Unidades de presión
@@ -1156,6 +1157,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     animation: ogr-pressure-warning-blink 0.5s step-end infinite;
   }
 
+  #oilGaugeRefinedIcons .ogr-temperature[data-state=&quot;warning&quot;] .ogr-state {
+    animation: ogr-pressure-warning-blink 0.5s step-end infinite;
+  }
+
   #oilGaugeRefinedIcons .ogr-full-warning {
     position: absolute;
     inset: 0;
@@ -1303,10 +1308,10 @@ html&gt;body{padding:0}&lt;/style&gt;
         [50, [30, 132, 255]],
         [59, [30, 132, 255]],
         [76, [174, 205, 167]],
-        [90, [174, 205, 167]],
-        [96, [234, 190, 82]],
+        [90, [234, 190, 82]],
         [100, [255, 118, 28]],
-        [138, [255, 45, 56]]
+        [120, [255, 45, 56]],
+        [140, [255, 45, 56]]
       ];
 
       if (temperature &lt;= stops[0][0]) return toRgb(stops[0][1]);
@@ -1337,7 +1342,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       if (temperature &lt; 76) return [&#x27;warming&#x27;, &#x27;Calentando&#x27;];
       if (temperature &lt; 96) return [&#x27;optimal&#x27;, &#x27;Óptimo&#x27;];
       if (temperature &lt;= 100) return [&#x27;hot&#x27;, &#x27;Caliente&#x27;];
-      return [&#x27;very-hot&#x27;, &#x27;Muy caliente&#x27;];
+      if (temperature &lt; 120) return [&#x27;very-hot&#x27;, &#x27;Muy caliente&#x27;];
+      return [&#x27;warning&#x27;, &#x27;Warning&#x27;];
     };
 
     const update = () =&gt; {
@@ -1369,7 +1375,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
-      temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
+      temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 90) * 100)}%`;
       pressureControlValue.textContent = `${pressureDisplay} ${bar ? &#x27;BAR&#x27; : &#x27;PSI&#x27;}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${Math.round(displayedTemperature)} ${fahrenheit ? &#x27;°F&#x27; : &#x27;°C&#x27;}`;

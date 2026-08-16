@@ -84,7 +84,8 @@ Semantic states:
 | 60–75 °C | `CALENTANDO` |
 | 76–95 °C | `ÓPTIMO` |
 | 96–100 °C | `CALIENTE` |
-| >100 °C | `MUY CALIENTE` |
+| 101–119 °C | `MUY CALIENTE` |
+| 120–140 °C | blinking red `WARNING` |
 
 Bar, icon, and label use the same continuous interpolation:
 
@@ -93,12 +94,14 @@ Bar, icon, and label use the same continuous interpolation:
 | 50 °C | `30, 132, 255` | Cold blue |
 | 59 °C | `30, 132, 255` | End cold blue |
 | 76 °C | `174, 205, 167` | Light desaturated green at optimal entry |
-| 90 °C | `174, 205, 167` | Begin gradual warm transition |
-| 96 °C | `234, 190, 82` | Yellow/amber at hot entry |
+| 90 °C | `234, 190, 82` | Light amber after gradual transition from 76 °C |
 | 100 °C | `255, 118, 28` | Orange |
-| 138 °C | `255, 45, 56` | Red at sensor display limit |
+| 120 °C | `255, 45, 56` | Red warning entry |
+| 140 °C | `255, 45, 56` | Fixed red at display limit |
 
-Interpolate linearly between stops. Normalize the bar from 50–138 °C.
+Interpolate linearly between stops. Normalize the bar from 50–140 °C. At
+120–140 °C only the dynamic `WARNING` label blinks at 2 Hz; number, icon and bar
+remain continuously visible in red.
 
 The pressure and temperature threshold marks remain embedded in their bars; only
 the explanatory fixed text beneath them is removed.

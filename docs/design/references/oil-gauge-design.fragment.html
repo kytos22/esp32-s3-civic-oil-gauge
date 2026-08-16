@@ -50,10 +50,11 @@
       </div>
       <div class="ogr-scale" aria-hidden="true">
         <span class="ogr-fill" id="ogrTemperatureFill"></span>
-        <i style="left:11.4%"></i>
-        <i style="left:29.5%"></i>
-        <i style="left:52.3%"></i>
-        <i style="left:56.8%"></i>
+        <i style="left:11.1%"></i>
+        <i style="left:28.9%"></i>
+        <i style="left:51.1%"></i>
+        <i style="left:55.6%"></i>
+        <i style="left:77.8%"></i>
       </div>
     </section>
     <div class="ogr-full-warning" id="ogrFullWarning" aria-hidden="true">
@@ -74,7 +75,7 @@
     </label>
     <label class="form-label" for="ogrTemperatureInput">
       Temperatura <span id="ogrTemperatureControlValue">92 °C</span>
-      <input class="form-range" id="ogrTemperatureInput" type="range" min="0" max="138" value="92">
+      <input class="form-range" id="ogrTemperatureInput" type="range" min="0" max="140" value="92">
     </label>
     <label class="form-label" for="ogrUnitInput">
       Unidades de presión
@@ -280,6 +281,10 @@
     animation: ogr-pressure-warning-blink 0.5s step-end infinite;
   }
 
+  #oilGaugeRefinedIcons .ogr-temperature[data-state="warning"] .ogr-state {
+    animation: ogr-pressure-warning-blink 0.5s step-end infinite;
+  }
+
   #oilGaugeRefinedIcons .ogr-full-warning {
     position: absolute;
     inset: 0;
@@ -427,10 +432,10 @@
         [50, [30, 132, 255]],
         [59, [30, 132, 255]],
         [76, [174, 205, 167]],
-        [90, [174, 205, 167]],
-        [96, [234, 190, 82]],
+        [90, [234, 190, 82]],
         [100, [255, 118, 28]],
-        [138, [255, 45, 56]]
+        [120, [255, 45, 56]],
+        [140, [255, 45, 56]]
       ];
 
       if (temperature <= stops[0][0]) return toRgb(stops[0][1]);
@@ -461,7 +466,8 @@
       if (temperature < 76) return ['warming', 'Calentando'];
       if (temperature < 96) return ['optimal', 'Óptimo'];
       if (temperature <= 100) return ['hot', 'Caliente'];
-      return ['very-hot', 'Muy caliente'];
+      if (temperature < 120) return ['very-hot', 'Muy caliente'];
+      return ['warning', 'Warning'];
     };
 
     const update = () => {
@@ -493,7 +499,7 @@
       pressureState.textContent = pressureLabel;
       temperatureState.textContent = temperatureLabel;
       pressureFill.style.width = `${(psi / 150) * 100}%`;
-      temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 88) * 100)}%`;
+      temperatureFill.style.width = `${Math.max(0, ((temperature - 50) / 90) * 100)}%`;
       pressureControlValue.textContent = `${pressureDisplay} ${bar ? 'BAR' : 'PSI'}`;
       rpmControlValue.textContent = formatRpm.format(rpm);
       temperatureControlValue.textContent = `${Math.round(displayedTemperature)} ${fahrenheit ? '°F' : '°C'}`;

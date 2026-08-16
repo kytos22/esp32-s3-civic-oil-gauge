@@ -142,6 +142,9 @@ void test_temperature_state_boundaries() {
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(96.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(100.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::veryHot), state(100.1));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::veryHot), state(119.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warning), state(120.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warning), state(140.0));
 }
 
 void test_temperature_color_stops_and_interpolation() {
@@ -155,10 +158,10 @@ void test_temperature_color_stops_and_interpolation() {
       {50.0, 30, 132, 255},
       {59.0, 30, 132, 255},
       {76.0, 174, 205, 167},
-      {90.0, 174, 205, 167},
-      {96.0, 234, 190, 82},
+      {90.0, 234, 190, 82},
       {100.0, 255, 118, 28},
-      {138.0, 255, 45, 56},
+      {120.0, 255, 45, 56},
+      {140.0, 255, 45, 56},
       {147.0, 255, 45, 56},
   };
   for (const Case& expected : cases) {
@@ -168,10 +171,28 @@ void test_temperature_color_stops_and_interpolation() {
     TEST_ASSERT_EQUAL_UINT8(expected.blue, actual.blue);
   }
 
-  const RgbColor midpoint = temperatureColor(67.5);
-  TEST_ASSERT_EQUAL_UINT8(102, midpoint.red);
-  TEST_ASSERT_EQUAL_UINT8(169, midpoint.green);
-  TEST_ASSERT_EQUAL_UINT8(211, midpoint.blue);
+  const RgbColor midpoint = temperatureColor(83.0);
+  TEST_ASSERT_EQUAL_UINT8(204, midpoint.red);
+  TEST_ASSERT_EQUAL_UINT8(198, midpoint.green);
+  TEST_ASSERT_EQUAL_UINT8(125, midpoint.blue);
+}
+
+void test_temperature_warning_blinks_only_dynamic_indicator() {
+  const ConvertedValue pressure{45.0, Fault::none};
+  const ConvertedValue temperature{120.0, Fault::none};
+  const EngineState running{true, 2500};
+
+  const DisplayState blinkOff =
+      evaluateDisplayState(pressure, temperature, running, false, false);
+  const DisplayState blinkOn =
+      evaluateDisplayState(pressure, temperature, running, true, false);
+  const DisplayState fixed =
+      evaluateDisplayState(pressure, temperature, running, false, true);
+  TEST_ASSERT_FALSE(blinkOff.temperatureAttentionVisible);
+  TEST_ASSERT_TRUE(blinkOn.temperatureAttentionVisible);
+  TEST_ASSERT_TRUE(fixed.temperatureAttentionVisible);
+  TEST_ASSERT_EQUAL_DOUBLE(blinkOff.temperatureBarFraction,
+                           blinkOn.temperatureBarFraction);
 }
 
 void test_display_state_warning_motion_and_bars() {
@@ -411,6 +432,7 @@ int main(int, char**) {
   RUN_TEST(test_pressure_state_boundaries_and_engine_gate);
   RUN_TEST(test_temperature_state_boundaries);
   RUN_TEST(test_temperature_color_stops_and_interpolation);
+  RUN_TEST(test_temperature_warning_blinks_only_dynamic_indicator);
   RUN_TEST(test_display_state_warning_motion_and_bars);
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);

@@ -50,7 +50,7 @@
   confirmed rapid brightness works without blocking, 21 px is optimal and tearing
   remains absent. The temperature colors and vertical group placement move to
   D-060 without reopening the accepted transport, brightness or thickness.
-- Next action: build the D-060 color/placement candidate, then request separate
+- Next action: build the refined D-060 color/placement candidate, then request separate
   exact-board flash authorization. Sensor and vehicle work remain gated.
 
 ## Open items
@@ -72,15 +72,16 @@
   capture. Marcos then confirmed rapid brightness works without blocking, 21 px is
   optimal and tearing remains absent. The old color-stop mapping is rejected because
   it did not align with the new semantic bands.
-- D-060 aligns color progression with D-059 semantics: blue through 59 °C,
-  blue-to-green during 60–75, stable light green from 76–90, gradual amber entry
-  through 96, orange at 100 and red progression above 100. It also moves each
+- D-060 aligns color progression with the refined physical request: blue through
+  59 °C, green at 76, gradual light amber through 90, intense orange at 100,
+  red at 120 and fixed red through 140. From 120 °C the dynamic state becomes a
+  2 Hz blinking red `WARNING` while number, icon and bar remain visible. It moves each
   icon/value/unit/bar group down 4 px while leaving headings and dynamic states in
   place. Red evidence was one native color mismatch plus 55/63 display invariants;
-  green is native 27/27 and display/audio 63/63. Clean commit `476cf4d` builds a
-  730,656-byte ESP-IDF 6.0.2 app identified as `pb2-d057-9-g476cf4d`, with
-  SHA-256 `a798b520bd996f1be3d2c4922d15e8a103fb4da8e2f7baa0e653ecfc030248f3`.
-  Exact-board flash and judgment remain pending fresh authorization.
+  group down 4 px while leaving headings and dynamic states in place. The first
+  clean D-060 candidate `476cf4d` is superseded before flash by this refined color
+  and warning contract. Red was a missing enum/visibility contract and 61/68
+  invariants; green is native 28/28 and display/audio 68/68. Build remains pending.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -434,4 +435,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-059 is Physical Baseline 3; D-060 clean candidate awaits flash authorization
+Last updated: 2026-08-16 — refined D-060 tests pass; clean build pending

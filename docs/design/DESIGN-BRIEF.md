@@ -37,8 +37,8 @@
 - Pressure normal: `#FFB020`.
 - Pressure warning: `#FF3948`.
 - Temperature stops:
-  `50 #1E84FF`, `59 #1E84FF`, `76 #AECDA7`, `90 #AECDA7`,
-  `96 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
+  `50 #1E84FF`, `59 #1E84FF`, `76 #AECDA7`, `90 #EABE52`,
+  `100 #FF761C`, `120 #FF2D38`, `140 #FF2D38`.
 - Typography: the approved prototype's condensed sans-serif treatment; firmware must
   match its measured placement and weight using build-native glyphs.
 - Geometry: 480×480, equal 240 px regions, values centered at x=240, 21 px bars;
@@ -67,7 +67,8 @@ activation interrupts settings and restores the gauge immediately.
 - Pressure: engine state unknown, engine stopped, warning 0–10 PSI while running,
   provisional low 11–14 PSI, OK 15–80 PSI, provisional high above 80 PSI, sensor fault.
 - Temperature: below-range `<50` shown as cold, cold 50–59, warming 60–75,
-  optimal 76–95, hot 96–100, very hot above 100, sensor fault.
+  optimal 76–95, hot 96–100, very hot 101–119, blinking red warning 120–140,
+  sensor fault.
 - System: demo-labelled, ADC missing, calibration missing/raw-only, valid calibrated,
   and per-channel fault.
 - Fixed viewport only: no responsive breakpoints.

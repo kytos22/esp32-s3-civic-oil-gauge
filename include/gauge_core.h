@@ -106,6 +106,7 @@ enum class TemperatureState : std::uint8_t {
   optimal,
   hot,
   veryHot,
+  warning,
 };
 
 struct RgbColor {
@@ -120,6 +121,7 @@ struct DisplayState {
   RgbColor pressureColor{};
   RgbColor temperatureColor{};
   bool pressureAttentionVisible = false;
+  bool temperatureAttentionVisible = true;
   bool showTemperatureBelowRange = false;
   double pressureBarFraction = 0.0;
   double temperatureBarFraction = 0.0;

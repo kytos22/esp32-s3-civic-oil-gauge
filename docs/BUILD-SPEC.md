@@ -56,10 +56,10 @@ Temperature colors are linearly interpolated between:
 | 50 | `#1E84FF` | 5.80:1 |
 | 59 | `#1E84FF` | 5.80:1 |
 | 76 | `#AECDA7` | 12.09:1 |
-| 90 | `#AECDA7` | 12.09:1 |
-| 96 | `#EABE52` | 11.99:1 |
+| 90 | `#EABE52` | 11.99:1 |
 | 100 | `#FF761C` | 7.86:1 |
-| 138 | `#FF2D38` | 5.68:1 |
+| 120 | `#FF2D38` | 5.68:1 |
+| 140 | `#FF2D38` | 5.68:1 |
 
 ## 4. State matrix
 
@@ -84,7 +84,8 @@ Temperature colors are linearly interpolated between:
 | warming | 60–75 °C | `CALENTANDO` | interpolated | implemented/tested |
 | optimal | 76–95 °C | `ÓPTIMO` | interpolated | implemented/tested |
 | hot | 96–100 °C | `CALIENTE` | interpolated | implemented/tested |
-| very hot | >100 °C | `MUY CALIENTE` | interpolated to 138 °C | implemented/tested |
+| very hot | 101–119 °C | `MUY CALIENTE` | orange to red | implemented/tested |
+| thermal warning | 120–140 °C | blinking `WARNING` | fixed red | implemented/tested |
 | fault | invalid temperature | explicit fault | non-color cue | implemented/tested |
 
 ## 4a. Accessibility
