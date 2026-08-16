@@ -1076,8 +1076,12 @@
   PSRAM and recorded MAC matched; every written region passed hash verification.
   Boot confirms exact app `pb2-d057-13-gc0bce25`, TE 59.620 Hz, DMA about
   13.2–14.8 ms and no timeout/error/fatal counters in the bounded capture.
-  Physical visual judgment remains pending.
+  Marcos then accepted both icon silhouettes, enlarged-unit readability,
+  alignment/spacing, dynamic recoloring and the absence of tearing. D-061 is
+  Accepted Physical Baseline 4.
 - Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
   fresh explicit authorization.
 - Supersedes: D-060 only for icon silhouettes and unit-label font size. D-060's
-  colors, warning behavior and placement remain binding.
+  colors, warning behavior and placement remain binding. D-061 becomes the latest
+  accepted visual/physical baseline; D-059 remains the implementation reference
+  for serialized brightness and the accepted display transport.

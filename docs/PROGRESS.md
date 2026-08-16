@@ -50,11 +50,11 @@
   confirmed rapid brightness works without blocking, 21 px is optimal and tearing
   remains absent. The temperature colors and vertical group placement move to
   D-060 without reopening the accepted transport, brightness or thickness.
-- Current visual candidate: D-061 replaces both hand-built symbols with masks
-  derived from Marcos's supplied oil-temperature and oil-pressure PNG references,
-  preserving dynamic recoloring, and raises every unit label to Montserrat 28 px.
-- Next action: flash D-061 only after separate exact-board authorization and obtain
-  physical icon/unit-size judgment. Sensor and vehicle work remain gated.
+- Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
+  accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
+  alignment/spacing and the continued absence of tearing on the exact AMOLED.
+- Next action: retain D-061 as the visual/physical baseline and choose the next
+  separately scoped feature. Sensor and vehicle work remain gated.
 
 ## Open items
 - D-061 embeds the supplied temperature and pressure silhouettes as 92 x 72 LVGL
@@ -73,7 +73,9 @@
   PSRAM and the recorded MAC matched; all four written regions passed hash
   verification. Boot confirms exact app `pb2-d057-13-gc0bce25`, TE 59.620 Hz,
   DMA about 13.2–14.8 ms and `timeouts=0 errors=0 fatal=0` throughout the bounded
-  capture. Physical icon, unit-size, recoloring and no-tearing judgment remain pending.
+  capture. Marcos then accepted every requested physical check: both silhouettes,
+  unit readability, alignment/spacing, dynamic recoloring and no tearing. D-061 is
+  therefore Accepted Physical Baseline 4.
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
   60 °C (still displaying `<50` below measurable range), warming 60–75 °C,
   optimal 76–95 °C, hot 96–100 °C, and very hot above 100 °C. It also fixes the
@@ -459,4 +461,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-061 is on the exact board; physical judgment pending
+Last updated: 2026-08-16 — D-061 accepted as Physical Baseline 4
