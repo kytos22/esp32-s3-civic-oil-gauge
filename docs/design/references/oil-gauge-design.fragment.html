@@ -12,13 +12,7 @@
         <span class="ogr-state" id="ogrPressureState">OK</span>
       </div>
       <div class="ogr-main">
-        <svg class="ogr-icon ogr-pressure-icon" viewBox="0 0 114 72" aria-hidden="true">
-          <path class="ogr-bold-line" d="M13 33l9-21 23 12" />
-          <path class="ogr-bold-line" d="M39 23l5 31h34l21-29" />
-          <path class="ogr-bold-line" d="M40 23h27l11 9 21-7 10 8" />
-          <path class="ogr-bold-line" d="M58 22V11M51 10h15" />
-          <path class="ogr-solid" d="M105 42s-8 9-8 15a8 8 0 0 0 16 0c0-6-8-15-8-15z" />
-        </svg>
+        <span class="ogr-icon ogr-pressure-icon" aria-hidden="true"></span>
         <span class="ogr-value" id="ogrPressureValue">61</span>
         <span class="ogr-unit" id="ogrPressureUnit">PSI</span>
       </div>
@@ -36,15 +30,7 @@
         <span class="ogr-state" id="ogrTemperatureState">Óptimo</span>
       </div>
       <div class="ogr-main">
-        <svg class="ogr-icon ogr-temperature-icon" viewBox="0 0 88 74" aria-hidden="true">
-          <rect class="ogr-solid" x="36" y="0" width="12" height="48" rx="6" />
-          <circle class="ogr-solid" cx="42" cy="48" r="13" />
-          <rect class="ogr-solid" x="49" y="4" width="21" height="7" rx="1" />
-          <rect class="ogr-solid" x="49" y="18" width="21" height="7" rx="1" />
-          <rect class="ogr-solid" x="49" y="32" width="21" height="7" rx="1" />
-          <path class="ogr-wave" d="M5 55c8-6 15 6 23 0M56 55c8-6 15 6 23 0" />
-          <path class="ogr-wave" d="M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0" />
-        </svg>
+        <span class="ogr-icon ogr-temperature-icon" aria-hidden="true"></span>
         <span class="ogr-value" id="ogrTemperatureValue">92</span>
         <span class="ogr-unit" id="ogrTemperatureUnit">°C</span>
       </div>
@@ -179,8 +165,16 @@
   #oilGaugeRefinedIcons .ogr-icon {
     position: absolute;
     left: 0;
-    width: 82px;
+    width: 92px;
+    height: 72px;
     color: var(--ogr-metric-color);
+    background: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
     filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ogr-metric-color) 45%, transparent));
   }
 
@@ -206,7 +200,13 @@
   }
 
   #oilGaugeRefinedIcons .ogr-temperature-icon {
-    width: 76px;
+    -webkit-mask-image: url('../assets/oil-temperature-icon-mask.png');
+    mask-image: url('../assets/oil-temperature-icon-mask.png');
+  }
+
+  #oilGaugeRefinedIcons .ogr-pressure-icon {
+    -webkit-mask-image: url('../assets/oil-pressure-icon-mask.png');
+    mask-image: url('../assets/oil-pressure-icon-mask.png');
   }
 
   #oilGaugeRefinedIcons .ogr-value {
@@ -223,7 +223,7 @@
     justify-self: start;
     margin-left: 12px;
     color: var(--ogr-muted);
-    font-size: clamp(18px, 4.4vw, 27px);
+    font-size: clamp(22px, 5.2vw, 32px);
     font-weight: 500;
   }
 

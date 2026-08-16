@@ -13,7 +13,7 @@
 | Tokens have one source | yes | token tables below match `docs/UI_DESIGN.md` | pass |
 | Reference bytes preserved during canonical move | yes | before/after SHA-256 values matched on 2026-07-30 | pass |
 | States and behavior resolved | yes | pressure/temperature tables below | pass |
-| Assets resolved | yes | icons are binding inline SVG geometry in the editable HTML; no external files | pass |
+| Assets resolved | yes | supplied icon references are converted to repository-owned firmware and simulator masks | pass |
 | Fonts resolved | yes | no external font asset is required by the embedded target | pass |
 | External assets | yes | none | pass |
 | External setup | yes | none for the visual design | pass |
@@ -125,9 +125,10 @@ Temperature colors are linearly interpolated between:
 
 ## 6. Asset map
 
-There are no external assets. The two binding icons are inline SVG geometry in
-`docs/design/references/oil-gauge-design.fragment.html`; firmware ports the same
-silhouettes into native paths/polygons without changing them.
+The two binding icons are derived from the user-supplied PNG references into
+92 x 72 alpha masks. Firmware embeds LVGL A8 assets and the simulator uses
+matching transparent PNG masks, allowing existing dynamic colors to recolor the
+silhouettes. The original Downloads files are not runtime dependencies.
 
 ## 7. External manual setup
 
@@ -155,7 +156,8 @@ None.
   same scan/transport ownership has no tearing or diagonal; D-056 exact-panel
   observation remains required for native orientation, touch and smoothness.
 - Icon geometry is ported from the editable reference without transformation of
-  silhouette or proportion; DR-001 raises the thermometer marks and extends its stem.
+  silhouette or proportion; D-061 replaces DR-001's hand-built thermometer with
+  the explicitly supplied temperature icon reference.
 - The fixed coordinate system is used directly; no responsive or adaptive layout.
 - `CONFIG_OIL_GAUGE_DEMO_MODE=y` remains mandatory until real calibration passes.
 

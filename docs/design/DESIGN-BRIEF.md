@@ -44,8 +44,9 @@
 - Geometry: 480×480, equal 240 px regions, values centered at x=240, 21 px bars;
   both icon/value/unit/bar groups sit 4 px below D-059; no fixed threshold notes
   below the bars.
-- Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
-  reference. They are path geometry, not external image assets.
+- Icons: the exact pressure and temperature silhouettes derived from Marcos's
+  supplied PNG references. Firmware embeds A8 masks and the editable reference
+  uses matching transparent PNG masks.
 - Motion: pressure warning uses either a binary 2 Hz element flash, a binary 2 Hz
   opaque full-screen red field, or fixed red. The full-screen field always redraws
   the pressure number above it; the number never disappears.

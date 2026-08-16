@@ -32,16 +32,13 @@ Static capture:
 
 Use compact automotive symbols with thick strokes and filled elements:
 
-- pressure: wide oil can with cap, spout, and detached droplet;
-- temperature: solid thermometer, three side marks, and two oil waves below.
+- pressure: the user-supplied oil-pressure silhouette;
+- temperature: the user-supplied oil-temperature silhouette.
 
-Prototype SVG geometry is binding. Firmware may convert it to paths, polygons,
-or monochrome bitmaps without changing the silhouette.
+The supplied references are binding. Firmware and simulator convert them to
+alpha masks so the existing live semantic colors can recolor either silhouette.
 
-For the temperature icon, extend the stem 3 px upward without moving its lower
-endpoint. Raise the three native side marks to y = 3, 15, and 27 px. The stem's
-painted top must remain at least 3 px above the top mark and the bottom mark must
-retain at least 6 px of painted clearance from the upper oil wave.
+The earlier hand-built thermometer geometry is superseded by D-061.
 
 ## Oil pressure
 

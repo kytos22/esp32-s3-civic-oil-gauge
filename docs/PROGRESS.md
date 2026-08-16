@@ -50,10 +50,24 @@
   confirmed rapid brightness works without blocking, 21 px is optimal and tearing
   remains absent. The temperature colors and vertical group placement move to
   D-060 without reopening the accepted transport, brightness or thickness.
-- Next action: build the refined D-060 color/placement candidate, then request separate
-  exact-board flash authorization. Sensor and vehicle work remain gated.
+- Current visual candidate: D-061 replaces both hand-built symbols with masks
+  derived from Marcos's supplied oil-temperature and oil-pressure PNG references,
+  preserving dynamic recoloring, and raises every unit label to Montserrat 28 px.
+- Next action: flash D-061 only after separate exact-board authorization and obtain
+  physical icon/unit-size judgment. Sensor and vehicle work remain gated.
 
 ## Open items
+- D-061 embeds the supplied temperature and pressure silhouettes as 92 x 72 LVGL
+  A8 masks and uses matching transparent PNG masks in the simulator. This retains
+  D-060's state-driven icon colors instead of baking the source red/white pixels
+  into the UI. PSI, BAR, °C and °F now use Montserrat 28 px. Source references:
+  `oil temp black.png` SHA-256
+  `6fb79a549825379055a942b454fd5c0c248e6027329640fb189daf5b1a5fb06b` and
+  `oil pressure black.png` SHA-256
+  `77d869eadf8ffab7e8f360ee0e996c85449a4a5112460d481b9ad75a03a11954`.
+  Native tests pass 28/28, display/audio and asset invariants pass 74/74, and the
+  complete dirty ESP-IDF 6.0.2 build succeeds at 780,368 bytes. A clean committed
+  identity and exact-board judgment remain pending.
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
   60 °C (still displaying `<50` below measurable range), warming 60–75 °C,
   optimal 76–95 °C, hot 96–100 °C, and very hot above 100 °C. It also fixes the

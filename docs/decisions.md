@@ -1056,3 +1056,22 @@
   fresh explicit authorization.
 - Supersedes: D-059 only for temperature color stops and metric-group vertical
   coordinates. Physical Baseline 3 remains binding for all other behavior.
+
+## D-061 — Use supplied oil icons and enlarge unit labels
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 visual revision
+- Decision: Replace the hand-built pressure and temperature symbols with the
+  respective user-supplied PNG silhouettes. Convert each to a 92 x 72 alpha mask:
+  LVGL A8 data for firmware and transparent PNG for the editable simulator. Keep
+  icon color dynamic through recoloring. Raise PSI, BAR, °C and °F from Montserrat
+  24 px to 28 px without moving the centered numeric value.
+- Why: Marcos selected these two references explicitly and requested more readable
+  units. A monochrome mask preserves the accepted warning and temperature-color
+  behavior while avoiding a runtime dependency on files outside the repository.
+- Verification: source files were visually inspected and hashed before conversion.
+  Native tests pass 28/28, display/audio and asset invariants pass 74/74, and a
+  complete dirty ESP-IDF 6.0.2 build succeeds at 780,368 bytes. Exact-board visual
+  judgment remains pending a separately authorized flash.
+- Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
+  fresh explicit authorization.
+- Supersedes: D-060 only for icon silhouettes and unit-label font size. D-060's
+  colors, warning behavior and placement remain binding.

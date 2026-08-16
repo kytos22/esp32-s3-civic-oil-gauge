@@ -211,9 +211,9 @@ See `docs/03-technical-plan.md`.
   gauge and one second of one prebuilt opaque-red layer containing the white
   pressure number, `PELIGRO`, and `PRESIÓN MUY BAJA`. The number is always visible;
   the layer is never moved or rebuilt during the transition.
-- **AC-37:** The thermometer stem protrudes at least 3 painted pixels above the
-  raised top mark, and the lowest mark retains at least 6 painted pixels of clearance
-  from the upper oil wave in native and editable geometry.
+- **AC-37:** Both user-supplied oil icon silhouettes render from matching 92 x 72
+  alpha masks, retain the live semantic recoloring, and PSI/BAR/°C/°F render at
+  28 px without displacing the horizontally centered number.
 - **AC-38:** An active pressure warning does not close settings. Warning evaluation
   and the configured audio loop continue without background gauge rendering.
   Diagnostics are read-only, sound test uses one real double beep, and reset requires

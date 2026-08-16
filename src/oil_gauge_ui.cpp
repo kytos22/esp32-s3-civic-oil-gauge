@@ -10,6 +10,7 @@
 #include <iterator>
 
 #include "oil_gauge_fonts.h"
+#include "icons/oil_icon_assets.h"
 namespace oilgauge {
 
 namespace {
@@ -151,19 +152,9 @@ lv_obj_t* createSolid(lv_obj_t* parent,
   return object;
 }
 
-lv_obj_t* createLine(lv_obj_t* parent,
-                     const lv_point_precise_t* points,
-                     std::uint16_t pointCount,
-                     std::int32_t width) {
-  lv_obj_t* line = lv_line_create(parent);
-  lv_obj_remove_style_all(line);
-  lv_line_set_points(line, points, pointCount);
-  lv_obj_set_style_line_width(line, width, 0);
-  lv_obj_set_style_line_rounded(line, true, 0);
-  return line;
-}
-
 void setIconColor(lv_obj_t* icon, lv_color_t iconColor) {
+  lv_obj_set_style_image_recolor(icon, iconColor, 0);
+  lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, 0);
   const std::uint32_t childCount = lv_obj_get_child_count(icon);
   for (std::uint32_t index = 0; index < childCount; ++index) {
     lv_obj_t* child = lv_obj_get_child(icon, static_cast<std::int32_t>(index));
@@ -392,61 +383,22 @@ void styleSlider(lv_obj_t* slider) {
 }
 
 lv_obj_t* createPressureIcon(lv_obj_t* parent) {
-  lv_obj_t* icon = lv_obj_create(parent);
+  lv_obj_t* icon = lv_image_create(parent);
   lv_obj_remove_style_all(icon);
-  lv_obj_set_pos(icon, 38, 99);
-  lv_obj_set_size(icon, 84, 54);
+  lv_obj_set_pos(icon, 28, 90);
+  lv_image_set_src(icon, &oil_pressure_icon);
+  lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, 0);
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_add_flag(icon, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
-
-  static constexpr lv_point_precise_t kPickup[] = {
-      {9, 24}, {16, 9}, {32, 17}};
-  static constexpr lv_point_precise_t kCanBody[] = {
-      {28, 17}, {32, 39}, {56, 39}, {71, 18}};
-  static constexpr lv_point_precise_t kCanTop[] = {
-      {29, 17}, {48, 17}, {56, 23}, {71, 18}, {79, 24}};
-  static constexpr lv_point_precise_t kCapStem[] = {{42, 16}, {42, 8}};
-  static constexpr lv_point_precise_t kCapTop[] = {{37, 7}, {47, 7}};
-
-  createLine(icon, kPickup, 3, 7);
-  createLine(icon, kCanBody, 4, 7);
-  createLine(icon, kCanTop, 5, 7);
-  createLine(icon, kCapStem, 2, 7);
-  createLine(icon, kCapTop, 2, 7);
-
-  lv_obj_t* dropletPoint = createSolid(icon, 72, 29, 9, 9, 1);
-  lv_obj_set_style_transform_pivot_x(dropletPoint, 4, 0);
-  lv_obj_set_style_transform_pivot_y(dropletPoint, 4, 0);
-  lv_obj_set_style_transform_rotation(dropletPoint, 450, 0);
-  createSolid(icon, 69, 34, 15, 15, LV_RADIUS_CIRCLE);
   return icon;
 }
 
 lv_obj_t* createTemperatureIcon(lv_obj_t* parent) {
-  lv_obj_t* icon = lv_obj_create(parent);
+  lv_obj_t* icon = lv_image_create(parent);
   lv_obj_remove_style_all(icon);
-  lv_obj_set_pos(icon, 40, 337);
-  lv_obj_set_size(icon, 78, 66);
+  lv_obj_set_pos(icon, 28, 328);
+  lv_image_set_src(icon, &oil_temperature_icon);
+  lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, 0);
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_add_flag(icon, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
-
-  createSolid(icon, 31, 0, 10, 42, 5);
-  createSolid(icon, 25, 32, 22, 22, LV_RADIUS_CIRCLE);
-  createSolid(icon, 42, 3, 18, 6, 1);
-  createSolid(icon, 42, 15, 18, 6, 1);
-  createSolid(icon, 42, 27, 18, 6, 1);
-
-  static constexpr lv_point_precise_t kWaveLeft[] = {
-      {4, 47}, {9, 43}, {14, 43}, {19, 47}, {24, 47}};
-  static constexpr lv_point_precise_t kWaveRight[] = {
-      {48, 47}, {53, 43}, {58, 43}, {63, 47}, {68, 47}};
-  static constexpr lv_point_precise_t kWaveBottom[] = {
-      {7, 59},  {12, 55}, {17, 55}, {22, 59}, {27, 59}, {33, 55},
-      {38, 55}, {43, 59}, {48, 59}, {54, 55}, {59, 55}, {66, 59}};
-
-  createLine(icon, kWaveLeft, 5, 6);
-  createLine(icon, kWaveRight, 5, 6);
-  createLine(icon, kWaveBottom, 12, 6);
   return icon;
 }
 
@@ -794,7 +746,7 @@ void createOilGaugeUi(lv_obj_t* screen,
                                  123,
                                  70,
                                  32,
-                                 &lv_font_montserrat_24,
+                                 &lv_font_montserrat_28,
                                  color(kSecondary),
                                  LV_TEXT_ALIGN_LEFT);
 
@@ -837,7 +789,7 @@ void createOilGaugeUi(lv_obj_t* screen,
                                     363,
                                     70,
                                     32,
-                                    &lv_font_montserrat_24,
+                                    &lv_font_montserrat_28,
                                     color(kSecondary),
                                     LV_TEXT_ALIGN_LEFT);
 

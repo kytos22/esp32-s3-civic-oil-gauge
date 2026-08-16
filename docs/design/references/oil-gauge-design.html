@@ -888,13 +888,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;span class=&quot;ogr-state&quot; id=&quot;ogrPressureState&quot;&gt;OK&lt;/span&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-main&quot;&gt;
-        &lt;svg class=&quot;ogr-icon ogr-pressure-icon&quot; viewBox=&quot;0 0 114 72&quot; aria-hidden=&quot;true&quot;&gt;
-          &lt;path class=&quot;ogr-bold-line&quot; d=&quot;M13 33l9-21 23 12&quot; /&gt;
-          &lt;path class=&quot;ogr-bold-line&quot; d=&quot;M39 23l5 31h34l21-29&quot; /&gt;
-          &lt;path class=&quot;ogr-bold-line&quot; d=&quot;M40 23h27l11 9 21-7 10 8&quot; /&gt;
-          &lt;path class=&quot;ogr-bold-line&quot; d=&quot;M58 22V11M51 10h15&quot; /&gt;
-          &lt;path class=&quot;ogr-solid&quot; d=&quot;M105 42s-8 9-8 15a8 8 0 0 0 16 0c0-6-8-15-8-15z&quot; /&gt;
-        &lt;/svg&gt;
+        &lt;span class=&quot;ogr-icon ogr-pressure-icon&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
         &lt;span class=&quot;ogr-value&quot; id=&quot;ogrPressureValue&quot;&gt;61&lt;/span&gt;
         &lt;span class=&quot;ogr-unit&quot; id=&quot;ogrPressureUnit&quot;&gt;PSI&lt;/span&gt;
       &lt;/div&gt;
@@ -912,15 +906,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;span class=&quot;ogr-state&quot; id=&quot;ogrTemperatureState&quot;&gt;Óptimo&lt;/span&gt;
       &lt;/div&gt;
       &lt;div class=&quot;ogr-main&quot;&gt;
-        &lt;svg class=&quot;ogr-icon ogr-temperature-icon&quot; viewBox=&quot;0 0 88 74&quot; aria-hidden=&quot;true&quot;&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;36&quot; y=&quot;0&quot; width=&quot;12&quot; height=&quot;48&quot; rx=&quot;6&quot; /&gt;
-          &lt;circle class=&quot;ogr-solid&quot; cx=&quot;42&quot; cy=&quot;48&quot; r=&quot;13&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;4&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;18&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
-          &lt;rect class=&quot;ogr-solid&quot; x=&quot;49&quot; y=&quot;32&quot; width=&quot;21&quot; height=&quot;7&quot; rx=&quot;1&quot; /&gt;
-          &lt;path class=&quot;ogr-wave&quot; d=&quot;M5 55c8-6 15 6 23 0M56 55c8-6 15 6 23 0&quot; /&gt;
-          &lt;path class=&quot;ogr-wave&quot; d=&quot;M8 68c8-6 15 6 23 0s15 6 23 0 15 6 23 0&quot; /&gt;
-        &lt;/svg&gt;
+        &lt;span class=&quot;ogr-icon ogr-temperature-icon&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
         &lt;span class=&quot;ogr-value&quot; id=&quot;ogrTemperatureValue&quot;&gt;92&lt;/span&gt;
         &lt;span class=&quot;ogr-unit&quot; id=&quot;ogrTemperatureUnit&quot;&gt;°C&lt;/span&gt;
       &lt;/div&gt;
@@ -1055,8 +1041,16 @@ html&gt;body{padding:0}&lt;/style&gt;
   #oilGaugeRefinedIcons .ogr-icon {
     position: absolute;
     left: 0;
-    width: 82px;
+    width: 92px;
+    height: 72px;
     color: var(--ogr-metric-color);
+    background: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
     filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ogr-metric-color) 45%, transparent));
   }
 
@@ -1082,7 +1076,13 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   #oilGaugeRefinedIcons .ogr-temperature-icon {
-    width: 76px;
+    -webkit-mask-image: url(&#x27;../assets/oil-temperature-icon-mask.png&#x27;);
+    mask-image: url(&#x27;../assets/oil-temperature-icon-mask.png&#x27;);
+  }
+
+  #oilGaugeRefinedIcons .ogr-pressure-icon {
+    -webkit-mask-image: url(&#x27;../assets/oil-pressure-icon-mask.png&#x27;);
+    mask-image: url(&#x27;../assets/oil-pressure-icon-mask.png&#x27;);
   }
 
   #oilGaugeRefinedIcons .ogr-value {
@@ -1099,7 +1099,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     justify-self: start;
     margin-left: 12px;
     color: var(--ogr-muted);
-    font-size: clamp(18px, 4.4vw, 27px);
+    font-size: clamp(22px, 5.2vw, 32px);
     font-weight: 500;
   }
 
