@@ -1014,8 +1014,11 @@
   the complete Keel verifier. Clean commit `08b04eb` produces a 730,672-byte
   ESP-IDF 6.0.2 app identified as `pb2-d057-6-g08b04eb`, with SHA-256
   `64f04f9a9ef40fa02b57e75593c19ee0d1f5f5fd0475b2c863f6f694258efb43`.
-  Exact-board rapid-slider stress remains; hardware testing requires fresh flash
-  authorization.
+  Marcos authorized the exact-board flash. VID/PID `303a:1001`, the recorded exact
+  serial/MAC and the binary identity matched; all four regions passed write-time
+  hash verification. Boot confirmed `pb2-d057-6-g08b04eb`, TE at 59.511 Hz, DMA
+  about 13.1–14.6 ms and zero timeout/error/fatal counters in the bounded capture.
+  Marcos's rapid-slider and visual judgment remain.
 - Safety: demo-only. Brightness is clamped to the existing 5–100% safe range. No
   sensors, ADS1115, MTX-D, 12 V, or vehicle connection.
 - Supersedes: D-058 only for 18 px thickness, the prior semantic portions of the

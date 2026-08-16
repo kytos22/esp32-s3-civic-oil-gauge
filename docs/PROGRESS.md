@@ -49,9 +49,9 @@
 - D-058 physical judgment: the single rounded endpoint is clean and tearing remains
   absent; 18 px is still too light. Its synchronized display pipeline remains the
   active physical baseline for D-059.
-- Next action: request separate exact-board authorization to flash and stress D-059,
-  especially repeated fast end-to-end brightness drags. Sensor and vehicle work
-  remain gated.
+- Next action: obtain Marcos's physical D-059 judgment, especially repeated fast
+  end-to-end brightness drags, 21 px weight, revised thermal states and no tearing.
+  Sensor and vehicle work remain gated.
 
 ## Open items
 - D-059 raises both bars to 21 px and changes temperature semantics to cold below
@@ -65,7 +65,11 @@
   `08b04eb` builds a 730,672-byte ESP-IDF 6.0.2 app identified as
   `pb2-d057-6-g08b04eb`, with SHA-256
   `64f04f9a9ef40fa02b57e75593c19ee0d1f5f5fd0475b2c863f6f694258efb43`.
-  Exact-board flash and stress remain pending separate authorization.
+  Marcos authorized the exact-board flash. VID/PID `303a:1001`, serial/MAC and
+  binary identity matched before writing; all four regions passed write-hash
+  verification. Boot confirms `pb2-d057-6-g08b04eb`, TE 59.511 Hz, DMA about
+  13.1–14.6 ms and `timeouts=0 errors=0 fatal=0` throughout a bounded 45-second
+  capture. Physical rapid-slider and visual judgment remain pending.
 - D-058 changes only bar geometry/rendering above the accepted D-057 pipeline. It
   increases both bars from 15 px to 18 px and removes the separate square,
   fractional-opacity leading-edge object that Marcos saw as a transparency halo
@@ -419,4 +423,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-059 clean candidate built; exact-board flash/stress pending authorization
+Last updated: 2026-08-16 — D-059 flashed and runtime-clean; physical rapid-slider/visual judgment pending
