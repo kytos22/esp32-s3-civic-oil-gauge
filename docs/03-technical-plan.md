@@ -68,7 +68,7 @@ flowchart LR
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
 | `include/demo_sequence.h` / `src/demo_sequence.cpp` | [E] | Native-testable continuous seven-scene demo interpolation |
 | `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable warning-loop start/stop gate |
-| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Native-scan LVGL software rotation and GPIO-TE full-frame presenter with explicit PSRAM-DMA ownership |
+| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Native-orientation LVGL composition and GPIO-TE full-frame presenter with explicit PSRAM-DMA ownership |
 | `src/frame_slot_policy.h` | [E] | Native-testable READY/SNAPSHOT/IN_FLIGHT slot-selection invariants |
 | `include/gauge_settings.h` / `src/gauge_settings.cpp` | [E] | Native-testable settings sanitization, units, and warning presentation |
 | `src/warning_audio.h` / `src/warning_audio.cpp` | [E] | Non-blocking ES8311/I²S warning-tone worker |
@@ -220,19 +220,18 @@ flowchart LR
   pinned Waveshare BSP target to replace its QSPI IO macro; managed registry sources
   remain byte-for-byte untouched. The UI cadence remains 20 ms so the bus speed is
   the only changed performance variable.
-- Current synchronization correction: D-055 retains D-054's native scan order
-  and uses LVGL 270-degree PARTIAL software rotation. The first revised source
-  contract failed 15/33 and the native red failed on the absent slot policy; D-054
-  reached 34/34 plus 26/26 before its exact-board direct PSRAM DMA underflow. The
-  D-055 correction first failed on the absent transfer profile and at 6/13 source
-  invariants; green is 27/27 native, 13/13 QSPI and 34/34 display/audio. A
+- Current synchronization correction: D-056 retains D-055's native scan order,
+  bounded transport and ownership while removing all LVGL rotation. Dirty PARTIAL
+  areas copy directly into the native canvas with panel-endian RGB565. The revised
+  source contract failed 31/35 before the implementation and now passes 35/35;
+  native tests pass 27/27 and the complete dirty-tree ESP-IDF 6.0.2 build passes. A
   canonical framebuffer and two explicit snapshots decouple rendering from the
   GPIO43-TE presenter. ESP LCD stages each snapshot through three queued 8-row
   internal-DMA chunks (23,040 bytes maximum), and `on_color_trans_done` is the
-  only release event. A start/completion failure latches `fatal=1`; exact-board
-  D-055 proof remains pending. Clean commit `aa38f5f` builds a 734,896-byte app
-  with SHA-256
-  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
+  only release event. A start/completion failure latches `fatal=1`. D-055 app
+  `aa38f5f` proved this transport with zero errors and Marcos confirmed no tearing
+  or diagonal, but its logical image was rotated 180 degrees. D-056 clean
+  commit/image and separately authorized exact-board proof remain pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;

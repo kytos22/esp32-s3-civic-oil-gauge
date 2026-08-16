@@ -51,7 +51,6 @@ constexpr std::size_t kPanelTransferBytes =
     kRgb565BytesPerPixel;
 constexpr std::size_t kQueuedBounceBytes =
     kPanelTransferBytes * OIL_GAUGE_DISPLAY_QUEUE_DEPTH;
-constexpr int kRotationTilePixels = 32;
 constexpr std::size_t kTransmitSlotCount = 2;
 constexpr int64_t kTeProbeDurationUs = 150'000;
 constexpr int64_t kTeMinimumPeriodUs = 8'000;
@@ -75,8 +74,8 @@ static_assert(kQueuedBounceBytes <= 24U * 1024U);
 
 struct PipelineStats {
   int64_t windowStartUs = 0;
-  int64_t rotateTotalUs = 0;
-  int64_t rotateMaximumUs = 0;
+  int64_t composeTotalUs = 0;
+  int64_t composeMaximumUs = 0;
   int64_t snapshotTotalUs = 0;
   int64_t snapshotMaximumUs = 0;
   int64_t dmaTotalUs = 0;
@@ -84,7 +83,7 @@ struct PipelineStats {
   int64_t presentationIntervalTotalUs = 0;
   int64_t presentationIntervalMaximumUs = 0;
   int64_t previousPresentationStartUs = 0;
-  std::uint64_t rotatedPixels = 0;
+  std::uint64_t composedPixels = 0;
   std::uint32_t teEdges = 0;
   std::uint32_t flushes = 0;
   std::uint32_t lvglFrames = 0;
@@ -163,8 +162,8 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
                 static_cast<int64_t>(snapshot.presented) * 1'000'000'000LL /
                 elapsedUs)
           : 0;
-  const int64_t rotateAverageUs =
-      snapshot.flushes > 0 ? snapshot.rotateTotalUs / snapshot.flushes : 0;
+  const int64_t composeAverageUs =
+      snapshot.flushes > 0 ? snapshot.composeTotalUs / snapshot.flushes : 0;
   const int64_t snapshotAverageUs =
       snapshot.snapshots > 0
           ? snapshot.snapshotTotalUs / snapshot.snapshots
@@ -183,7 +182,7 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
       kTag,
       "CO5300 pipeline: presented=%u.%03u fps lvgl=%u snapshots=%u "
       "overwritten=%u dropped=%u TE=%u flushes=%u pixels=%llu "
-      "rotate=%lld/%lld us snapshot=%lld/%lld us DMA=%lld/%lld us "
+      "compose=%lld/%lld us snapshot=%lld/%lld us DMA=%lld/%lld us "
       "interval=%lld/%lld us timeouts=%u errors=%u no_slot=%u fatal=%u",
       static_cast<unsigned>(milliFps / 1000U),
       static_cast<unsigned>(milliFps % 1000U),
@@ -193,9 +192,9 @@ void maybeLogTiming(DisplayPipeline& pipeline, int64_t nowUs) {
       static_cast<unsigned>(snapshot.droppedReady),
       static_cast<unsigned>(snapshot.teEdges),
       static_cast<unsigned>(snapshot.flushes),
-      static_cast<unsigned long long>(snapshot.rotatedPixels),
-      static_cast<long long>(rotateAverageUs),
-      static_cast<long long>(snapshot.rotateMaximumUs),
+      static_cast<unsigned long long>(snapshot.composedPixels),
+      static_cast<long long>(composeAverageUs),
+      static_cast<long long>(snapshot.composeMaximumUs),
       static_cast<long long>(snapshotAverageUs),
       static_cast<long long>(snapshot.snapshotMaximumUs),
       static_cast<long long>(dmaAverageUs),
@@ -515,58 +514,30 @@ bool snapshotCompleteFrame(DisplayPipeline& pipeline) {
   return true;
 }
 
-void rotateAreaIntoCanvas(DisplayPipeline& pipeline,
-                          const lv_area_t& logicalArea,
-                          const lv_area_t& rotatedArea,
-                          const std::uint8_t* pixels) {
-  const int sourceWidth = lv_area_get_width(&logicalArea);
-  const int sourceHeight = lv_area_get_height(&logicalArea);
+void copyAreaIntoNativeCanvas(DisplayPipeline& pipeline,
+                              const lv_area_t& area,
+                              const std::uint8_t* pixels) {
+  const int sourceWidth = lv_area_get_width(&area);
+  const int sourceHeight = lv_area_get_height(&area);
   const uint32_t sourceStride = lv_draw_buf_width_to_stride(
       sourceWidth, LV_COLOR_FORMAT_RGB565);
-  constexpr uint32_t destinationStride =
-      kDisplayWidth * kRgb565BytesPerPixel;
 
-  // Tiling keeps both the strided source reads and the rotated destination
-  // writes cache-local. LVGL performs the actual 270-degree transform; byte
-  // swapping each completed destination segment stores permanent panel-endian
-  // RGB565 in the canonical framebuffer.
-  for (int sourceY = 0; sourceY < sourceHeight;
-       sourceY += kRotationTilePixels) {
-    const int tileHeight =
-        std::min(kRotationTilePixels, sourceHeight - sourceY);
-    for (int sourceX = 0; sourceX < sourceWidth;
-         sourceX += kRotationTilePixels) {
-      const int tileWidth =
-          std::min(kRotationTilePixels, sourceWidth - sourceX);
-      const int destinationX =
-          rotatedArea.x1 + sourceHeight - sourceY - tileHeight;
-      const int destinationY = rotatedArea.y1 + sourceX;
-      const auto* tileSource =
-          pixels + static_cast<std::size_t>(sourceY) * sourceStride +
-          static_cast<std::size_t>(sourceX) * kRgb565BytesPerPixel;
-      auto* tileDestination =
-          pipeline.canvas +
-          (static_cast<std::size_t>(destinationY) * kDisplayWidth +
-           destinationX) *
-              kRgb565BytesPerPixel;
-
-      lv_draw_sw_rotate(tileSource,
-                        tileDestination,
-                        tileWidth,
-                        tileHeight,
-                        sourceStride,
-                        destinationStride,
-                        LV_DISPLAY_ROTATION_270,
-                        LV_COLOR_FORMAT_RGB565);
-      for (int destinationRow = 0; destinationRow < tileWidth;
-           ++destinationRow) {
-        lv_draw_sw_rgb565_swap(
-            tileDestination +
-                static_cast<std::size_t>(destinationRow) *
-                    destinationStride,
-            tileHeight);
-      }
-    }
+  // With LVGL and the controller both in native orientation, dirty areas map
+  // directly into the canonical framebuffer. Store panel-endian RGB565 once so
+  // snapshots remain immutable and immediately ready for the TE presenter.
+  for (int sourceY = 0; sourceY < sourceHeight; ++sourceY) {
+    const auto* source =
+        pixels + static_cast<std::size_t>(sourceY) * sourceStride;
+    auto* destination =
+        pipeline.canvas +
+        (static_cast<std::size_t>(area.y1 + sourceY) * kDisplayWidth +
+         area.x1) *
+            kRgb565BytesPerPixel;
+    std::memcpy(destination,
+                source,
+                static_cast<std::size_t>(sourceWidth) *
+                    kRgb565BytesPerPixel);
+    lv_draw_sw_rgb565_swap(destination, sourceWidth);
   }
 }
 
@@ -576,20 +547,18 @@ void flushToNativeFrame(lv_display_t* display,
   auto& pipeline = *static_cast<DisplayPipeline*>(
       lv_display_get_user_data(display));
   const bool lastFlush = lv_display_flush_is_last(display);
-  lv_area_t rotatedArea = *area;
-  lv_display_rotate_area(display, &rotatedArea);
 
-  const int64_t rotateStartUs = esp_timer_get_time();
-  rotateAreaIntoCanvas(pipeline, *area, rotatedArea, pixels);
-  const int64_t rotateDurationUs = esp_timer_get_time() - rotateStartUs;
+  const int64_t composeStartUs = esp_timer_get_time();
+  copyAreaIntoNativeCanvas(pipeline, *area, pixels);
+  const int64_t composeDurationUs = esp_timer_get_time() - composeStartUs;
   const std::uint64_t pixelCount =
       static_cast<std::uint64_t>(lv_area_get_size(area));
 
   portENTER_CRITICAL(&pipeline.statsMux);
-  pipeline.stats.rotateTotalUs += rotateDurationUs;
-  pipeline.stats.rotateMaximumUs =
-      std::max(pipeline.stats.rotateMaximumUs, rotateDurationUs);
-  pipeline.stats.rotatedPixels += pixelCount;
+  pipeline.stats.composeTotalUs += composeDurationUs;
+  pipeline.stats.composeMaximumUs =
+      std::max(pipeline.stats.composeMaximumUs, composeDurationUs);
+  pipeline.stats.composedPixels += pixelCount;
   ++pipeline.stats.flushes;
   portEXIT_CRITICAL(&pipeline.statsMux);
 
@@ -753,11 +722,9 @@ OilDisplayRuntime startOilDisplayRuntime() {
                          kDrawBufferBytes,
                          LV_DISPLAY_RENDER_MODE_PARTIAL);
   lv_display_set_flush_cb(runtime.display, flushToNativeFrame);
-  lv_display_set_rotation(runtime.display, LV_DISPLAY_ROTATION_270);
 
   bsp_display_cfg_t touchBspConfig{};
-  // LVGL applies the same (y, width - 1 - x) transform that the old
-  // swap_xy+mirror_y hardware mapping supplied for MADCTL 0xA0.
+  // Display and touch both remain in the controller's native coordinates.
   touchBspConfig.touch_flags.swap_xy = 0;
   touchBspConfig.touch_flags.mirror_x = 0;
   touchBspConfig.touch_flags.mirror_y = 0;
@@ -785,8 +752,8 @@ OilDisplayRuntime startOilDisplayRuntime() {
                       kTouchReadPeriodMs);
 
   ESP_LOGI(kTag,
-           "CO5300 synchronization: native scan + LVGL 270 software "
-           "rotation + immutable double snapshots + GPIO43 TE");
+           "CO5300 synchronization: native scan without rotation + immutable "
+           "double snapshots + GPIO43 TE");
   ESP_LOGI(kTag,
            "CO5300 buffers: canvas=%u bytes snapshots=2x%u draw=2x%u "
            "bounce<=%ux%u internal",

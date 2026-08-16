@@ -33,7 +33,7 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 D-054 failed on direct-PSRAM DMA and D-055 is the bounded-bounce correction | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
+| 5 Development | Sprints 1–5 complete; Sprint 6 D-055 removed tearing and D-056 removes the remaining logical rotation | [Sprint 1](sprints/sprint-1-fluid-demo.md) complete; [Sprint 5](sprints/sprint-5-warning-audio.md) loop runtime-proven; [Sprint 6](sprints/sprint-6-settings-menu.md) hardware partially verified |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
@@ -43,13 +43,20 @@
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
-- Next action: collect Marcos's visual judgment of the flashed D-055 candidate:
-  upright orientation, touch mapping, menu scroll, both red transitions and the
-  diagonal. Transport now completes without DMA error, but measured presentation
-  cadence remains load-dependent at about 17–35 FPS. Sensor and vehicle work
-  remain gated.
+- Next action: finish the clean D-056 commit/build evidence, then request explicit
+  authorization for an exact-board no-rotation A/B. D-055 already proves no
+  tearing or diagonal; D-056 leaves both LVGL and CO5300 in native orientation and
+  should reveal the panel's untransformed mounting direction. Sensor and vehicle
+  work remain gated.
 
 ## Open items
+- D-056 follows Marcos's acceptance that physical mounting direction can absorb
+  orientation: remove `lv_display_set_rotation()`, `lv_display_rotate_area()` and
+  `lv_draw_sw_rotate()`. Dirty PARTIAL areas now copy row-for-row into the native
+  canvas with only the required RGB565 byte swap; TE, snapshots, bounded 8-row
+  transfers and ownership remain unchanged. The revised display contract first
+  failed 31/35 and now passes 35/35; native tests pass 27/27 and the complete dirty
+  ESP-IDF 6.0.2 build passes. Clean commit/image and exact-board proof remain.
 - D-055 keeps D-054's native scan, software rotation and immutable ownership, but
   removes direct PSRAM-to-GPSPI DMA after the exact board returned the documented
   `DMA TX underflow` / `ESP_ERR_INVALID_STATE` failure at 80 MHz QSPI. ESP LCD now
@@ -65,7 +72,9 @@
   regions passed write-time hashes. A 30-second boot/runtime capture confirmed
   app `aa38f5f`, TE at 59.438 Hz, completed presentation at about 17–35 FPS,
   13.0–13.5 ms DMA duration and `timeouts=0 errors=0 no_slot=0 fatal=0` throughout.
-  Visual orientation/diagonal judgment remains pending.
+  Marcos confirmed no tearing or diagonal; the visible UI is rotated 180 degrees
+  relative to the prior desired mounting direction, which is acceptable because
+  the display can be mounted accordingly. Observed cadence remains about 17–35 FPS.
 - D-054 followed the method documented by Espressif for diagonal tearing after
   SPI hardware rotation: the CO5300 returns to native `MADCTL=0x00`, LVGL applies
   the upright 270-degree rotation in PARTIAL mode, and a separate GPIO43-TE task
@@ -347,4 +356,4 @@
 - Daylight/night/glare/in-vehicle visual assessment — medium — before vehicle cutover
 - CAN/OBD second-display work — separate project/scope; do not merge into the oil gauge firmware
 
-Last updated: 2026-08-16 — D-055 bounded staging flashed; transport passes without DMA errors, visual diagonal judgment pending
+Last updated: 2026-08-16 — D-055 physically has no tearing/diagonal; D-056 no-rotation candidate passes dirty-tree software validation

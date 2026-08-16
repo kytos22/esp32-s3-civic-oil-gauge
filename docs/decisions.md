@@ -891,3 +891,27 @@
 - Supersedes: D-054 only for its direct PSRAM DMA transport. D-054's scan-order,
   software-rotation and immutable-buffer ownership decisions remain active;
   `443eb72` remains Golden Prototype 1.
+
+## D-056 — Keep display and LVGL in native orientation
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 orientation simplification
+- Decision: Preserve D-055's native `MADCTL=0x00`, GPIO43 TE presenter, canonical
+  canvas, two immutable snapshots, bounded 8-row transfers and completion-based
+  ownership. Remove all LVGL display/area/pixel rotation. Copy each PARTIAL dirty
+  row directly into its native canvas coordinates and perform only the panel-endian
+  RGB565 byte swap. Keep touch untransformed so display and input share native
+  coordinates.
+- Why: Marcos physically confirmed that D-055 has no tearing or diagonal. Its UI
+  is rotated 180 degrees relative to the previous desired mounting direction, but
+  physical display orientation is unconstrained. Rotation therefore has no product
+  value and consumes composition time; the simplest controlled A/B is no rotation
+  anywhere above the controller's native scan.
+- Verification: the source contract failed 31/35 before implementation and passes
+  35/35 after it. Native tests pass 27/27 and a complete dirty-tree ESP-IDF 6.0.2
+  build passes. A clean commit/image and separately authorized exact-board run are
+  still required to determine native visual direction, touch alignment and actual
+  composition/presentation timing.
+- Safety: USB/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
+  sensors, ADS1115, MTX-D, 12 V or the vehicle.
+- Supersedes: D-054/D-055 only for logical rotation. D-055's physically proven
+  scan order, no-tearing result, bounded transport and ownership remain active;
+  `443eb72` remains Golden Prototype 1.

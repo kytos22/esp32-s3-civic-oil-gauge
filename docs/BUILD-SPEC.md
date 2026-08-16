@@ -143,12 +143,14 @@ None.
   or calibration-gate frames.
 - The Waveshare CO5300 QSPI panel remains on `esp_lcd_panel`; the project-owned
   runtime uses the adapter for LVGL lifecycle/locking and touch, while owning the
-  display flush/presenter. The panel scans at native `MADCTL=0x00`, LVGL rotates
-  270 degrees through two 480×120 PARTIAL draw buffers, and dirty areas update a
-  canonical full frame. Two aligned PSRAM-DMA snapshots provide explicit
+  display flush/presenter. The panel and LVGL both remain in native orientation
+  (`MADCTL=0x00`, no logical rotation) through two 480×120 PARTIAL draw buffers;
+  dirty areas copy directly into a canonical full frame. Two aligned PSRAM
+  snapshots provide explicit
   READY/IN_FLIGHT ownership. GPIO43 TE starts only the newest complete full-frame
-  transfer and `on_color_trans_done` releases it. Exact-panel observation remains
-  required for orientation, touch, diagonal removal and smoothness.
+  transfer and `on_color_trans_done` releases it. D-055 physically proved the
+  same scan/transport ownership has no tearing or diagonal; D-056 exact-panel
+  observation remains required for native orientation, touch and smoothness.
 - Icon geometry is ported from the editable reference without transformation of
   silhouette or proportion; DR-001 raises the thermometer marks and extends its stem.
 - The fixed coordinate system is used directly; no responsive or adaptive layout.

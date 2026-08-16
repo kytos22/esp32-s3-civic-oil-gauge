@@ -1,9 +1,9 @@
 # Playground — Civic ESP32 Oil Gauge
 
-Current software candidate: D-055 retains D-054's native CO5300 scan order, LVGL
-PARTIAL 270-degree software rotation, canonical framebuffer and two immutable
-PSRAM snapshots, but replaces its failed direct-DMA transport with bounded
-internal staging.
+Current software candidate: D-056 retains D-055's native CO5300 scan order,
+canonical framebuffer, two immutable PSRAM snapshots and bounded internal
+staging, but removes every LVGL rotation step. PARTIAL dirty areas now copy
+directly into the native canvas with only RGB565 byte swapping.
 Only the newest complete READY generation can start on GPIO43 TE, and it remains
 IN_FLIGHT until the LCD completion callback. Three queued 8-row chunks bound
 temporary internal DMA memory to 23,040 bytes while retaining 80 MHz QSPI. Red
@@ -14,7 +14,10 @@ produces a 734,896-byte app with SHA-256
 D-054 app `50dee93` was flashed with write hashes verified, but direct PSRAM DMA
 underflowed and completed presentation stayed at zero. D-055 app `aa38f5f` is now
 flashed: all four writes passed hashes and its bounded capture completed at about
-17–35 FPS with `timeouts=0 errors=0 no_slot=0 fatal=0`; visual judgment is pending.
+17–35 FPS with `timeouts=0 errors=0 no_slot=0 fatal=0`. Marcos confirmed no
+tearing or diagonal; its 180-degree mounting orientation is acceptable. D-056
+passes 35/35 display invariants, 27/27 native tests and a dirty-tree full build;
+clean image and exact-board proof remain pending.
 
 Current Sprint 6 hardware evidence: 2026-08-15 — after Marcos explicitly authorized
 the correction flash, app `9d49ead` was written only to the locally recorded exact

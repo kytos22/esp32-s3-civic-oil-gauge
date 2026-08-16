@@ -6,8 +6,8 @@
 - Acceptance: AC-33 through AC-38.
 - Review-extension acceptance: AC-39 and AC-40.
 - Second physical-review acceptance: AC-41 plus revised AC-32, AC-33, and AC-38.
-- Status: D-054 exact-board transfer failed before visual acceptance; D-055
-  bounded internal-DMA staging passes exact-board transport and awaits visual judgment
+- Status: D-055 bounded staging has no tearing/diagonal; D-056 no-rotation A/B
+  passes dirty-tree software validation and awaits a clean candidate
 
 ## Slices
 
@@ -28,7 +28,8 @@
 | 6.13 Official CO5300 GPIO-TE path | exact combined candidate failed; causes partly isolated | red at 20 ms and 12/18; then native 23/23, display/audio 23/23, full ESP-IDF 6.0.2 build, exact-board flash/digests | GPIO43 TE is usable at 59.483 Hz. `MADCTL 0xA0 -> 0x60` explains the 180-degree inversion; FULL/single-buffer serialization explains about 14.85 FPS; the returned diagonal still needs a one-variable orientation A/B |
 | 6.14 `MADCTL=0xA0` isolation A/B | exact-board isolation complete; visual failure confirmed | red display/audio contract 21/24; then green 24/24, native 23/23, clean full build, exact-MAC flash/hash verification, bounded runtime and Marcos's visual judgment | `0xA0` restores correct orientation but the diagonal persists. It does not follow the `0x60` address-direction change; FULL/single-buffer `TE_SYNC` remains serialized at normally 14.82–14.85 FPS |
 | 6.15 Native-scan immutable presenter | exact-board transport failed | red source contract 15/33 and missing slot-policy compile; then contract 34/34, native 26/26 and clean 734,816-byte ESP-IDF 6.0.2 app at `50dee93`; flash hashes passed but first direct DMA transfer underflowed | Native `MADCTL=0x00`, LVGL PARTIAL 270-degree tiled rotation and immutable ownership were retained; its direct-PSRAM-DMA transport is rejected by D-055 |
-| 6.16 Bounded QSPI staging | transport runtime verified; visual judgment pending | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34, clean 734,896-byte app `aa38f5f`, exact-board write hashes and 30-second zero-error runtime | Preserve D-054 scan order and ownership; internal 8-row bounce chunks remove the DMA underflow, with about 17–35 completed FPS under observed demo load; diagonal/orientation judgment remains |
+| 6.16 Bounded QSPI staging | exact-board transport and tearing judgment verified | red missing-profile compile plus 6/13 contract; then native 27/27, QSPI 13/13, display/audio 34/34, clean 734,896-byte app `aa38f5f`, exact-board write hashes, 30-second zero-error runtime and Marcos's visual judgment | Preserve D-054 scan order and ownership; internal 8-row bounce chunks remove the DMA underflow, with about 17–35 completed FPS under observed demo load; Marcos confirmed no tearing or diagonal, while the 180-degree logical orientation is accepted for physical mounting |
+| 6.17 Native logical orientation | software/build pass; hardware pending | display contract red 31/35, then 35/35; native 27/27 and complete dirty-tree ESP-IDF 6.0.2 build | Remove all LVGL area/pixel rotation and copy dirty rows directly into the native canvas; preserve the D-055 TE, snapshot, bounded-transfer and ownership path |
 
 ## Software evidence
 
