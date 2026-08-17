@@ -1178,4 +1178,5 @@
   wordmark; importing only Honda was incomplete and is corrected without changing
   duration, black background or display transport.
   The corrected exact-board candidate passed identity, four write hashes and clean
-  bounded boot; final composition judgment remains with Marcos.
+  bounded boot. Marcos then confirmed the complete Honda/Civic composition is
+  perfect on the exact AMOLED, making it Accepted Physical Baseline 5.

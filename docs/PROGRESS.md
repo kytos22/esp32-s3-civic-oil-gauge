@@ -56,8 +56,11 @@
 - Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
   accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
   alignment/spacing and the continued absence of tearing on the exact AMOLED.
-- Next action: complete Marcos's guided visual/touch check of both new menu sliders,
-  warning-boundary behavior, NVS persistence and the Honda splash at 0/1/10 seconds.
+- Accepted Physical Baseline 5: corrected Honda/Civic implementation commit
+  `411c793`. Marcos confirmed the complete two-layer startup composition is perfect
+  on the exact AMOLED after the verified `pb2-d057-26-g411c793` flash.
+- Next action: complete Marcos's guided touch check of both new menu sliders,
+  warning-boundary behavior and NVS persistence at 0/1/10 seconds.
   ADS1115 grounded/divider validation remains the next
   separate electrical step; sensors and vehicle work remain gated.
 
@@ -88,8 +91,8 @@
   Marcos authorized the corrected exact-board flash. The recorded MAC matched,
   all four regions passed write-time hash verification, and bounded boot confirmed
   the exact app, 59.527 Hz TE, touch/audio/ADS1115 startup, 31–33 steady completed
-  FPS and `timeouts=0 errors=0 fatal=0`. Honda/Civic appearance remains for Marcos
-  to judge.
+  FPS and `timeouts=0 errors=0 fatal=0`. Marcos confirmed the corrected Honda/Civic
+  composition is perfect, physically accepting its appearance.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,

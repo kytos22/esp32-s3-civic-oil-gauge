@@ -51,8 +51,9 @@
 | 2026-08-16 | Phase 5 / D-061 physical acceptance | Codex session model | 2000 | 1000 | estimated, rounded up from physical-feedback reconciliation and durable state update; environment exposes no exact counter | Recorded Marcos's acceptance of both icons, enlarged units, alignment/spacing, dynamic recoloring and no tearing; D-061 becomes Accepted Physical Baseline 4 |
 | 2026-08-17 | Phase 5 / Sprint 8 exact-board flash | Codex session model | 12000 | 3000 | estimated, rounded up from Keel resume, exact USB/chip/app identity gates, four-region verified flash, bounded serial capture and evidence updates; environment exposes no exact counter | Flashed authorized app `pb2-d057-23-g1cc15f5` to the exact recorded display, passed all four write hashes and confirmed 59.555 Hz TE, touch/audio/ADS1115 startup, roughly 29–33 steady completed FPS and zero timeout/error/fatal counters; guided visual/touch/persistence judgment remains |
 | 2026-08-17 | Phase 5 / Sprint 8 Civic-layer correction and flash | Codex session model | 18000 | 4500 | estimated, rounded up from reference-layer diagnosis, deterministic asset conversion, expanded contract, complete builds, USB monitor-lock recovery, exact identity gate, verified flash and bounded boot; environment exposes no exact counter | Restored the exact Civic wordmark beneath Honda, passed the 23/23 contract, flashed `pb2-d057-26-g411c793`, verified all writes and confirmed clean 59.527 Hz TE runtime at 31–33 steady completed FPS; visual composition judgment remains |
+| 2026-08-17 | Phase 5 / Sprint 8 Honda/Civic physical acceptance | Codex session model | 1500 | 500 | estimated, rounded up from physical-feedback reconciliation and durable state update; environment exposes no exact counter | Recorded Marcos's confirmation that the corrected complete Honda/Civic composition is perfect; it becomes Accepted Physical Baseline 5 |
 
-Running total: approximately 1570000 input / 397000 output.
+Running total: approximately 1571500 input / 397500 output.
 
 ## Final reconciliation
 
