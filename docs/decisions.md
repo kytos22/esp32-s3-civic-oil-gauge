@@ -1202,3 +1202,20 @@
   sensors, MTX-D, 12 V or the vehicle. Do not flash without fresh authorization.
 - Supersedes: D-057 only for buffer count and production scheduling after physical
   acceptance. Until then `pb5-good-base` remains the rollback authority.
+
+## D-072 — Park the triple-buffer experiment and resume from the accepted base
+- Date / phase: 2026-08-17 / Phase 5 branch and hardware rollback
+- Decision: Preserve all triple-buffer investigation on
+  `codex/triple-buffer-pipeline` at `0594dba`, without merging it. Create
+  `codex/post-triple-tasks` directly from commit `8408d87` at tag
+  `pb5-good-base`, rebuild that source and restore it to the exact display.
+- Why: Marcos explicitly postponed the display-architecture experiment and wants
+  unrelated work to continue from the last accepted no-tearing implementation.
+- Verification: app `pb5-good-base` is 1,035,168 bytes with SHA-256
+  `e467ad9b063b62ba282ad04b0dff96ebfaca8f36f91c4c4bc63e87233e842113`.
+  Exact USB/chip identity matched, all four write hashes passed, and the bounded
+  run settled at 30.493–32.707 FPS with TE about 59.5 Hz and
+  `timeouts=0 errors=0 fatal=0`. Runtime capture SHA-256 is
+  `5034a082ff44def10164651e2f12a2931d40fc0ffe5fe4cee13cd98716ece70d`.
+- Safety: demo/display only. The rollback does not authorize sensors, MTX-D, 12 V
+  or vehicle work. Triple-buffer changes remain parked until Marcos reopens them.
