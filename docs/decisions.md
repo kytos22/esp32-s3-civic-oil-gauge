@@ -1180,3 +1180,25 @@
   The corrected exact-board candidate passed identity, four write hashes and clean
   bounded boot. Marcos then confirmed the complete Honda/Civic composition is
   perfect on the exact AMOLED, making it Accepted Physical Baseline 5.
+
+## D-066 — Preserve the current firmware and gate triple-buffer production from TE
+- Date / phase: 2026-08-17 / Phase 5 display-performance experiment
+- Decision: Mark tag `pb5-good-base` as Accepted Physical Baseline 6 before changing
+  display scheduling. The candidate uses three complete panel-endian PSRAM draw
+  buffers with explicit ownership. Exactly one complete frame may be READY. It is
+  handed to DMA only on TE; that hand-off, rather than an independent refresh
+  timer, authorizes LVGL to begin the next render. A READY frame is never replaced,
+  and an IN_FLIGHT buffer remains immutable until `on_color_trans_done`.
+- Why: The accepted double-buffer implementation is tear-free but completes only
+  about 31–33 presentations per second because frame production, TE wait and DMA
+  completion remain effectively serialized. Rendering the next generation while
+  the previous generation is transmitted uses the measured 13–15 ms DMA interval
+  without producing frames that cannot be presented.
+- Verification required: native ownership/state-transition tests, display source
+  contract, complete ESP-IDF 6.0.2 build, and separately authorized exact-board
+  proof measuring TE, render-ready latency, DMA duration, missed presentation
+  opportunities, faults and physical tearing/menu motion.
+- Safety: display/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
+  sensors, MTX-D, 12 V or the vehicle. Do not flash without fresh authorization.
+- Supersedes: D-057 only for buffer count and production scheduling after physical
+  acceptance. Until then `pb5-good-base` remains the rollback authority.

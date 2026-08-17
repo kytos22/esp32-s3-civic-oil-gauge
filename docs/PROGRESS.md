@@ -59,12 +59,22 @@
 - Accepted Physical Baseline 5: corrected Honda/Civic implementation commit
   `411c793`. Marcos confirmed the complete two-layer startup composition is perfect
   on the exact AMOLED after the verified `pb2-d057-26-g411c793` flash.
+- Accepted Physical Baseline 6: tag `pb5-good-base` preserves the complete current
+  no-tearing firmware and accepted UI immediately before the triple-buffer display
+  experiment. It remains the rollback point until a new exact-board candidate is
+  separately authorized, flashed and physically accepted.
 - Next action: complete Marcos's guided touch check of both new menu sliders,
   warning-boundary behavior and NVS persistence at 0/1/10 seconds.
   ADS1115 grounded/divider validation remains the next
   separate electrical step; sensors and vehicle work remain gated.
 
 ## Open items
+- D-066 starts a display-only triple-buffer experiment from `pb5-good-base`.
+  Presentation remains TE-led: one complete frame may wait in READY; only when TE
+  hands it to DMA may LVGL start rendering the next frame. No READY frame may be
+  replaced and no IN_FLIGHT buffer may be reused before `on_color_trans_done`.
+  Native ownership tests, the display source contract and a complete ESP-IDF build
+  are required before requesting separate exact-board flash authorization.
 - D-065 adds a persistent 1–30 PSI low-pressure warning threshold (10 PSI default)
   and a persistent 0–10 second Honda startup splash (1 second default; 0 disables).
   The menu presents the canonical threshold in PSI or one-decimal BAR, while the
