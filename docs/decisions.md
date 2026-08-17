@@ -1165,7 +1165,10 @@
 - Verification: test-first compile failed for the absent fields, conversion helpers
   and threshold-aware state API. The implementation passes 31/31 native tests, the
   16/16 model/store/menu/runtime/asset contract and a complete ESP-IDF 6.0.2 build.
-  Exact-board flash, visual timing, persistence and touch judgment remain pending.
+  The authorized exact-board flash matched device/app identity and all four write
+  hashes. Boot confirmed 59.555 Hz TE, touch/audio/ADS1115 initialization and zero
+  display timeout/error/fatal counters. Visual timing, persistence and touch
+  judgment remain pending.
 - Safety: engine unknown/stopped still suppresses pressure warning; demo mode,
   calibration gate, display transport and ADS1115 diagnostics remain unchanged.
 - Supersedes: AC-06/D-064 only for the configurable numerical pressure boundary;

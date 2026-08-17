@@ -56,9 +56,9 @@
 - Accepted Physical Baseline 4: D-061 implementation commit `c0bce25`. Marcos
   accepted both supplied icon silhouettes, enlarged units, dynamic recoloring,
   alignment/spacing and the continued absence of tearing on the exact AMOLED.
-- Next action: after fresh authorization, flash the Sprint 8 candidate and inspect
-  both new menu sliders, warning-boundary behavior, NVS persistence and the Honda
-  splash at 0/1/10 seconds. ADS1115 grounded/divider validation remains the next
+- Next action: complete Marcos's guided visual/touch check of both new menu sliders,
+  warning-boundary behavior, NVS persistence and the Honda splash at 0/1/10 seconds.
+  ADS1115 grounded/divider validation remains the next
   separate electrical step; sensors and vehicle work remain gated.
 
 ## Open items
@@ -73,8 +73,12 @@
   build at implementation commit `1cc15f5` produces a 995,856-byte candidate
   (`pb2-d057-23-g1cc15f5`) with SHA-256
   `62af1d287378c0d8f7e3668d266241cd0b72ea093728a49df7f41f95c101d906`.
-  Exact-board flash and physical judgment
-  remain pending fresh authorization.
+  Marcos authorized the exact-board flash. The exact ESP32-S3 revision 0.2,
+  8 MB PSRAM, 16 MB flash, USB-Serial/JTAG and recorded MAC matched. All four
+  written regions passed hash verification. A bounded boot confirmed the exact
+  app identity, 59.555 Hz TE, touch, audio and ADS1115 at 0x48; steady telemetry
+  reported roughly 29–33 completed FPS with `timeouts=0 errors=0 fatal=0`.
+  Physical judgment of the new controls and splash remains pending.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,

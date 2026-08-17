@@ -49,8 +49,9 @@
 | 2026-08-16 | Phase 5 / D-061 supplied icons and unit readability | Codex session model | 12000 | 3000 | estimated, rounded up from source-image inspection, deterministic mask generation, firmware/simulator synchronization, contract updates and complete build; environment exposes no exact counter | Replaced both hand-built symbols with dynamically recolorable masks derived from Marcos's supplied PNGs and enlarged PSI/BAR/°C/°F labels to 28 px; hardware remains unflashed |
 | 2026-08-16 | Phase 5 / D-061 exact-board flash | Codex session model | 7000 | 2000 | estimated, rounded up from USB/IP recovery, exact binary/device gates, verified four-region flash, bounded runtime capture and evidence reconciliation; environment exposes no exact counter | Flashed authorized D-061 app `pb2-d057-13-gc0bce25`, passed every write hash and confirmed TE 59.620 Hz, DMA about 13.2–14.8 ms and zero timeout/error/fatal counters; physical visual judgment remains with Marcos |
 | 2026-08-16 | Phase 5 / D-061 physical acceptance | Codex session model | 2000 | 1000 | estimated, rounded up from physical-feedback reconciliation and durable state update; environment exposes no exact counter | Recorded Marcos's acceptance of both icons, enlarged units, alignment/spacing, dynamic recoloring and no tearing; D-061 becomes Accepted Physical Baseline 4 |
+| 2026-08-17 | Phase 5 / Sprint 8 exact-board flash | Codex session model | 12000 | 3000 | estimated, rounded up from Keel resume, exact USB/chip/app identity gates, four-region verified flash, bounded serial capture and evidence updates; environment exposes no exact counter | Flashed authorized app `pb2-d057-23-g1cc15f5` to the exact recorded display, passed all four write hashes and confirmed 59.555 Hz TE, touch/audio/ADS1115 startup, roughly 29–33 steady completed FPS and zero timeout/error/fatal counters; guided visual/touch/persistence judgment remains |
 
-Running total: approximately 1540000 input / 389500 output.
+Running total: approximately 1552000 input / 392500 output.
 
 ## Final reconciliation
 
