@@ -1173,3 +1173,7 @@
   calibration gate, display transport and ADS1115 diagnostics remain unchanged.
 - Supersedes: AC-06/D-064 only for the configurable numerical pressure boundary;
   all warning presentation, cadence and readability decisions remain binding.
+- Correction: the boost boot composition contains two independent source assets.
+  D-065 therefore requires both the 320×215 Honda artwork and the 310×42 Civic
+  wordmark; importing only Honda was incomplete and is corrected without changing
+  duration, black background or display transport.

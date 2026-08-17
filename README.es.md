@@ -47,7 +47,7 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
   genera una falsa alarma.
 - Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
   unidad seleccionada y conservado internamente en PSI.
-- Logotipo Honda persistente durante 0–10 segundos al arrancar; cero lo desactiva.
+- Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
 - Un doble pitido no bloqueante por el altavoz integrado cuando la demo entra
   en aviso de presión baja; no se repite mientras el aviso siga activo.
 - Por debajo del rango útil del sensor se muestra `<50` en lugar de inventar

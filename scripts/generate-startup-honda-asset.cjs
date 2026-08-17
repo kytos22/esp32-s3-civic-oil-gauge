@@ -6,13 +6,29 @@ const path = require("path");
 const zlib = require("zlib");
 
 const root = path.resolve(__dirname, "..");
-const source = path.join(root, "docs/design/assets/startup-honda.png");
-const output = path.join(root, "src/icons/startup_honda.c");
-const png = fs.readFileSync(source);
+const assets = [
+  {
+    source: "docs/design/assets/startup-honda.png",
+    output: "src/icons/startup_honda.c",
+    symbol: "startup_honda_logo",
+    width: 320,
+    height: 215,
+  },
+  {
+    source: "docs/design/assets/startup-civic.png",
+    output: "src/icons/startup_civic.c",
+    symbol: "startup_civic_logo",
+    width: 310,
+    height: 42,
+  },
+];
 const signature = "89504e470d0a1a0a";
-if (png.subarray(0, 8).toString("hex") !== signature) {
-  throw new Error("invalid PNG signature");
-}
+
+function generateAsset(config) {
+const source = path.join(root, config.source);
+const output = path.join(root, config.output);
+const png = fs.readFileSync(source);
+if (png.subarray(0, 8).toString("hex") !== signature) throw new Error("invalid PNG signature");
 
 let cursor = 8;
 let width = 0;
@@ -37,12 +53,13 @@ while (cursor < png.length) {
     break;
   }
 }
-if (width !== 320 || height !== 215 || bitDepth !== 16 || colorType !== 6) {
+if (width !== config.width || height !== config.height || bitDepth !== 16 ||
+    (colorType !== 6 && colorType !== 4)) {
   throw new Error(`unexpected PNG format: ${width}x${height}, depth=${bitDepth}, type=${colorType}`);
 }
 
 const packed = zlib.inflateSync(Buffer.concat(idat));
-const bytesPerPixel = 8;
+const bytesPerPixel = colorType === 6 ? 8 : 4;
 const stride = width * bytesPerPixel;
 const image = Buffer.alloc(stride * height);
 const paeth = (a, b, c) => {
@@ -73,13 +90,13 @@ for (let y = 0; y < height; y += 1) {
 
 const colors = [];
 const alpha = [];
-for (let offset = 0; offset < image.length; offset += 8) {
+for (let offset = 0; offset < image.length; offset += bytesPerPixel) {
   const red = image[offset];
-  const green = image[offset + 2];
-  const blue = image[offset + 4];
+  const green = colorType === 6 ? image[offset + 2] : red;
+  const blue = colorType === 6 ? image[offset + 4] : red;
   const rgb565 = ((red & 0xf8) << 8) | ((green & 0xfc) << 3) | (blue >> 3);
   colors.push(rgb565 & 0xff, rgb565 >> 8);
-  alpha.push(image[offset + 6]);
+  alpha.push(image[offset + (colorType === 6 ? 6 : 2)]);
 }
 const bytes = colors.concat(alpha);
 
@@ -91,18 +108,21 @@ for (let offset = 0; offset < bytes.length; offset += 12) {
 
 fs.writeFileSync(output,
   '#include "lvgl.h"\n\n' +
-  'static const uint8_t startup_honda_logo_map[] = {\n' + rows.join("\n") + '\n};\n\n' +
-  'const lv_image_dsc_t startup_honda_logo = {\n' +
+  `static const uint8_t ${config.symbol}_map[] = {\n` + rows.join("\n") + '\n};\n\n' +
+  `const lv_image_dsc_t ${config.symbol} = {\n` +
   '    .header = {\n' +
   '        .magic = LV_IMAGE_HEADER_MAGIC,\n' +
   '        .cf = LV_COLOR_FORMAT_RGB565A8,\n' +
   '        .flags = 0,\n' +
-  '        .w = 320,\n' +
-  '        .h = 215,\n' +
-  '        .stride = 640,\n' +
+  `        .w = ${width},\n` +
+  `        .h = ${height},\n` +
+  `        .stride = ${width * 2},\n` +
   '        .reserved_2 = 0,\n' +
   '    },\n' +
-  '    .data_size = sizeof(startup_honda_logo_map),\n' +
-  '    .data = startup_honda_logo_map,\n' +
+  `    .data_size = sizeof(${config.symbol}_map),\n` +
+  `    .data = ${config.symbol}_map,\n` +
   '    .reserved = NULL,\n' +
   '};\n');
+}
+
+for (const asset of assets) generateAsset(asset);

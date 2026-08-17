@@ -79,6 +79,10 @@
   app identity, 59.555 Hz TE, touch, audio and ADS1115 at 0x48; steady telemetry
   reported roughly 29–33 completed FPS with `timeouts=0 errors=0 fatal=0`.
   Physical judgment of the new controls and splash remains pending.
+  Marcos then identified that the accepted boost boot composition also contains a
+  separate Civic wordmark, omitted from the first candidate. The correction now
+  byte-matches and renders both source assets, and the expanded contract passes
+  23/23; a complete ESP-IDF build passes. The corrected image remains unflashed.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,

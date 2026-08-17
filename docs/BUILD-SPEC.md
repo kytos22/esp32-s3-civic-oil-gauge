@@ -131,8 +131,9 @@ The two binding icons are derived from the user-supplied PNG references into
 92 x 72 alpha masks. Firmware embeds LVGL A8 assets and the simulator uses
 matching transparent PNG masks, allowing existing dynamic colors to recolor the
 silhouettes. The original Downloads files are not runtime dependencies.
-The boot overlay reuses the boost-gauge 320 x 215 Honda startup asset unchanged in
-appearance, centered on opaque black and embedded as LVGL RGB565A8 data.
+The boot overlay reuses the boost-gauge 320 x 215 Honda and 310 x 42 Civic startup
+assets unchanged in appearance, centered as the original vertical composition on
+opaque black and embedded as LVGL RGB565A8 data.
 
 ## 7. External manual setup
 

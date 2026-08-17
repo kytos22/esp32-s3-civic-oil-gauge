@@ -360,8 +360,12 @@ def configurable_warning_and_boot_logo_contract() -> None:
     main_source = text("src/main.cpp")
     component = text("src/CMakeLists.txt")
     logo = text("src/icons/startup_honda.c")
+    civic = text("src/icons/startup_civic.c")
     logo_source_sha256 = hashlib.sha256(
         (REPO / "docs/design/assets/startup-honda.png").read_bytes()
+    ).hexdigest()
+    civic_source_sha256 = hashlib.sha256(
+        (REPO / "docs/design/assets/startup-civic.png").read_bytes()
     ).hexdigest()
     conditions = [
         "lowPressureWarningPsi = 10" in settings_header,
@@ -375,11 +379,18 @@ def configurable_warning_and_boot_logo_contract() -> None:
         "setOilGaugeBootSplashVisible" in main_source,
         "bootSplashDeadlineUs" in main_source,
         '"icons/startup_honda.c"' in component,
+        '"icons/startup_civic.c"' in component,
         "LV_COLOR_FORMAT_RGB565A8" in logo,
         ".w = 320" in logo,
         ".h = 215" in logo,
         logo.count("0x") == 320 * 215 * 3,
         logo_source_sha256 == "0b29066d360f6155de2ddfd851fbfe85c181f00035630bd391cf5c25c9897f28",
+        "LV_COLOR_FORMAT_RGB565A8" in civic,
+        ".w = 310" in civic,
+        ".h = 42" in civic,
+        civic.count("0x") == 310 * 42 * 3,
+        civic_source_sha256 == "901d98f7f5c0241495f2fbe37d13c0ed43a354f5f000c7088713e5b6b6b07ac3",
+        "lv_image_set_src(civic, &startup_civic_logo)" in renderer,
     ]
     check(
         "Configurable pressure warning and Honda boot logo",

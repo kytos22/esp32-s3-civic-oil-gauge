@@ -244,8 +244,9 @@ See `docs/03-technical-plan.md`.
   units alone never changes the stored physical threshold. The sanitized value
   persists in NVS, defaults to 10 PSI, and is evaluated only when engine-running
   state is known.
-- **AC-44:** Boot shows the same 320 x 215 Honda startup artwork used by the boost
-  gauge, centered on an opaque black screen. Settings exposes a persistent 0–10 s
+- **AC-44:** Boot shows the same 320 x 215 Honda and 310 x 42 Civic startup artwork
+  used by the boost gauge, centered as one composition on an opaque black screen.
+  Settings exposes a persistent 0–10 s
   duration with a 1 s default; 0 disables the splash. The splash never alters the
   accepted display transport, touch mapping, demo sequence, or sensor gate.
 

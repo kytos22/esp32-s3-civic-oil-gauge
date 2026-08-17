@@ -680,8 +680,13 @@ void createBootSplash(lv_obj_t* screen) {
   lv_obj_t* logo = lv_image_create(gUi.bootSplash);
   lv_obj_remove_style_all(logo);
   lv_image_set_src(logo, &startup_honda_logo);
-  lv_obj_center(logo);
+  lv_obj_align(logo, LV_ALIGN_TOP_MID, 0, 92);
   lv_obj_clear_flag(logo, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t* civic = lv_image_create(gUi.bootSplash);
+  lv_obj_remove_style_all(civic);
+  lv_image_set_src(civic, &startup_civic_logo);
+  lv_obj_align(civic, LV_ALIGN_TOP_MID, 0, 319);
+  lv_obj_clear_flag(civic, LV_OBJ_FLAG_SCROLLABLE);
   if (gUi.settings.startupLogoSeconds == 0) {
     lv_obj_add_flag(gUi.bootSplash, LV_OBJ_FLAG_HIDDEN);
   } else {

@@ -2,6 +2,16 @@
 
 > Append-only. Add an entry only after a problem's cause and fix are known.
 
+## L-012 — A matching primary boot asset did not prove the complete composition
+- Symptom: the first Sprint 8 flash showed Honda correctly but omitted the Civic
+  wordmark present in the boost gauge's accepted boot screen.
+- Cause: verification compared only `startup_honda.png`; the reference boot screen
+  actually composes a second independent `startup_civic.png` asset.
+- Fix: inventory every source layer used by the accepted reference, byte-match both
+  assets, render both in their original vertical composition, and make the source
+  contract fail when either resource or renderer binding is absent.
+- Where: Phase 5, Sprint 8 exact-board visual judgment.
+
 ## L-001 — PlatformIO state escaped to a read-only home directory
 - Symptom: `pio test -e native` raised `HomeDirPermissionsError` while trying to lock `/home/marcos/.platformio`.
 - Cause: the Python venv was project-local, but PlatformIO's core/package state still used its default home path, which this execution environment mounted read-only.

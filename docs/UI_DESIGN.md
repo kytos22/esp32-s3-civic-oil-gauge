@@ -115,7 +115,7 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 - low-pressure warning threshold, 1–30 PSI, displayed in PSI or BAR according to
   the selected pressure unit while remaining canonical PSI internally;
 - warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
-- Honda startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
+- Honda/Civic startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
 - read-only diagnostics and a confirmation-protected settings reset;
 - `VOLVER`; there is no inactivity timeout.
 

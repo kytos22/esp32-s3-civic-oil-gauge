@@ -47,7 +47,7 @@ The detailed development position and remaining safety gates are maintained in
   false alarm.
 - Persistent 1–30 PSI low-pressure warning threshold, shown in PSI or BAR to
   match the selected unit while remaining canonical PSI internally.
-- Persistent 0–10 second Honda startup splash; zero disables it.
+- Persistent 0–10 second Honda/Civic startup splash; zero disables it.
 - One non-blocking double beep through the integrated speaker when the demo
   enters low-pressure warning; it does not repeat while warning remains active.
 - Temperature display shows `<50` below the sensor's useful lower range instead

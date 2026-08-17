@@ -78,6 +78,7 @@ flowchart LR
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
 | `src/icons/startup_honda.c` | [E] | Reused 320×215 Honda RGB565A8 startup artwork |
+| `src/icons/startup_civic.c` | [E] | Reused 310×42 Civic RGB565A8 startup artwork |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
 | `test/test_gauge_core/test_main.cpp` | [E] | Thirty-one Unity native tests, including ADS1115 protocol, configurable warning threshold and display ownership |
 | `README.md` | [E] | Project entry point |

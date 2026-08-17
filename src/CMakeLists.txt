@@ -17,7 +17,8 @@ idf_component_register(
         "fonts/oil_font_warning_36.c"
         "fonts/oil_font_value_96.c"
         "icons/oil_icon_assets.c"
-        "icons/startup_honda.c"
+    "icons/startup_honda.c"
+    "icons/startup_civic.c"
     INCLUDE_DIRS
         "."
         "../include"
