@@ -82,7 +82,10 @@
   Marcos then identified that the accepted boost boot composition also contains a
   separate Civic wordmark, omitted from the first candidate. The correction now
   byte-matches and renders both source assets, and the expanded contract passes
-  23/23; a complete ESP-IDF build passes. The corrected image remains unflashed.
+  23/23. The complete ESP-IDF 6.0.2 build at commit `411c793` produces corrected
+  candidate `pb2-d057-26-g411c793`, 1,034,960 bytes, SHA-256
+  `39f114bf3221891b939798d8ca522c9a297d68717959958777d2462ce379505f`.
+  The corrected image remains unflashed.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,
