@@ -85,7 +85,11 @@
   23/23. The complete ESP-IDF 6.0.2 build at commit `411c793` produces corrected
   candidate `pb2-d057-26-g411c793`, 1,034,960 bytes, SHA-256
   `39f114bf3221891b939798d8ca522c9a297d68717959958777d2462ce379505f`.
-  The corrected image remains unflashed.
+  Marcos authorized the corrected exact-board flash. The recorded MAC matched,
+  all four regions passed write-time hash verification, and bounded boot confirmed
+  the exact app, 59.527 Hz TE, touch/audio/ADS1115 startup, 31–33 steady completed
+  FPS and `timeouts=0 errors=0 fatal=0`. Honda/Civic appearance remains for Marcos
+  to judge.
 - D-064 replaces only the two full-screen red-warning message lines from 24 px
   Montserrat Medium to a dedicated 36 px Montserrat Bold subset. `PELIGRO` moves
   to y=210 and both labels use 404 x 48 centered boxes; the pressure number,

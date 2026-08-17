@@ -1177,3 +1177,5 @@
   D-065 therefore requires both the 320×215 Honda artwork and the 310×42 Civic
   wordmark; importing only Honda was incomplete and is corrected without changing
   duration, black background or display transport.
+  The corrected exact-board candidate passed identity, four write hashes and clean
+  bounded boot; final composition judgment remains with Marcos.
