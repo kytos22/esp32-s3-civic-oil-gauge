@@ -132,25 +132,27 @@ ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 
 ## Display presentation
 
-The CO5300 remains on the Waveshare BSP and ESP LCD Panel API but scans in its
-native `MADCTL=0x00` order. The approved upright view is produced by LVGL
-`LV_DISPLAY_ROTATION_270` in PARTIAL mode; two 480×120 draw buffers rotate dirty
-areas into one canonical, panel-endian RGB565 framebuffer. This follows
-Espressif's documented remedy for diagonal tearing caused by 90/270-degree SPI
-hardware rotation.
+The accepted base keeps the CO5300 in native `MADCTL=0x00` scan order and uses
+native touch coordinates. LVGL renders in `FULL` mode directly into two complete
+480×480 PSRAM buffers using `RGB565_SWAPPED`; there is no rotation, snapshot copy
+or post-render byte swap. A project-owned presenter starts a complete immutable
+buffer on the next GPIO43 TE rising edge and releases it only after
+`on_color_trans_done` reports that QSPI DMA has completed.
 
-Presentation is a separate producer/consumer boundary. At the last LVGL flush,
-the canonical frame is copied into one of two 64-byte-aligned PSRAM snapshots.
-A snapshot progresses `SNAPSHOT → READY → IN_FLIGHT → FREE`; rendering may replace
-an obsolete READY generation but never an IN_FLIGHT one. A dedicated task selects
-only the newest complete READY generation at the next GPIO43 TE rising edge and
-sends the whole 480×480 frame in native scan order. Direct PSRAM DMA is disabled:
-the exact board proved that its bandwidth-limited ESP-IDF path underflows at this
-80 MHz QSPI load. ESP LCD instead stages three queued 8-row chunks through at
-most 23,040 bytes of internal DMA memory. Only `on_color_trans_done` releases the
-snapshot; a start error or timeout latches a fatal presenter state instead of
-retrying a potentially poisoned queue. The exact panel measured about 59.4 TE
-edges/s, which is the honest physical presentation ceiling.
+`esp_lvgl_adapter` 0.6.3 remains responsible for LVGL lifecycle, locking, timers
+and touch, but the project deliberately does not use its display-registration
+bridge. Its QSPI `TE_SYNC` mode is FULL/single-buffer and waits for TE plus DMA
+inside the flush, which was measured as a serialized performance regression.
+
+Direct PSRAM DMA remains disabled because the exact board proved that path can
+underflow at 80 MHz QSPI. ESP LCD instead stages bounded 8-row chunks through at
+most 23,040 bytes of internal DMA memory. The exact panel measures about 59.5 TE
+edges/s and 13–15 ms per complete transfer. The accepted base is tear-free and
+completes approximately 30.5–32.7 physical presentations per second.
+
+The detailed as-built path, rejected adapter mode, parked triple-buffer findings
+and sole-scheduler design for the next experiment are maintained in
+[`reference/display-pipeline.md`](reference/display-pipeline.md).
 
 ## Onboard warning audio
 

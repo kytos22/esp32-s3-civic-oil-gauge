@@ -14,13 +14,13 @@
 - i18n: single-language built product — Spanish status labels, SI/PSI units as specified; source identifiers and documentation in English
 - Installed base: fresh prototype; no released firmware, users, migration, or stored user data
 - Design system: existing approved baseline — `docs/UI_DESIGN.md` and `docs/design/references/`
-- Keel portability: lock + embedded v5.13.0 in `.claude/skills/keel/` and `.agents/skills/keel/`; reconciled in D-062
-- Assistant config: rules (tools: Codex); permissions and Git hook deferred by D-008
+- Keel portability: lock + embedded v5.15.1 in `.claude/skills/keel/` and `.agents/skills/keel/`; display/project state reconciled, with the new close/Stop automation explicitly pending in D-074
+- Assistant config: rules (tools: Codex); permissions and pre-commit hook deferred by D-008; unconditional post-commit courier guard installed by D-074
 - Autonomy: manual; issue duty off; Issue sweep interval: n/a; Issue capture: off
 - Notify: none
 - Test-first policy: pure-logic from D-062; existing tests are not retroactive
 - Models: n/a — Codex has no project markdown subagents; checks run inline
-- Keel baseline: v5.13.0
+- Keel baseline: v5.13.0 (embedded runtime is v5.15.1; D-074 keeps the incomplete automation delta visible)
 - Website intent: no
 - Client budget: no
 - User guide: deferred until the hardware-validated release candidate
@@ -38,13 +38,13 @@
 | 2 Functional spec | adopted (as-built) | `docs/02-functional-spec.md`, `docs/03-technical-plan.md`, `docs/flows/`, `docs/threat-model.md` |
 | 3 Design handoff | adopted — no-Design branch | `docs/design/DESIGN-BRIEF.md`, `docs/design/design-handoff/` |
 | 4 Faithful build | renderer implemented; indoor physical fidelity accepted | `docs/BUILD-SPEC.md`, `src/oil_gauge_ui.cpp` |
-| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 bare-board proof complete; Sprint 8 software candidate complete | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) AC-42 runtime-proven; [Sprint 8](sprints/sprint-8-warning-threshold-startup.md) awaiting exact-board proof |
+| 5 Development | Sprints 1–5 complete; Sprint 6 visual baseline accepted; Sprint 7 ADS1115 bare-board proof complete; Sprint 8 physically accepted | [Sprint 5](sprints/sprint-5-warning-audio.md) complete; [Sprint 6](sprints/sprint-6-settings-menu.md) D-061 accepted; [Sprint 7](sprints/sprint-7-ads1115-diagnostics.md) AC-42 runtime-proven; [Sprint 8](sprints/sprint-8-warning-threshold-startup.md) Honda/Civic composition and controls accepted |
 | 6 Documentation | partial | Existing hardware, BOM, calibration, and UI documentation |
 | 7 Release | pending | No release or vehicle cutover |
 | 8 Website | n/a — no intent | — |
 
 ## Current position
-- Phase: 5 — Sprint 8 configurable warning and startup logo
+- Phase: 5 — accepted feature baseline; ordinary feature work may continue
 - Golden Prototype 1: commit `443eb72`, retained as the exact-board regression
   reference in Git history without duplicating a golden firmware tree or claiming
   production readiness.
@@ -66,10 +66,12 @@
   experiment. It remains the rollback point until a new exact-board candidate is
   separately authorized, flashed and physically accepted.
 - Next action: continue non-triple-buffer work from this restored accepted base;
-  await Marcos's next requested task. The existing guided touch check of both menu sliders,
-  warning-boundary behavior and NVS persistence at 0/1/10 seconds.
-  ADS1115 grounded/divider validation remains the next
-  separate electrical step; sensors and vehicle work remain gated.
+  await Marcos's next requested task. The display architecture is now current in
+  `docs/reference/display-pipeline.md`; if the isolated performance experiment is
+  reopened, its first slice is deletion/proof of the sole LVGL refresh scheduler,
+  before any compositor or buffer-count change. ADS1115 grounded/divider
+  validation remains the next separate electrical step; sensors and vehicle work
+  remain gated.
 
 ## Open items
 - D-066 and its successors are parked for later on branch
@@ -78,6 +80,19 @@
   requested restoration of `pb5-good-base`; exact USB/chip/app identity and all
   four write hashes passed. The retained rollback run reports stable 30.493–32.707
   FPS after startup, TE about 59.5 Hz, and `timeouts=0 errors=0 fatal=0`.
+- D-073 records the adapter audit and the transferable part of the RGB buffering
+  sequence. The accepted branch uses `esp_lvgl_adapter` only for lifecycle,
+  locking, timers and touch; display registration, GPIO43 TE, full-frame QSPI DMA
+  and buffer release remain project-owned. The future experiment must delete the
+  automatic display refresh timer because LVGL 9.5 re-arms a paused timer on
+  `LV_EVENT_REFR_REQUEST`. No firmware or hardware changed in D-073.
+- D-074 updates both embedded Keel copies and lock stamps to v5.15.1, installs
+  and configures the post-commit stale-handoff guard, and adds the shared session
+  identity helper. The v5.14/v5.15 `keel-close` and Stop-hook executables remain
+  intentionally marked `missing`: Keel publishes behavioral contracts but no
+  canonical generated scripts, and Codex Desktop exposes no project Stop-hook
+  registration. They require a separate reviewed automation slice rather than
+  an invented close/push mechanism in this documentation-only update.
 - D-065 adds a persistent 1–30 PSI low-pressure warning threshold (10 PSI default)
   and a persistent 0–10 second Honda startup splash (1 second default; 0 disables).
   The menu presents the canonical threshold in PSI or one-decimal BAR, while the

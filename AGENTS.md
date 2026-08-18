@@ -49,7 +49,7 @@ Innovate MTX-D sensors.
 - With hardware present, save the boot log, I²C scan, current draw at several
   brightness levels, and a capture of all four ADC channels.
 
-<!-- KEEL:BEGIN — v5.13.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.15.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

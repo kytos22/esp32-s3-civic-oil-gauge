@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# A continuation courier must never describe a commit older than HEAD.
+# Its absence is valid; the active session writes a fresh one after closing work.
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+handoff_path="$repo_root/docs/continuation-prompt.md"
+
+if [ -f "$handoff_path" ]; then
+    rm -f -- "$handoff_path"
+fi
+
+exit 0

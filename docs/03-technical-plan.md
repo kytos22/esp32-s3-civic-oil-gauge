@@ -125,9 +125,10 @@ flowchart LR
 | `scripts/idf` | [E] | Pinned ESP-IDF 6.0.2 firmware entry point |
 | `docs/playground.md` | [E] | Reproducible software and hardware-tagged exercises |
 | `docs/calibration-data/` | [A] calibration sprint | Raw and processed evidence datasets |
-| `.claude/skills/keel/` / `.agents/skills/keel/` | [E] | Verified embedded Keel v5.3.2 |
+| `.claude/skills/keel/` / `.agents/skills/keel/` | [E] | Verified embedded Keel v5.15.1 |
 | `CLAUDE.md` / root `AGENTS.md` | [E] | Keel portability lock and project safety rules |
 | `include/AGENTS.md`, `src/AGENTS.md`, `test/AGENTS.md` | [E] | Codex path-scoped rules |
+| `docs/reference/display-pipeline.md` | [E] | As-built QSPI/LVGL ownership, rejected paths and next isolated experiment |
 
 ## Change map
 

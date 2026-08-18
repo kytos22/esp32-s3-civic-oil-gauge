@@ -196,3 +196,68 @@
   exact USB identity before flash and a successful 0x48 probe after boot.
 - Rule for next time: identify P6/P7 by both position and signal; if uncertain,
   verify their approximately 2.2 kΩ pull-up path to 3.3 V with power removed.
+
+## L-012 — A third framebuffer does not justify a second LVGL scheduler
+- Symptom: the first triple-buffer candidate was tear-free when it ran, but often
+  froze before touch could be used and logged early LVGL-lock failures.
+- Cause: a dedicated renderer competed with the adapter/UI path for LVGL's global
+  lock while the higher-priority presenter repeatedly fed a complete QSPI frame.
+  The separate renderer also allowed a blank-screen bootstrap race before the UI
+  existed.
+- Fix: keep TE/DMA presentation independent, but publish render permission to one
+  existing application-owned UI path and bootstrap only after UI construction.
+- Where: parked Phase 5 D-066/D-067 experiment on
+  `codex/triple-buffer-pipeline`.
+- Check added: the experimental display contract forbids a competing renderer
+  task and requires one owner for framework scheduling and every rejected-flush
+  release path.
+- Rule for next time: assign one owner for LVGL scheduling before changing task
+  priorities or buffer count; buffering cannot repair two competing schedulers.
+
+## L-013 — Moving LVGL work between tasks moves its stack requirement
+- Symptom: moving the full refresh chain into `app_main` removed lock starvation
+  but repeatedly triggered a FreeRTOS stack overflow within seconds.
+- Cause: the work moved from a dedicated task to ESP-IDF's smaller default main
+  stack; removing the old task did not remove the refresh call chain's stack use.
+- Fix: provision an 8 KiB main-task stack for that experimental architecture and
+  retain the single application-owned scheduler.
+- Where: parked Phase 5 D-067/D-068 experiment.
+- Check added: the experimental source/config contract requires the measured
+  stack setting whenever the app task owns the complete refresh call chain.
+- Rule for next time: every task-boundary redesign audits priority, affinity and
+  stack together.
+
+## L-014 — PARTIAL last-flush does not end the outer refresh ownership
+- Symptom: the block compositor logged flushes without an owned destination,
+  latched `fatal=1`, and produced unstable presentation rates while transport
+  timeout/error counters remained zero.
+- Cause: the callback published READY and released the render slot when LVGL
+  marked its final flush, even though the enclosing manual refresh call had not
+  returned and still owned the operation.
+- Fix: callbacks only compose and record completion. The application retains the
+  slot until the outer refresh call returns, then publishes READY or retries.
+- Where: parked Phase 5 D-069–D-071 experiment.
+- Check added: the ownership contract forbids callback-side slot release, READY
+  publication and presenter notification.
+- Rule for next time: callback completion is not outer-call completion unless the
+  framework explicitly guarantees no further callback or work.
+
+## L-015 — Pausing the LVGL display timer does not create exclusive refresh ownership
+- Symptom: after retaining the render slot through the manual refresh, the
+  candidate still produced 1,073 flush callbacks without an owned destination in
+  a 35-second exact-board capture.
+- Cause: LVGL 9.5 resumes the display refresh timer on every
+  `LV_EVENT_REFR_REQUEST`. Normal invalidation therefore re-enabled the timer and
+  the adapter worker later called `lv_timer_handler()` outside the app-owned
+  refresh.
+- Fix direction: delete the automatic display refresh timer with
+  `lv_display_delete_refr_timer()` and invoke display refresh explicitly from the
+  sole application-owned scheduling path. Retain the adapter worker only for
+  touch and other LVGL timers.
+- Where: parked Phase 5 D-071 diagnosis; pinned LVGL `lv_display.c` and
+  `lv_refr.c`.
+- Check required: prove mechanically that no resumable automatic display refresh
+  timer exists before another exact-board candidate is built.
+- Rule for next time: inspect every event that can re-arm a paused framework
+  timer; deletion establishes ownership, while pause only records a temporary
+  state.

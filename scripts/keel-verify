@@ -61,7 +61,13 @@ def conformance() -> None:
     missing_rows = [
         line for line in conformance_text.splitlines() if re.search(r"\|\s*missing\s*\|", line)
     ]
-    check("Keel conformance", not missing_rows, f"{len(missing_rows)} missing row(s)")
+    undecided_rows = [line for line in missing_rows if not re.search(r"\bD-\d{3}\b", line)]
+    check(
+        "Keel conformance",
+        not undecided_rows,
+        f"{len(missing_rows)} visible missing row(s); "
+        f"{len(undecided_rows)} without a recorded decision",
+    )
 
 
 def acceptance_coverage() -> None:

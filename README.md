@@ -145,6 +145,10 @@ the renderer, display timing, calibration gates, pin assignments, release
 packaging or hardware procedures. The full maintained documentation map is
 [`docs/INDEX.md`](docs/INDEX.md).
 
+The accepted tear-free CO5300 path and the isolated future triple-buffer design
+are documented in
+[`docs/reference/display-pipeline.md`](docs/reference/display-pipeline.md).
+
 ## License
 
 Project-authored code, documentation and assets are available under the

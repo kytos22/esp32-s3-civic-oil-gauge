@@ -1219,3 +1219,56 @@
   `5034a082ff44def10164651e2f12a2931d40fc0ffe5fe4cee13cd98716ece70d`.
 - Safety: demo/display only. The rollback does not authorize sensors, MTX-D, 12 V
   or vehicle work. Triple-buffer changes remain parked until Marcos reopens them.
+
+## D-073 — Keep the custom QSPI presenter and require one LVGL refresh authority
+- Date / phase: 2026-08-18 / Phase 5 display-architecture documentation
+- Decision: Keep `pb5-good-base` and the current custom GPIO43 TE presenter as the
+  accepted implementation. Continue using `esp_lvgl_adapter` 0.6.3 for LVGL
+  lifecycle, locking, timers and touch, but do not replace the display path with
+  `esp_lv_adapter_register_display()` or its QSPI `TE_SYNC` bridge. When the parked
+  triple-buffer work resumes, first delete the automatic LVGL display refresh
+  timer and prove that one application-owned scheduler is the only source of
+  display refreshes. Only then restore generation-aware PARTIAL composition.
+- Why: The pinned adapter's QSPI TE path uses FULL/single-buffer rendering and
+  waits for TE plus DMA inside the flush; the project already measured that
+  serialized design at about 14.8 FPS. The accepted custom path is tear-free at
+  about 30.5–32.7 FPS. The triple-buffer ownership model was directionally sound,
+  but pausing the LVGL timer was not exclusive because `LV_EVENT_REFR_REQUEST`
+  resumes it, allowing the adapter worker to flush outside the app-owned frame.
+  The RGB-panel sequence described by the LVGL community applies to coherent
+  buffer ownership, but the CO5300 still requires every complete image to cross
+  QSPI into its internal GRAM.
+- Documentation: `docs/reference/display-pipeline.md` is the canonical as-built
+  comparison and future experiment contract. `docs/ARCHITECTURE.md` now describes
+  the accepted FULL/two-buffer implementation instead of the superseded rotated
+  PARTIAL/snapshot path.
+- Verification: documentation links, source assertions and the complete project
+  verifier must pass. No firmware code or hardware state changes in this decision.
+- Safety: the future experiment remains isolated on
+  `codex/triple-buffer-pipeline`; any build and exact-board flash still require a
+  separately authorized candidate. Demo mode and all sensor/vehicle gates remain.
+- Supersedes: D-066 only as the required first implementation step when the
+  experiment resumes. D-072 continues to keep the experiment parked and
+  `pb5-good-base` authoritative.
+
+## D-074 — Update embedded Keel without inventing unverified close automation
+- Date / phase: 2026-08-18 / repository maintenance
+- Decision: Update the two embedded Keel trees and portability-lock stamps from
+  v5.13.0 to official v5.15.1. Install the deterministic post-commit hand-off
+  invalidation hook and shared session-identity helper. Keep `scripts/keel-close`
+  and `scripts/keel-stop-hook` explicitly missing until a dedicated automation
+  slice can implement and test their full contracts.
+- Why: v5.14–v5.15.1 specifies both scripts by behavior but supplies no canonical
+  executable template. `keel-close` can commit, merge and push, while the Stop
+  hook can block every turn; improvising either during a documentation snapshot
+  would create materially greater repository risk. Codex Desktop also has no
+  repository-level Stop-hook registration surface to validate real firing.
+- Applied: `.githooks/post-commit` removes any stale continuation courier after
+  each commit, `core.hooksPath` points to `.githooks`, and
+  `scripts/keel-session-pid.sh` provides a stable PID-plus-start-time identity.
+- Verification: both embedded trees must match the official v5.15.1 source;
+  lock stamps must match; the next real commit must prove the post-commit hook
+  deletes the old courier. `docs/keel-conformance.md` and `keel-verify` must keep
+  both missing automation rows visible rather than claiming full reconciliation.
+- Scope: this maintenance does not alter firmware, hardware, remote branches or
+  the accepted `pb5-good-base` display behavior.

@@ -26,6 +26,7 @@ Spanish originals are linked only through the archive index.
 - [Technical plan](03-technical-plan.md)
 - [Threat model](threat-model.md)
 - [Architecture](ARCHITECTURE.md)
+- [Display pipeline](reference/display-pipeline.md)
 - [Bill of materials](BOM.md)
 - [Waveshare pinout](WAVESHARE_PINOUT.md)
 - [Arrival checklist](ARRIVAL_CHECKLIST.md)
