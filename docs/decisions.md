@@ -1272,3 +1272,20 @@
   both missing automation rows visible rather than claiming full reconciliation.
 - Scope: this maintenance does not alter firmware, hardware, remote branches or
   the accepted `pb5-good-base` display behavior.
+
+## D-075 — Publish the accepted project history through a draft pull request
+- Date / phase: 2026-08-18 / repository publication
+- Decision: Publish `codex/post-triple-tasks` to the public `origin` and open
+  draft PR #1 against the default `main` branch. Keep the PR in draft so that
+  publication does not silently merge a large accepted-history update into the
+  default branch.
+- Why: Marcos clarified that “update the repository” meant uploading the current
+  project to GitHub. The local branch contained the complete accepted project
+  history while public `main` remained 83 commits behind before publication.
+- Verification: local and remote branch tips both resolved to
+  `7c94cb0f6a5d000acc58d07b83aab7fcbb6661dc` immediately after push. GitHub
+  reported PR #1 open, draft and mergeable. Native tests were 31/31 and
+  `scripts/keel-verify` passed before publication.
+- Safety: no firmware flash or vehicle action occurred. The parked
+  `codex/triple-buffer-pipeline` branch was not merged or published as part of
+  this action. Merging PR #1 into `main` remains a separate explicit action.
