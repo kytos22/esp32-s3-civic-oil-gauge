@@ -2,6 +2,16 @@
 
 > Append-only. Add an entry only after a problem's cause and fix are known.
 
+## L-012 — A matching primary boot asset did not prove the complete composition
+- Symptom: the first Sprint 8 flash showed Honda correctly but omitted the Civic
+  wordmark present in the boost gauge's accepted boot screen.
+- Cause: verification compared only `startup_honda.png`; the reference boot screen
+  actually composes a second independent `startup_civic.png` asset.
+- Fix: inventory every source layer used by the accepted reference, byte-match both
+  assets, render both in their original vertical composition, and make the source
+  contract fail when either resource or renderer binding is absent.
+- Where: Phase 5, Sprint 8 exact-board visual judgment.
+
 ## L-001 — PlatformIO state escaped to a read-only home directory
 - Symptom: `pio test -e native` raised `HomeDirPermissionsError` while trying to lock `/home/marcos/.platformio`.
 - Cause: the Python venv was project-local, but PlatformIO's core/package state still used its default home path, which this execution environment mounted read-only.
@@ -62,3 +72,192 @@
   direct initial adapter lock plus an unlock call.
 - Rule for next time: inspect the exact implementation and return type of vendor
   synchronization wrappers before relying on their API comments.
+
+## L-006 — Low-opacity blink-off frames look dotted on the AMOLED
+- Symptom: the pressure warning looked as though it were made from dots during the
+  attenuated half of its blink on the physical display.
+- Cause: the renderer deliberately mapped the off phase to `LV_OPA_20`, leaving a
+  sparse-looking 20% composite instead of switching the warning pixels off.
+- Fix: map the off phase to full transparency and use a binary 250 ms on / 250 ms
+  off cycle; keep the numeric pressure continuously visible.
+- Where: Phase 5, Sprint 1 slice 1.5; `src/oil_gauge_ui.cpp` and the editable HTML
+  reference.
+- What failed first: `scripts/keel-verify` reported 0/6 hard 2 Hz firmware/simulator
+  invariants against the former 1 Hz, 20%-opacity implementation.
+- Check added: the native AC-06 boundary regression checks every 250 ms transition;
+  `scripts/keel-verify` requires full transparency and 2 Hz timing in firmware and
+  both simulator representations.
+- Rule for next time: warning-off states on this panel are binary; never substitute
+  low opacity without a new physical acceptance check.
+
+## L-007 — OTA selection data changes on the first boot
+- Symptom: post-boot `verify-flash` matched bootloader, partition table, and app but
+  reported a digest mismatch for `ota_data_initial.bin`.
+- Cause: `ota_data_initial.bin` is an empty initialization image; the bootloader
+  updates the mutable `otadata` partition when it selects app0 on first boot.
+- Fix: require write-time verification for all four images, then verify the immutable
+  bootloader, partition table, and app after boot. Record the expected `otadata`
+  mutation instead of reflashing it in a loop.
+- Where: Phase 5, Sprint 1 slice 1.5 exact-board flash.
+- What failed first: a post-boot four-region comparison after every region had
+  already passed esptool's write-time hash verification.
+- Check added: the AC-06/AC-22 evidence rows now distinguish write-time verification
+  from post-boot immutable-region verification.
+- Rule for next time: never use an initial OTA-data blob as an immutable post-boot
+  reference.
+
+## L-008 — TE cannot correct a scan-order mismatch caused by panel rotation
+- Symptom: the first GPIO43 TE candidate was rotated 180 degrees; correcting its
+  CO5300 `MADCTL` value to the upright `0xA0` orientation retained one diagonal
+  tear, while Golden Prototype 1 had no diagonal without TE synchronization.
+- Cause: the full frame was synchronized to vertical blank but transmitted in the
+  address order produced by the controller's 90/270-degree hardware rotation. That
+  write wave no longer follows the panel's native refresh scan, so waiting for TE
+  alone cannot prevent the two waves from crossing diagonally. The synchronous
+  adapter path also serialized software work and the LCD transfer, reducing the
+  measured presentation rate to about 14.8 FPS.
+- Fix: keep the CO5300 in native `MADCTL=0x00`, use LVGL's documented PARTIAL
+  software-rotation path, assemble a canonical native-order frame, copy complete
+  generations into two immutable PSRAM snapshots, and let a dedicated
+  presenter start only the newest READY snapshot at the next GPIO43 TE edge. A
+  slot remains IN_FLIGHT until `on_color_trans_done`. D-055 stages bounded chunks
+  through internal DMA after D-054's direct PSRAM transfer failed; exact-board
+  visual acceptance remains pending.
+- Where: Phase 5, Sprint 6 slice 6.15; `src/display_runtime.cpp`,
+  `src/frame_slot_policy.h`, and `include/display_clock_override.h`.
+- What failed first: treating hardware rotation as an independent orientation
+  detail, then using the adapter's FULL/single-buffer TE mode without accounting
+  for native scan direction, asynchronous LCD-buffer ownership, or a possible
+  post-TE PSRAM staging copy.
+- Check added: three AC-41 native ownership regressions, 34 display/audio source
+  invariants, bounded QSPI staging checks, and two-second telemetry
+  for completed presentations, TE edges, rotation, snapshot and DMA durations,
+  dropped generations, timeouts, transfer errors, and unavailable slots.
+- Rule for next time: establish panel scan order and buffer lifetime before tuning
+  clocks or phase offsets; never infer tear-free behavior from a TE wait, an LVGL
+  FPS counter, or correct visual orientation alone.
+
+## L-009 — Direct PSRAM DMA is not a zero-cost full-frame path at 80 MHz QSPI
+- Symptom: D-054 booted with the intended native scan and TE signal, then the
+  first full-frame transfer logged `DMA TX underflow detected`; ESP LCD surfaced
+  `ESP_ERR_INVALID_STATE`, and completed presentation stayed at 0 FPS.
+- Cause: `SPI_TRANS_DMA_USE_PSRAM` shares MSPI bandwidth with the running system.
+  ESP-IDF explicitly warns that GPSPI bandwidth must remain below PSRAM bandwidth
+  or data can be lost. The D-054 design treated pointer capability and alignment
+  as sufficient proof, but neither proves sustained bandwidth at 80 MHz QSPI.
+- Fix: keep the immutable PSRAM snapshot, disable direct PSRAM DMA, and let the
+  official SPI/LCD path stage 8-row chunks through three internal DMA buffers
+  (23,040 bytes maximum) while QSPI remains at 80 MHz. Latch and expose presenter
+  failure instead of retrying a transaction queue whose accounting may already be
+  poisoned.
+- Where: Phase 5, Sprint 6 slice 6.16; `include/display_clock_profile.h`,
+  `include/display_clock_override.h`, and `src/display_runtime.cpp`.
+- What failed first: assuming `esp_ptr_dma_ext_capable()` meant the transfer was
+  operational, and accepting a callback/ownership unit test without a real first
+  full-frame DMA test.
+- Check added: an AC-41 native bounded-memory profile, 13 source invariants for
+  the 80 MHz bounce path, a persistent `fatal` telemetry field, and exact-board
+  acceptance that begins with non-zero completed presentations and zero errors.
+- Rule for next time: distinguish addressability from bandwidth; for any direct
+  external-memory DMA mode, read its loss conditions and prove one complete
+  transfer on hardware before optimizing the surrounding pipeline.
+
+## L-010 — LVGL DIRECT buffering can hide full-frame synchronization copies
+- Symptom: D-056 removed rotation work but menu presentation remained about
+  17–33 FPS, with each full snapshot copy alone measuring 16–21 ms.
+- Cause: replacing the explicit snapshot with LVGL `DIRECT` double/triple buffering
+  would not eliminate that class of work. Pinned LVGL 9.5 records invalidated areas
+  and copies them to the next off-screen buffer before rendering; its triple-buffer
+  path also synchronizes the second off-screen buffer. Menu scrolling invalidates
+  the complete 480×480 menu object.
+- Fix: use two full-screen `RGB565_SWAPPED` buffers in `FULL` mode, queue the
+  rendered pointer directly, and release it only after LCD DMA completion.
+- Where: Phase 5, Sprint 6 slice 6.18; `src/display_runtime.cpp` and pinned
+  `managed_components/lvgl__lvgl/src/core/lv_refr.c`.
+- What failed first: the initial D-057 plan favored `DIRECT` triple buffering before
+  tracing `refr_sync_areas()` against the menu's full-object invalidation behavior.
+- Check added: the 46-row display contract requires `FULL`, two complete buffers,
+  panel-endian rendering, no canvas/snapshot copy, and DMA-completion flush release.
+- Rule for next time: inspect a framework's buffer-synchronization path using the
+  application's real invalidation areas before assuming that direct rendering means
+  zero copies.
+
+## L-011 — Exposed USB pads sit immediately beside the expansion I²C pads
+- Symptom: after wiring the ADS1115, Windows no longer enumerated the ESP32-S3 and
+  usbipd showed only a persisted, disconnected COM entry.
+- Cause: ADS1115 SDA/SCL had accidentally occupied P4/P5, which are GPIO19/20 native
+  USB D−/D+, instead of P6/P7, which are GPIO14/15 I²C SCL/SDA.
+- Fix: with power removed, move the two data leads to P6/P7. The exact `303a:1001`
+  USB device immediately returned and the ADS1115 then probed successfully at 0x48.
+- Where: Phase 5, Sprint 7 bare-ADS1115 bench bring-up.
+- What failed first: relying on pad proximity without rechecking the official
+  schematic and the project's P1–P9 map before applying USB power.
+- Check added: the pinout names both adjacent USB and I²C pairs; AC-42 requires
+  exact USB identity before flash and a successful 0x48 probe after boot.
+- Rule for next time: identify P6/P7 by both position and signal; if uncertain,
+  verify their approximately 2.2 kΩ pull-up path to 3.3 V with power removed.
+
+## L-012 — A third framebuffer does not justify a second LVGL scheduler
+- Symptom: the first triple-buffer candidate was tear-free when it ran, but often
+  froze before touch could be used and logged early LVGL-lock failures.
+- Cause: a dedicated renderer competed with the adapter/UI path for LVGL's global
+  lock while the higher-priority presenter repeatedly fed a complete QSPI frame.
+  The separate renderer also allowed a blank-screen bootstrap race before the UI
+  existed.
+- Fix: keep TE/DMA presentation independent, but publish render permission to one
+  existing application-owned UI path and bootstrap only after UI construction.
+- Where: parked Phase 5 D-066/D-067 experiment on
+  `codex/triple-buffer-pipeline`.
+- Check added: the experimental display contract forbids a competing renderer
+  task and requires one owner for framework scheduling and every rejected-flush
+  release path.
+- Rule for next time: assign one owner for LVGL scheduling before changing task
+  priorities or buffer count; buffering cannot repair two competing schedulers.
+
+## L-013 — Moving LVGL work between tasks moves its stack requirement
+- Symptom: moving the full refresh chain into `app_main` removed lock starvation
+  but repeatedly triggered a FreeRTOS stack overflow within seconds.
+- Cause: the work moved from a dedicated task to ESP-IDF's smaller default main
+  stack; removing the old task did not remove the refresh call chain's stack use.
+- Fix: provision an 8 KiB main-task stack for that experimental architecture and
+  retain the single application-owned scheduler.
+- Where: parked Phase 5 D-067/D-068 experiment.
+- Check added: the experimental source/config contract requires the measured
+  stack setting whenever the app task owns the complete refresh call chain.
+- Rule for next time: every task-boundary redesign audits priority, affinity and
+  stack together.
+
+## L-014 — PARTIAL last-flush does not end the outer refresh ownership
+- Symptom: the block compositor logged flushes without an owned destination,
+  latched `fatal=1`, and produced unstable presentation rates while transport
+  timeout/error counters remained zero.
+- Cause: the callback published READY and released the render slot when LVGL
+  marked its final flush, even though the enclosing manual refresh call had not
+  returned and still owned the operation.
+- Fix: callbacks only compose and record completion. The application retains the
+  slot until the outer refresh call returns, then publishes READY or retries.
+- Where: parked Phase 5 D-069–D-071 experiment.
+- Check added: the ownership contract forbids callback-side slot release, READY
+  publication and presenter notification.
+- Rule for next time: callback completion is not outer-call completion unless the
+  framework explicitly guarantees no further callback or work.
+
+## L-015 — Pausing the LVGL display timer does not create exclusive refresh ownership
+- Symptom: after retaining the render slot through the manual refresh, the
+  candidate still produced 1,073 flush callbacks without an owned destination in
+  a 35-second exact-board capture.
+- Cause: LVGL 9.5 resumes the display refresh timer on every
+  `LV_EVENT_REFR_REQUEST`. Normal invalidation therefore re-enabled the timer and
+  the adapter worker later called `lv_timer_handler()` outside the app-owned
+  refresh.
+- Fix direction: delete the automatic display refresh timer with
+  `lv_display_delete_refr_timer()` and invoke display refresh explicitly from the
+  sole application-owned scheduling path. Retain the adapter worker only for
+  touch and other LVGL timers.
+- Where: parked Phase 5 D-071 diagnosis; pinned LVGL `lv_display.c` and
+  `lv_refr.c`.
+- Check required: prove mechanically that no resumable automatic display refresh
+  timer exists before another exact-board candidate is built.
+- Rule for next time: inspect every event that can re-arm a paused framework
+  timer; deletion establishes ownership, while pause only records a temporary
+  state.

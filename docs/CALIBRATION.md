@@ -3,7 +3,7 @@
 ## Why this is mandatory
 
 Innovate identifies pressure sensor `12-0074` (0–150 PSI) and thermistor
-`15-0049`, but the public manual does not publish:
+`15-0049`, but the public MTX-D/12-0074 material does not publish:
 
 - excitation voltage;
 - transducer pin order;
@@ -13,6 +13,11 @@ Innovate identifies pressure sensor `12-0074` (0–150 PSI) and thermistor
 Assuming a common 0.5–4.5 V sensor or 10 kΩ NTC can create false readings or
 damage the ADC. Calibrated output remains disabled until this procedure passes.
 
+Innovate's separate `11-0161A` instructions for a 10 bar sensor with SSI-4 PLUS
+adapter specify 5 V excitation and 0.5–4.5 V for 0–150 PSI. No consulted
+official source equates that sensor explicitly with P/N `12-0074`; therefore
+those values are the leading test hypothesis rather than installed-sensor proof.
+
 ## Core rule
 
 Keep the MTX-D connected and operational while collecting high-impedance
@@ -21,11 +26,32 @@ new electronics power the sensors directly.
 
 ## 1. Inventory and photographs
 
+The MTX-D wiring diagram supplied by Marcos on 2026-08-10 confirms the
+following physical topology:
+
+- oil temperature has two conductors: one gauge-side conductor and one
+  dedicated ground conductor;
+- oil pressure has three conductors: two gauge-side conductors and one
+  dedicated ground conductor.
+
+This is connector-topology evidence only. It does not identify which of the
+two pressure conductors is excitation or signal, nor prove the excitation
+voltage, signal range, thermistor type, or either conversion curve. The diagram
+shows colours, but functions must still be assigned from measurements.
+
+The MTX-D switched-12-V feed is not a sensor signal and must never reach the
+ESP32 or ADS1115. It is still relevant during characterization because the
+gauge derives the temperature bias and pressure excitation from its supply.
+Record the MTX-D supply, sensor bias, and excitation with ignition on/engine
+stopped and again while charging, so the replacement can reproduce only the
+regulated sensor-side electrical conditions.
+
 With the vehicle off:
 
-1. Photograph MTX-D rear label and every connector.
-2. Capture both sides, latch/keying, and wire colors.
-3. Identify the main ground and additional pressure-sensor ground by evidence.
+1. Photograph MTX-D rear label and every physical connector face.
+2. Capture both sides, latch/keying, pin numbering, and wire colors.
+3. Confirm the main ground and both documented sensor-ground conductors by
+   continuity evidence while the circuit is unpowered and disconnected.
 4. With sensors disconnected, check threaded-body continuity to their wires.
 5. Locate Innovate 38400 and USB-RS232 adapters.
 
@@ -44,6 +70,20 @@ With MTX-D powered on a bench or in the vehicle and engine stopped:
 Record every value. Never assign function by color.
 
 ## 3. Pressure curve
+
+### Candidate model to verify
+
+If measurements prove that this installed `12-0074` receives 5 V and produces
+0.5 V at 0 PSI and 4.5 V at 150 PSI, the candidate linear conversions are:
+
+```text
+PSI = (V_sensor - 0.5) × 37.5
+bar = (V_sensor - 0.5) × 2.5
+```
+
+With equal 33 kΩ / 33 kΩ dividers on A0 and A2, `V_sensor = 2 × V_A0` and
+`V_excitation = 2 × V_A2`. Do not compile these equations as valid calibration
+until measured points across the operating range pass the residual/error gates.
 
 ### Minimum installed-sensor method
 
@@ -99,9 +139,10 @@ Keep original points and validate with points excluded from fitting.
 3. Export timestamped reference data.
 4. Capture ESP32 raw channels in parallel.
 5. Align streams using a clear ignition/start event.
-6. Observe RS-232 through MAX3232 initially in RX-only mode.
+6. If useful, capture MTS on the laptop through the Innovate cable and a real
+   RS-232 or USB-to-RS-232 interface.
 
-Never connect RS-232 voltage directly to GPIO44.
+Never connect RS-232 voltage directly to a GPIO or TTL-UART adapter.
 
 ## 6. MTX-D removal gate
 

@@ -19,7 +19,8 @@
 - Product: a glanceable oil pressure and oil temperature instrument for a 2017 Honda
   Civic Sport 1.5.
 - Target: Waveshare ESP32-S3-Touch-AMOLED-2.16, 480×480 CO5300 AMOLED.
-- Audience: the driver; no touch interaction is required while driving.
+- Audience: the driver; no touch interaction is required while driving. A deliberate
+  700 ms hold opens a separate settings surface while stationary.
 - Purpose: show both oil values simultaneously, make warming/fault/warning states
   immediately legible, and never imply validity when calibration is missing.
 - Host constraints: pure embedded C++ renderer, fixed 480×480 viewport, black AMOLED
@@ -36,29 +37,39 @@
 - Pressure normal: `#FFB020`.
 - Pressure warning: `#FF3948`.
 - Temperature stops:
-  `50 #1E84FF`, `57 #1E84FF`, `75 #AECDA7`, `89 #AECDA7`,
-  `94 #EABE52`, `100 #FF761C`, `138 #FF2D38`.
+  `50 #1E84FF`, `59 #1E84FF`, `76 #AECDA7`, `90 #EABE52`,
+  `100 #FF761C`, `120 #FF2D38`, `140 #FF2D38`.
 - Typography: the approved prototype's condensed sans-serif treatment; firmware must
   match its measured placement and weight using build-native glyphs.
-- Geometry: 480×480, equal 240 px regions, values centered at x=240, 9 px bars.
-- Icons: the exact pressure-can and thermometer/oil-wave silhouettes in the editable
-  reference. They are path geometry, not external image assets.
-- Motion: pressure warning flashes at 1 Hz; reduced-motion mode holds the warning red.
+- Geometry: 480×480, equal 240 px regions, values centered at x=240, 21 px bars;
+  both icon/value/unit/bar groups sit 4 px below D-059; no fixed threshold notes
+  below the bars.
+- Icons: the exact pressure and temperature silhouettes derived from Marcos's
+  supplied PNG references. Firmware embeds A8 masks and the editable reference
+  uses matching transparent PNG masks.
+- Motion: pressure warning uses either a binary 2 Hz element flash, a binary 2 Hz
+  opaque full-screen red field, or fixed red. The full-screen field always redraws
+  the pressure number above it; the number never disappears.
 
 ## 3. Screen inventory
 
-One unique screen: `oil-gauge`.
+Two unique surfaces: `oil-gauge` and its full-screen `settings` page.
 
 It shows pressure in the upper half and temperature in the lower half. It accepts
 converted samples, engine/RPM state, fault state, blink phase, and reduced-motion
 preference. RPM is never displayed.
 
+The settings page provides brightness, warning audio, demo/calibration-gated source,
+PSI/bar units, warning presentation, diagnostics, and protected reset. Warning
+activation interrupts settings and restores the gauge immediately.
+
 ## 4. Required states
 
 - Pressure: engine state unknown, engine stopped, warning 0–10 PSI while running,
   provisional low 11–14 PSI, OK 15–80 PSI, provisional high above 80 PSI, sensor fault.
-- Temperature: below-range `<50`, cold 50–69, warming 70–74, optimal 75–93,
-  hot 94–100, very hot above 100, sensor fault.
+- Temperature: below-range `<50` shown as cold, cold 50–59, warming 60–75,
+  optimal 76–95, hot 96–100, very hot 101–119, blinking red warning 120–140,
+  sensor fault.
 - System: demo-labelled, ADC missing, calibration missing/raw-only, valid calibrated,
   and per-channel fault.
 - Fixed viewport only: no responsive breakpoints.
@@ -71,7 +82,8 @@ preference. RPM is never displayed.
 - Numeric values remain visible and stable during pressure-warning flashing.
 - Reduced motion removes flashing while retaining fixed red plus `WARNING`.
 - `<50 °C` prevents false precision below the validated display floor.
-- No touch target, focus order, or screen-reader surface exists on the driving display.
+- The driving display has no visible touch target; a stationary 700 ms hold is the
+  sole entry to large settings controls.
   Physical glanceability, color perception, daylight/night brightness, glare, and motion
   remain `HARDWARE`/`JUDGMENT` verification.
 

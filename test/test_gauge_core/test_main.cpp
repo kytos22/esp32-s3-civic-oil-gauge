@@ -1,13 +1,31 @@
 #include <unity.h>
 
 #include <cmath>
+#include <initializer_list>
 
 #include "gauge_core.h"
+#include "ads1115_protocol.h"
+#include "gauge_settings.h"
 #include "demo_sequence.h"
+#include "display_clock_profile.h"
+#include "display_profile.h"
+#include "frame_slot_policy.h"
+#include "warning_tone_gate.h"
 
 using namespace oilgauge;
 
 namespace {
+
+void test_ads1115_single_shot_config_and_voltage_scale() {
+  TEST_ASSERT_EQUAL_HEX16(0xC383, ads1115SingleShotConfig(0));
+  TEST_ASSERT_EQUAL_HEX16(0xD383, ads1115SingleShotConfig(1));
+  TEST_ASSERT_EQUAL_HEX16(0xE383, ads1115SingleShotConfig(2));
+  TEST_ASSERT_EQUAL_HEX16(0xF383, ads1115SingleShotConfig(3));
+  TEST_ASSERT_EQUAL_HEX16(0xC383, ads1115SingleShotConfig(7));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-12, 0.0, ads1115RawToVolts(0));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-9, 4.095875, ads1115RawToVolts(32767));
+  TEST_ASSERT_DOUBLE_WITHIN(1e-9, -4.096, ads1115RawToVolts(-32768));
+}
 
 void test_restore_divider() {
   TEST_ASSERT_DOUBLE_WITHIN(1e-9, 5.0,
@@ -128,14 +146,17 @@ void test_temperature_state_boundaries() {
   };
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::belowRange), state(49.9));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(50.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(69.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(70.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(74.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(75.0));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(93.9));
-  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(94.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::cold), state(59.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(60.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warming), state(75.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(76.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::optimal), state(95.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(96.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::hot), state(100.0));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::veryHot), state(100.1));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::veryHot), state(119.9));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warning), state(120.0));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureState::warning), state(140.0));
 }
 
 void test_temperature_color_stops_and_interpolation() {
@@ -147,12 +168,12 @@ void test_temperature_color_stops_and_interpolation() {
   };
   constexpr Case cases[] = {
       {50.0, 30, 132, 255},
-      {57.0, 30, 132, 255},
-      {75.0, 174, 205, 167},
-      {89.0, 174, 205, 167},
-      {94.0, 234, 190, 82},
+      {59.0, 30, 132, 255},
+      {76.0, 174, 205, 167},
+      {90.0, 234, 190, 82},
       {100.0, 255, 118, 28},
-      {138.0, 255, 45, 56},
+      {120.0, 255, 45, 56},
+      {140.0, 255, 45, 56},
       {147.0, 255, 45, 56},
   };
   for (const Case& expected : cases) {
@@ -162,10 +183,28 @@ void test_temperature_color_stops_and_interpolation() {
     TEST_ASSERT_EQUAL_UINT8(expected.blue, actual.blue);
   }
 
-  const RgbColor midpoint = temperatureColor(66.0);
-  TEST_ASSERT_EQUAL_UINT8(102, midpoint.red);
-  TEST_ASSERT_EQUAL_UINT8(169, midpoint.green);
-  TEST_ASSERT_EQUAL_UINT8(211, midpoint.blue);
+  const RgbColor midpoint = temperatureColor(83.0);
+  TEST_ASSERT_EQUAL_UINT8(204, midpoint.red);
+  TEST_ASSERT_EQUAL_UINT8(198, midpoint.green);
+  TEST_ASSERT_EQUAL_UINT8(125, midpoint.blue);
+}
+
+void test_temperature_warning_blinks_only_dynamic_indicator() {
+  const ConvertedValue pressure{45.0, Fault::none};
+  const ConvertedValue temperature{120.0, Fault::none};
+  const EngineState running{true, 2500};
+
+  const DisplayState blinkOff =
+      evaluateDisplayState(pressure, temperature, running, false, false);
+  const DisplayState blinkOn =
+      evaluateDisplayState(pressure, temperature, running, true, false);
+  const DisplayState fixed =
+      evaluateDisplayState(pressure, temperature, running, false, true);
+  TEST_ASSERT_FALSE(blinkOff.temperatureAttentionVisible);
+  TEST_ASSERT_TRUE(blinkOn.temperatureAttentionVisible);
+  TEST_ASSERT_TRUE(fixed.temperatureAttentionVisible);
+  TEST_ASSERT_EQUAL_DOUBLE(blinkOff.temperatureBarFraction,
+                           blinkOn.temperatureBarFraction);
 }
 
 void test_display_state_warning_motion_and_bars() {
@@ -221,6 +260,202 @@ void test_demo_sequence_hits_scenes_and_wraps() {
   TEST_ASSERT_EQUAL_UINT32(0, wrapped.rpm);
 }
 
+void test_ac06_warning_blink_is_binary_two_hertz() {
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(0));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(249'999));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(250'000));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(499'999));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(500'000));
+  TEST_ASSERT_FALSE(warningBlinkPhaseOn(750'000));
+  TEST_ASSERT_TRUE(warningBlinkPhaseOn(1'000'000));
+}
+
+void test_display_profile_feeds_the_sixty_hertz_panel() {
+  TEST_ASSERT_EQUAL_UINT32(15U, kUiFramePeriodMs);
+  TEST_ASSERT_EQUAL_UINT32(60U, kDisplayTargetFps);
+}
+
+void test_ac41_frame_snapshots_never_overwrite_dma() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::inFlight, 8},
+      {FrameSlotState::ready, 7},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectSnapshotSlot(slots));
+
+  const FrameSlotMetadata protectedSlots[] = {
+      {FrameSlotState::inFlight, 8},
+      {FrameSlotState::snapshot, 9},
+  };
+  TEST_ASSERT_EQUAL_INT(-1, selectSnapshotSlot(protectedSlots));
+}
+
+void test_ac41_frame_snapshots_reuse_oldest_ready_generation() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::ready, 12},
+      {FrameSlotState::ready, 9},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectSnapshotSlot(slots));
+}
+
+void test_ac41_presenter_selects_only_the_newest_complete_frame() {
+  const FrameSlotMetadata slots[] = {
+      {FrameSlotState::ready, 31},
+      {FrameSlotState::ready, 32},
+  };
+  TEST_ASSERT_EQUAL_INT(1, selectNewestReadySlot(slots));
+
+  const FrameSlotMetadata unavailable[] = {
+      {FrameSlotState::snapshot, 33},
+      {FrameSlotState::inFlight, 32},
+  };
+  TEST_ASSERT_EQUAL_INT(-1, selectNewestReadySlot(unavailable));
+}
+
+void test_ac41_qspi_bounce_profile_stays_inside_reserved_internal_dma() {
+  constexpr std::uint32_t bytesPerRow = 480U * 2U;
+  constexpr std::uint32_t queuedBytes =
+      bytesPerRow * OIL_GAUGE_DISPLAY_TRANSFER_ROWS *
+      OIL_GAUGE_DISPLAY_QUEUE_DEPTH;
+
+  TEST_ASSERT_EQUAL_UINT32(80'000'000U, OIL_GAUGE_DISPLAY_QSPI_HZ);
+  TEST_ASSERT_EQUAL_UINT32(8U, OIL_GAUGE_DISPLAY_TRANSFER_ROWS);
+  TEST_ASSERT_EQUAL_UINT32(3U, OIL_GAUGE_DISPLAY_QUEUE_DEPTH);
+  TEST_ASSERT_LESS_OR_EQUAL_UINT32(24U * 1024U, queuedBytes);
+}
+
+void test_ac32_warning_tone_gate_starts_and_stops_loop() {
+  WarningToneGate gate;
+
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::none),
+                        static_cast<int>(gate.update(false)));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::startLoop),
+                        static_cast<int>(gate.update(true)));
+  TEST_ASSERT_TRUE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::none),
+                        static_cast<int>(gate.update(true)));
+  TEST_ASSERT_TRUE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::stopLoop),
+                        static_cast<int>(gate.update(false)));
+  TEST_ASSERT_FALSE(gate.warningActive());
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningToneCommand::startLoop),
+                        static_cast<int>(gate.update(true)));
+}
+
+void test_settings_are_sanitized_to_safe_ranges() {
+  GaugeSettings settings;
+  settings.brightnessPercent = 0;
+  settings.warningVolumePercent = 255;
+  settings.lowPressureWarningPsi = 0;
+  settings.startupLogoSeconds = 255;
+  settings.pressureUnit = static_cast<PressureUnit>(99);
+  settings.temperatureUnit = static_cast<TemperatureUnit>(99);
+  settings.warningVisualMode = static_cast<WarningVisualMode>(99);
+  settings.dataSource = static_cast<DataSource>(99);
+
+  const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
+  TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
+  TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
+  TEST_ASSERT_EQUAL_UINT8(1, sanitized.lowPressureWarningPsi);
+  TEST_ASSERT_EQUAL_UINT8(10, sanitized.startupLogoSeconds);
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(PressureUnit::psi),
+                        static_cast<int>(sanitized.pressureUnit));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(TemperatureUnit::celsius),
+                        static_cast<int>(sanitized.temperatureUnit));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(WarningVisualMode::elementsBlink),
+                        static_cast<int>(sanitized.warningVisualMode));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::demo),
+                        static_cast<int>(sanitized.dataSource));
+}
+
+void test_configurable_pressure_warning_threshold_controls_state() {
+  const ConvertedValue pressure{12.0, Fault::none};
+  const EngineState running{true, 1800};
+
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::warning),
+      static_cast<int>(evaluatePressureState(pressure, running, 12.0)));
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::low),
+      static_cast<int>(evaluatePressureState(pressure, running, 10.0)));
+  TEST_ASSERT_EQUAL_INT(
+      static_cast<int>(PressureState::engineStopped),
+      static_cast<int>(evaluatePressureState(pressure, {true, 0}, 30.0)));
+}
+
+void test_warning_threshold_uses_selected_display_unit() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 10.0, warningThresholdForDisplay(10, PressureUnit::psi));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-6, 0.689475729, warningThresholdForDisplay(10, PressureUnit::bar));
+  TEST_ASSERT_EQUAL_UINT8(
+      10, warningThresholdPsiFromDisplay(0.7, PressureUnit::bar));
+  TEST_ASSERT_EQUAL_UINT8(
+      18, warningThresholdPsiFromDisplay(18.0, PressureUnit::psi));
+}
+
+void test_sensor_source_can_be_selected_without_enabling_fake_values() {
+  GaugeSettings settings;
+  settings.dataSource = DataSource::sensors;
+
+  const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::sensors),
+                        static_cast<int>(sanitized.dataSource));
+}
+
+void test_full_screen_warning_uses_an_independent_half_hertz_cycle() {
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(0));
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(999'999));
+  TEST_ASSERT_FALSE(fullScreenWarningPhaseOn(1'000'000));
+  TEST_ASSERT_FALSE(fullScreenWarningPhaseOn(1'999'999));
+  TEST_ASSERT_TRUE(fullScreenWarningPhaseOn(2'000'000));
+
+  const WarningPresentation red = evaluateWarningPresentation(
+      WarningVisualMode::fullScreenBlink, true, false, true);
+  TEST_ASSERT_TRUE(red.attentionVisible);
+  TEST_ASSERT_TRUE(red.fullScreenRedVisible);
+  TEST_ASSERT_TRUE(red.pressureValueVisible);
+}
+
+void test_pressure_units_convert_only_the_display_value() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 61.0, pressureForDisplay(61.0, PressureUnit::psi));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-6, 4.205802, pressureForDisplay(61.0, PressureUnit::bar));
+}
+
+void test_temperature_units_convert_only_the_display_value() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 50.0, temperatureForDisplay(50.0, TemperatureUnit::celsius));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 122.0, temperatureForDisplay(50.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 167.0, temperatureForDisplay(75.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 201.2, temperatureForDisplay(94.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9, 212.0, temperatureForDisplay(100.0, TemperatureUnit::fahrenheit));
+}
+
+void test_full_screen_warning_never_hides_pressure_number() {
+  for (const bool phaseOn : {false, true}) {
+    const WarningPresentation presentation = evaluateWarningPresentation(
+        WarningVisualMode::fullScreenBlink, true, true, phaseOn);
+    TEST_ASSERT_TRUE(presentation.pressureValueVisible);
+    TEST_ASSERT_EQUAL(phaseOn, presentation.fullScreenRedVisible);
+  }
+
+  const WarningPresentation elementsOff = evaluateWarningPresentation(
+      WarningVisualMode::elementsBlink, true, false, true);
+  TEST_ASSERT_FALSE(elementsOff.attentionVisible);
+  TEST_ASSERT_TRUE(elementsOff.pressureValueVisible);
+
+  const WarningPresentation fixed = evaluateWarningPresentation(
+      WarningVisualMode::fixed, true, false, false);
+  TEST_ASSERT_TRUE(fixed.attentionVisible);
+  TEST_ASSERT_FALSE(fixed.fullScreenRedVisible);
+  TEST_ASSERT_TRUE(fixed.pressureValueVisible);
+}
+
 }  // namespace
 
 void setUp() {}
@@ -228,6 +463,7 @@ void tearDown() {}
 
 int main(int, char**) {
   UNITY_BEGIN();
+  RUN_TEST(test_ads1115_single_shot_config_and_voltage_scale);
   RUN_TEST(test_restore_divider);
   RUN_TEST(test_thermistor_resistance_midscale);
   RUN_TEST(test_thermistor_rejects_open_and_short);
@@ -239,8 +475,24 @@ int main(int, char**) {
   RUN_TEST(test_pressure_state_boundaries_and_engine_gate);
   RUN_TEST(test_temperature_state_boundaries);
   RUN_TEST(test_temperature_color_stops_and_interpolation);
+  RUN_TEST(test_temperature_warning_blinks_only_dynamic_indicator);
   RUN_TEST(test_display_state_warning_motion_and_bars);
   RUN_TEST(test_demo_sequence_interpolates_smoothly);
   RUN_TEST(test_demo_sequence_hits_scenes_and_wraps);
+  RUN_TEST(test_ac06_warning_blink_is_binary_two_hertz);
+  RUN_TEST(test_display_profile_feeds_the_sixty_hertz_panel);
+  RUN_TEST(test_ac41_frame_snapshots_never_overwrite_dma);
+  RUN_TEST(test_ac41_frame_snapshots_reuse_oldest_ready_generation);
+  RUN_TEST(test_ac41_presenter_selects_only_the_newest_complete_frame);
+  RUN_TEST(test_ac41_qspi_bounce_profile_stays_inside_reserved_internal_dma);
+  RUN_TEST(test_ac32_warning_tone_gate_starts_and_stops_loop);
+  RUN_TEST(test_settings_are_sanitized_to_safe_ranges);
+  RUN_TEST(test_configurable_pressure_warning_threshold_controls_state);
+  RUN_TEST(test_warning_threshold_uses_selected_display_unit);
+  RUN_TEST(test_sensor_source_can_be_selected_without_enabling_fake_values);
+  RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);
+  RUN_TEST(test_pressure_units_convert_only_the_display_value);
+  RUN_TEST(test_temperature_units_convert_only_the_display_value);
+  RUN_TEST(test_full_screen_warning_never_hides_pressure_number);
   return UNITY_END();
 }

@@ -31,16 +31,20 @@
   without one. The user accepted proceeding without one on 2026-08-04; the current
   USB/IP route stopped a 16 MB read and a chunked retry, and two 1 MB chunks remain
   incomplete evidence only.
-- [ ] Confirm clean visible `DEMO` labeling. The first physical photo showed glyph
-  fragments from concurrent compressed-font rendering; serialized app `701d0b4` is
-  now flashed and awaits a straight-on confirmation photo.
+- [x] Confirm clean visible `DEMO` labeling. The 2026-08-14 user photo and complete
+  60 FPS demo video show intact text and accents with no earlier glyph fragments.
 - [x] Save the boot/reset log (serialized app `701d0b4`, 2026-08-04; display/touch
   initialized with no error, reset, or watchdog after startup).
 - [x] Save a bounded completed-frame FPS log (app `3e0298a`, 2026-08-04; eight
   consecutive windows at 65–67 FPS on the locally recorded exact board).
+- [x] Save a bounded warning-audio/FPS log (app `bf5c932`, 2026-08-11; three
+  completed tone paths and 29 consecutive windows at 66–77 FPS).
+- [x] Confirm the integrated-speaker double beep is physically audible (Marcos,
+  2026-08-11).
 - [ ] Save the I²C scan.
 - [ ] Confirm built-in peripheral addresses and no conflict at 0x48.
-- [ ] Connect ADS1115 only to 3V3/GND/SDA15/SCL14.
+- [x] Connect ADS1115 only to 3V3/GND/SDA15/SCL14; Marcos measured 3.3 V at VDD
+  before any sensor connection on 2026-08-16.
 - [ ] Verify all four ADC channels first at ground and through a safe 3.3 V divider.
 
 ## MTX-D remains installed

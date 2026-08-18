@@ -1,6 +1,6 @@
 # Research and Sources
 
-Evidence cutoff: **2026-07-30**. Current purchasing/status information can drift;
+Evidence cutoff: **2026-08-14**. Current purchasing/status information can drift;
 reverify before ordering.
 
 ## Confirmed facts
@@ -20,11 +20,25 @@ reverify before ordering.
   pump/switch where pulsation is severe.
 - OUT supports MTS/LogWorks logging.
 
+### Pressure transfer-function evidence
+
+- The official `12-0074` product page confirms only P/N, 0–150 PSI / 10 bar,
+  and MTX-D/ECF-1 compatibility in its public text.
+- Innovate document `11-0161A` describes a separate "10 BAR (150 PSI)
+  Pressure Sensor with SSI-4 PLUS Adapter": red to the SSI-4 PLUS 5 V terminal,
+  black to ground, white to channel positive, and a three-pin sensor connector.
+  It gives `0 PSI = 0.5 V` and `150 PSI = 4.5 V`.
+- No consulted official source explicitly states that the sensor in `11-0161A`
+  is P/N `12-0074`, that both use the same internal transducer, or which physical
+  pins/08-0256C colours carry excitation and signal. The matching range makes
+  `5 V / 0.5–4.5 V` the leading hypothesis, not a confirmed 12-0074 calibration.
+
 Sources:
 
 - [MTX-D product](https://www.innovatemotorsports.com/mtx-d-oil-pressure-temperature.html)
 - [MTX-D manual](https://www.innovatemotorsports.com/wp/content/uploads/2022/05/MTX-D-Oil-Press-Temp.pdf)
 - [Pressure sensor](https://www.innovatemotorsports.com/sensor-pressure-0-150-psi-10-bar-for-mtx-d-ecf-1.html)
+- [11-0161A 10 bar sensor with SSI-4 PLUS adapter](https://www.innovatemotorsports.com/wp/content/uploads/2022/05/11-0161A-10-BAR-Pressure-Sensor_2pg.pdf)
 - [Programming cable](https://www.innovatemotorsports.com/program-cable-mtx-series-gauges-lm-2-lc-2-scg-1-psb-1-and-psn-1.html)
 - [LogWorks manual](https://www.innovatemotorsports.com/wp/content/uploads/2022/08/LogWorks3_Manual.pdf)
 
@@ -50,6 +64,43 @@ Sources:
 - [schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.16/ESP32-S3-Touch-AMOLED-2.16-Schematic.pdf)
 - [Espressif component](https://components.espressif.com/components/waveshare/esp32_s3_touch_amoled_2_16)
 
+### Ambient-light sensing for automatic brightness
+
+- The Waveshare onboard-resource list and complete three-page schematic contain no
+  ambient-light sensor. The display therefore cannot measure cabin illumination by
+  itself.
+- A true digital ambient-light sensor can share the exposed 3.3 V I²C bus on GPIO14
+  and GPIO15 with the ADS1115. The final board must reuse the Waveshare's existing
+  2.2 kΩ pull-ups rather than adding another strong pair.
+- Preferred final-vehicle candidate: TI `OPT4001-Q1`. It is AEC-Q100 qualified,
+  operates from 1.6–3.6 V, has selectable I²C addressing, human-eye spectral
+  response with infrared rejection, and supports automatic-ranging measurements.
+  A non-conflicting address must be fixed in the final schematic and verified by an
+  I²C scan.
+- Easier bench candidate: Vishay `VEML7700`, powered at 3.3 V over I²C. It measures
+  approximately 0–140 klx and rejects 100/120 Hz lighting flicker, but its cited
+  datasheet does not provide the `-Q1` automotive qualification required for the
+  final in-car PCB.
+- The already reserved protected lighting input on ADS1115 A3 is a separate binary
+  alternative: it can report that the vehicle illumination circuit is energized,
+  but it does not measure actual ambient lux and cannot react correctly to every
+  tunnel, shadow, glare, or daytime-headlights case.
+- Any optical sensor needs a clear or characterized dark window facing cabin/
+  windshield light, not an opaque enclosure. Firmware must use filtering, hysteresis,
+  a minimum dwell time, gradual brightness ramps, and a manual brightness fallback so
+  passing shadows do not make the AMOLED pump visibly.
+- Automatic brightness and manual `DÍA`/`NOCHE` presets remain deferred. No light
+  sensor is added to the current BOM until packaging and the final analog PCB are
+  selected.
+
+Sources:
+
+- [Waveshare board resources](https://docs.waveshare.com/ESP32-S3-Touch-AMOLED-2.16)
+- [Waveshare schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.16/ESP32-S3-Touch-AMOLED-2.16-Schematic.pdf)
+- [TI OPT4001-Q1](https://www.ti.com/product/OPT4001-Q1)
+- [TI automotive-display ambient-light note](https://www.ti.com/lit/ab/sboa359/sboa359.pdf)
+- [Vishay VEML7700](https://www.vishay.com/en/product/84286/)
+
 ### ADC and automotive supply
 
 - ADS1115-Q1: four single-ended channels, 16 bits, 8–860 SPS, PGA, internal
@@ -69,14 +120,17 @@ Sources:
 
 ## Open measurements
 
-1. Real P/N 12-0074 pinout and excitation.
-2. Pressure transfer function.
+1. Real P/N 12-0074 pinout and excitation; test the official adjacent-sensor
+   `5 V` hypothesis without assigning pins from colour.
+2. Confirm or reject the candidate `0.5–4.5 V = 0–150 PSI` transfer function.
 3. P/N 15-0049 R/T curve and tolerance.
 4. Exact installed harness connectors.
 5. MTX-D MTS channel content/order.
 6. Waveshare peak current with final UI.
 7. Enclosure temperature in the vehicle mount.
 8. Evidence-backed source and semantics for engine-running/RPM state.
+9. Ambient-light sensor optical placement, cover-window transmission, lux thresholds,
+   hysteresis, and brightness mapping if automatic brightness is selected later.
 
 None is resolved by assumption; each has a procedure in `CALIBRATION.md` or
 `ARRIVAL_CHECKLIST.md`.

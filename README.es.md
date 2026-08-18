@@ -45,6 +45,11 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Estados explícitos de frío, calentando, óptimo, caliente y muy caliente.
 - El aviso de presión baja depende del estado del motor; un motor parado no
   genera una falsa alarma.
+- Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
+  unidad seleccionada y conservado internamente en PSI.
+- Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
+- Un doble pitido no bloqueante por el altavoz integrado cuando la demo entra
+  en aviso de presión baja; no se repite mientras el aviso siga activo.
 - Por debajo del rango útil del sensor se muestra `<50` en lugar de inventar
   precisión.
 - El significado de los avisos nunca depende únicamente del color.

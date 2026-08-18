@@ -100,8 +100,8 @@ DisplayState evaluateDisplayState(
 ```
 
 Uses the canonical state functions. In warning state, attention elements are visible
-when the 1 Hz phase is on, or continuously when reduced motion is requested. Pressure
-and temperature bars normalize to 0–150 PSI and 50–138 °C.
+when the caller-provided binary 2 Hz phase is on, or continuously when reduced motion
+is requested. Pressure and temperature bars normalize to 0–150 PSI and 50–138 °C.
 
 ## Diagnostic names
 
@@ -121,3 +121,13 @@ const oilgauge::DisplayState state = oilgauge::evaluateDisplayState(
 
 This produces pressure `warning`, temperature `optimal`, red pressure attention, and
 the interpolated optimal temperature color. No sensor conversion is implied.
+
+### `warningBlinkPhaseOn()`
+
+```cpp
+bool warningBlinkPhaseOn(std::uint64_t nowUs);
+```
+
+Returns `true` for 250 ms and `false` for 250 ms, repeating as a deterministic
+binary 2 Hz cycle. The renderer maps the false phase to full transparency; the
+function does not affect reduced-motion behavior or the numeric pressure value.

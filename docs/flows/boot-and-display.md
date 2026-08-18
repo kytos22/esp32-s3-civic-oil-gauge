@@ -6,36 +6,30 @@ Switched 5 V power reaches the Waveshare board after the protected automotive su
 
 ## Steps
 
-1. Firmware starts serial logging and initializes I²C on GPIO15/GPIO14.
-2. Firmware scans I²C and reports discovered addresses.
-3. Firmware initializes the CO5300 AMOLED.
-4. Firmware probes ADS1115 address 0x48.
-5. Firmware reads demo-mode and calibration validity.
-6. It selects exactly one display mode:
-   - demo enabled → labeled simulated screen;
-   - demo disabled + ADC present + calibration invalid → raw ADC only;
-   - demo disabled + ADC absent → explicit missing-ADC fault;
-   - demo disabled + ADC present + validated calibration → calibrated 50/50 oil screen.
-7. During operation, each sample is converted with a fault state, filtered, mapped to semantic states, then rendered.
-8. Any invalid input replaces the affected measurement with an explicit fault; no last-known value is silently held as current.
+1. Firmware starts serial logging and initializes the CO5300 AMOLED and touch input.
+2. Firmware loads sanitized preferences from NVS, using compile-time defaults when
+   the namespace or an individual key is absent.
+3. It selects exactly one current display source:
+   - `DEMO` → the labeled synthetic screen;
+   - `SENSORES` → `--` and `SIN DATOS`, with no ADS1115 acquisition or conversion.
+4. During demo operation, each synthetic sample is mapped to semantic states and
+   rendered. The sensor path remains calibration-gated until a later evidence-backed
+   slice implements it.
+5. Any future invalid real input must replace the affected measurement with an
+   explicit fault; no last-known value may be silently held as current.
 
 ```mermaid
 flowchart TD
-  A["Power on"] --> B["Initialize serial, I2C and AMOLED"]
-  B --> C{"Demo mode?"}
-  C -- yes --> D["Labeled DEMO screen"]
-  C -- no --> E{"ADS1115 present?"}
-  E -- no --> F["ADC missing fault"]
-  E -- yes --> G{"Both calibrations valid?"}
-  G -- no --> H["Raw ADC only"]
-  G -- yes --> I["Calibrated 50/50 oil screen"]
-  I --> J{"Sample valid?"}
-  J -- no --> K["Explicit sensor fault"]
-  J -- yes --> I
+  A["Power on"] --> B["Initialize serial, AMOLED and touch"]
+  B --> C["Load sanitized NVS settings"]
+  C --> D{"Selected source?"}
+  D -- DEMO --> E["Labeled synthetic gauge"]
+  D -- SENSORES --> F["No data and calibration pending"]
+  F --> G["No acquisition or engineering-unit values"]
 ```
 
 ## Recovery
 
-- ADC/display initialization is retried only through a controlled reboot until a future recovery policy is specified.
+- Display initialization is retried only through a controlled reboot until a future recovery policy is specified.
 - A missing calibration cannot be bypassed by a UI action.
 - Brownout/restart returns to the same gated decision tree.

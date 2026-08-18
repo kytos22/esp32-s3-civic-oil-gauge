@@ -314,3 +314,978 @@
   likely to omit important grants, notices or remedies.
 - Supersedes: D-001, D-024 and the technical-plan license status only where they
   record that no public distribution license had yet been selected.
+
+## D-029 — Update Keel copies before deferred reconciliation
+- Date / phase: 2026-08-10 / Phase 5 maintenance of project workflow
+- Decision: Update the installed and both embedded Keel copies from v5.3.2 to v5.13.0, keep the project baseline at v5.3.2, and record the required post-update reconciliation as pending until the new user-choice rows are answered in one batch.
+- Why: Keel's update check found v5.13.0. Its mandatory reconciliation introduces user-owned choices that must not be inferred, while the immediate sensor-wiring question is safety-critical and can be answered read-only without connecting hardware.
+- Alternatives rejected (and why): Silently infer the new choices; they control pushes and public issue activity. Block the electrical safety guidance; withholding it would increase the risk of an unsafe direct connection.
+- Supersedes: none.
+
+## D-030 — Use ADS1115 only in the replacement gauge
+- Date / phase: 2026-08-10 / Phase 5 direct-sensor characterization
+- Decision: Implement production oil acquisition through the ADS1115 only. Do
+  not include MAX3232E/TRS3232E or an embedded MTX-D serial receiver. If MTS is
+  useful during calibration, connect the existing MTX-D to the laptop through
+  its Innovate cable and a real RS-232 or USB-to-RS-232 interface.
+- Why: Marcos will use the laptop for any serial capture and wants the new gauge
+  to acquire the installed sensors directly.
+- Alternatives rejected (and why): An embedded RS-232 receiver; it duplicates
+  calibration equipment and would require retaining the powered MTX-D.
+- Supersedes: the embedded Route B option in the prior architecture; laptop MTS
+  remains a non-production calibration reference.
+
+## D-031 — Use a non-blocking entry cue for demo pressure warning
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5
+- Decision: Use the Waveshare board's ES8311 codec and integrated speaker to play
+  one 2.2 kHz double beep (120 ms on, 90 ms off, 120 ms on) when the demo enters
+  the pressure-warning state. Re-arm only after warning clears, run playback in a
+  separate FreeRTOS task, and treat audio initialization failure as silent degraded
+  operation rather than blocking the display.
+- Why: Marcos requested an audible indication when the demo passes through warning;
+  an entry-only cue exercises the speaker without continuously alarming during the
+  synthetic warning scene or disturbing the measured 60 FPS renderer path.
+- Alternatives rejected (and why): Continuous tone; too intrusive for a demo.
+  Blocking PCM writes in the UI loop; they would stall rendering. Driving GPIO46
+  as a buzzer; it is the power-amplifier enable, while audio data belongs on the
+  onboard ES8311/I²S path.
+- Supersedes: none.
+
+## D-032 — Add refresh headroom for warning-audio playback
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Schedule both application updates and LVGL refreshes every 14 ms while
+  retaining one software draw unit, the existing seven-scene timing, and the
+  approved visual behavior.
+- Why: The first exact-board audio build normally measured 62–67 completed FPS,
+  but periodic warning entries produced 58–59 FPS windows. Fourteen milliseconds
+  adds headroom for codec playback without altering the gauge states or layout.
+- Alternatives rejected (and why): Accept the average; Marcos requires a measured
+  minimum of 60 FPS. Restore parallel draw units; D-020 records physical glyph
+  corruption. Remove the audio cue; it is the accepted Sprint 5 behavior.
+- Supersedes: D-022 only for its 15 ms cadence. Its fractional-pixel bars, linear
+  interpolation, measured minimum, and single-draw-unit constraints remain active.
+
+## D-033 — Isolate warning-audio work from UI state updates
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Pin the warning-audio worker to CPU1 at priority 4 and write PCM in
+  512-sample chunks. Keep the application/UI update loop on its configured CPU0
+  and retain LVGL's higher priority 6 worker.
+- Why: D-032 improved two warning entries to 61–64 FPS, but a longer exact-board
+  run exposed a third 58 FPS window. The unpinned priority-4 audio task could run
+  on CPU0 ahead of the priority-1 application loop; isolating it removes that
+  contention while preserving the non-blocking double beep.
+- Alternatives rejected (and why): Keep reducing the global refresh period; that
+  raises constant display load instead of isolating a periodic task. Lower audio
+  to priority 1 without affinity; it can still time-slice on CPU0. Remove audio;
+  it is the accepted Sprint 5 behavior.
+- Supersedes: D-031 only for worker affinity and PCM chunk size; its tone, timing,
+  entry gate, volume policy, and silent-degradation behavior remain active.
+
+## D-034 — Use a 13 ms cadence for repeated warning headroom
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 hardware verification
+- Decision: Schedule application updates and LVGL refresh every 13 ms while
+  retaining D-033 audio isolation and every approved visual/audio behavior.
+- Why: The first long D-033 exact-board run completed three tones. Normal windows
+  were 65–72 FPS, but the third tone still produced one 59 FPS window. A 13 ms
+  cadence raises nominal headroom to about 77 completed frames per second.
+- Alternatives rejected (and why): Accept 59 FPS as measurement noise; the explicit
+  requirement is a measured minimum of 60. Jump directly to 12 ms; 13 ms should
+  provide sufficient margin with less constant display work and must be measured.
+- Supersedes: D-032 for the active cadence only; D-032 remains the evidence-backed
+  record of why 15 ms and then 14 ms were attempted.
+
+## D-035 — Accept the exact-board warning-audio result
+- Date / phase: 2026-08-11 / Phase 5, Sprint 5 acceptance
+- Decision: Accept app `bf5c932` as the completed Sprint 5 warning-audio result
+  and close AC-32 after Marcos confirmed the integrated-speaker double beep is
+  physically audible.
+- Why: All four flash regions were hash-verified, the retained bounded log records
+  three completed tone paths and 29 consecutive 66–77 FPS windows without a panic,
+  watchdog, or audio error, and the remaining physical judgment is now confirmed.
+- Alternatives rejected (and why): Keep Sprint 5 open; no acceptance criterion
+  remains outstanding. Treat this as calibrated vehicle-alarm proof; sensor curves
+  and vehicle alarm semantics remain separately safety-gated.
+- Supersedes: none.
+
+## D-036 — Accept the indoor physical UI result
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 acceptance
+- Decision: Accept the flashed demo's indoor 480×480 visual match and close AC-20,
+  AC-23, and Sprint 1 from the user-supplied photo and complete 60 FPS video.
+- Why: The 28.423-second physical cycle shows every long and short pressure and
+  temperature state, intact Spanish accents, centered values, binding icons, 9 px
+  bars, pure-black presentation, and the exact 50/50 split without glyph corruption,
+  clipping, or overlap. Sequential warning frames prove that the intermittent
+  warning label/icon/bar are the intended 1 Hz blink while the numeric pressure
+  remains visible.
+- Alternatives rejected (and why): Treat blink-off frames as renewed rendering
+  corruption; adjacent frames show a regular on/off sequence and all static text
+  remains intact. Treat the desk capture as daylight/night or vehicle-motion proof;
+  those environmental judgments were not exercised and remain open.
+- Supersedes: none.
+
+## D-037 — Use a hard 2 Hz pressure-warning blink
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 visual correction
+- Decision: The pressure warning icon, label, and bar use a binary 2 Hz blink:
+  250 ms fully visible and 250 ms fully transparent. The numeric pressure remains
+  continuously visible. Reduced-motion mode remains fixed red.
+- Why: Marcos observed that the former low-opacity phase looks dotted on the
+  physical AMOLED and requested a faster, cleaner warning animation. A fully
+  transparent off phase avoids panel/dithering artifacts instead of presenting a
+  dimmed warning as intentional content.
+- Alternatives rejected (and why): Keep the 20% opacity phase; it is the reported
+  visual defect. Keep the 1 Hz cycle; Marcos explicitly selected 2 Hz. Blink the
+  numeric value; it would reduce the continuously readable measurement.
+- Supersedes: D-007 for warning frequency and D-036 only for acceptance of the
+  former warning-off appearance; their other safety and visual conclusions remain.
+
+## D-038 — Add a long-press settings surface and separate the thermometer marks
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: Add a settings surface opened by a 700 ms press-and-hold anywhere on
+  the gauge. Its required controls are AMOLED brightness, warning-sound volume,
+  and data-source mode. Redraw the oil-temperature icon with a taller thermometer
+  stem and all three horizontal marks raised so no mark intersects the oil waves.
+- Why: Marcos requested on-device adjustment without adding visible controls to the
+  driving screen, and the current lowest thermometer mark reaches the wave stroke
+  in the native geometry.
+- Safety constraint: A runtime `SENSORES`/normal choice may be shown but must remain
+  disabled with an explicit `CALIBRACIÓN PENDIENTE` reason until ADS1115 acquisition,
+  sensor calibrations, and AC-13 through AC-18 pass. It must never turn missing or
+  assumed sensor data into normal-looking values.
+- Undefined by this decision: exact menu composition beyond the three required
+  controls, persistence/reset behavior, interruption by an active warning, exit
+  behavior, and exact revised icon coordinates. These are registered in DR-001 and
+  block implementation until Marcos approves them.
+- Supersedes: the `no touch UI` assumption in the adopted design for the new settings
+  surface only; the driving gauge remains touch-control-free and visually unchanged
+  except for the thermometer icon.
+
+## D-039 — Accept the clean binary 2 Hz warning on the physical AMOLED
+- Date / phase: 2026-08-14 / Phase 5, Sprint 1 acceptance
+- Decision: Accept flashed app `002581d` as the corrected physical warning result.
+  Its current icon, label, and bar blink cleanly at 2 Hz with no dotted dim phase,
+  while the numeric pressure remains visible.
+- Why: Marcos explicitly confirmed that the current warning now looks clean. The
+  exact-board run already recorded 16 consecutive completed-frame windows at
+  64–77 FPS through repeated warning entries.
+- Alternatives rejected (and why): Keep the physical judgment open; the designated
+  user judgment is now present. Reintroduce an opacity fade; that was the artifact
+  corrected by D-037.
+- Supersedes: D-036 and D-037 only where they left physical acceptance pending.
+
+## D-040 — Approve settings v1 choices and defer manual day/night profiles
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: Approve the DR-001 menu hierarchy and interaction proposal, including
+  PSI/bar units. Keep the manual brightness slider, but defer manual `DÍA`/`NOCHE`
+  profiles while automatic ambient-light sensing is evaluated. The thermometer
+  stem must extend above the top of all three raised marks, and the lowest mark must
+  retain clear separation from the oil waves.
+- Why: Marcos approved the proposed menu, selected units, specified the final icon
+  relationship, and preferred investigating automatic light detection before adding
+  redundant manual profiles.
+- Open boundary: Marcos also requested an optional full-screen 2 Hz warning. Whether
+  its off phase may hide the pressure number remains unresolved in DR-001 and blocks
+  the consolidated design handoff.
+- Alternatives rejected (and why): Ship manual day/night presets now; they are
+  deliberately deferred. Treat the stem and marks as merely non-overlapping; the
+  stem must visibly protrude above them.
+- Supersedes: D-038 where it left these menu and icon details undefined.
+
+## D-041 — Keep pressure continuously visible in full-screen warning mode
+- Date / phase: 2026-08-14 / Phase 3 design extension
+- Decision: In selectable `PANTALLA 2 HZ` mode, alternate an opaque red full-screen
+  field for 250 ms with the normal black gauge for 250 ms. During the red phase,
+  redraw the centered pressure number in white above the field at its normal
+  position. The pressure number is never hidden in either phase.
+- Why: Marcos explicitly required that the number never disappear. Continuous
+  pressure readability is also the existing safety and accessibility invariant.
+- Alternatives rejected (and why): Blink or black out the complete screen including
+  the number; this would temporarily remove the primary measurement. Make the red
+  field translucent; the physical AMOLED already exposed an unwanted dotted
+  attenuation artifact.
+- Resolves: the final open boundary in D-040 and DR-001.
+
+## D-042 — Accept Sprint 6 as software-complete without flashing
+- Date / phase: 2026-08-14 / Phase 5, Sprint 6
+- Decision: Accept commit `65ebbfa` as the software-complete settings/menu build.
+  It passes 19/19 native tests, the complete Keel verifier, and an ESP-IDF 6.0.2
+  clean build producing a 750,720-byte app with SHA-256
+  `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
+  Do not mark the sprint physically complete and do not flash without a new explicit
+  authorization.
+- Why: The pure logic, integration contracts, and target compilation are evidenced,
+  while touch feel, visual fidelity, NVS across reboot, sound controls, and sustained
+  FPS require the exact display.
+- Safety boundary: Demo mode stays enabled; `SENSORES` remains disabled as
+  `CALIBRACIÓN PENDIENTE`; no ADS1115, Innovate harness, 12 V, or vehicle action is
+  authorized by this decision.
+
+## D-043 — Revise the physical Sprint 6 menu, full-screen warning, and audio edges
+- Date / phase: 2026-08-14 / Phase 5, Sprint 6 physical review
+- Decision: Allow `SENSORES` to be selected before acquisition/calibration, but show
+  an explicit no-data state and no numeric oil values. Keep the settings menu open
+  until the user closes it or a warning interrupts it; remove the inactivity
+  timeout. Change only `PANTALLA` warning mode to a 0.5 Hz complete cycle: one second
+  of the normal gauge and one second of a solid red warning carrying the always-
+  visible pressure number plus `PELIGRO` / `PRESIÓN MUY BAJA`. Present the red phase
+  as one prebuilt atomic overlay to remove the observed transition tearing. Ramp the
+  warning audio waveform to and from digital zero before muting/unmuting the codec
+  so the physical speaker does not produce the reported start/end puff.
+- Why: Marcos physically tested app `65ebbfa` and reported that sensor mode cannot be
+  selected, the menu appears to close on inactivity, the full-screen warning is too
+  sparse and tears during entry, and the speaker pops at both tone edges. He also
+  confirmed that settings persist across reboot.
+- Safety boundary: Selecting `SENSORES` does not enable ADS1115 acquisition, assumed
+  calibration, or real-looking values. It is an explicit unavailable-data screen.
+  Element-only warning remains the already accepted clean 2 Hz behavior.
+- Alternatives rejected (and why): Continue disabling `SENSORES`; Marcos explicitly
+  requested an off/demo state now. Keep the 10-second menu timeout; it conflicts with
+  the physical preference. Blink the complete red warning at 2 Hz or show only the
+  number; Marcos selected 0.5 Hz and requested the danger message. Hide the pressure
+  number; D-041 and the current request both require continuous visibility.
+- Supersedes: D-038/D-042 for the locked sensor selector, D-040/DR-001 for automatic
+  menu exit, and D-041 for full-screen warning cadence/content only. D-041's
+  continuously visible pressure invariant remains.
+
+## D-044 — Keep the codec active between warning tones
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 physical-review correction
+- Decision: Open and settle the ES8311 output once during audio initialization,
+  leave it unmuted at digital zero, and wrap every double beep with 40 ms zero-filled
+  segments in addition to the existing sample envelope. Do not toggle codec mute at
+  the start or end of an individual warning tone.
+- Why: The physical puff coincided with the former per-tone mute/unmute transitions.
+  A continuous zero-level stream avoids abrupt analogue state changes while keeping
+  the non-blocking warning worker and one-shot gate unchanged.
+- Verification boundary: The source contract and complete firmware build pass, but
+  absence of the physical puff still requires the exact board and explicit flash
+  authorization.
+- Supersedes: D-043 only where it described per-tone codec mute/unmute; its required
+  zero-amplitude tone edges and all other menu/warning decisions remain unchanged.
+
+## D-045 — Add Fahrenheit as a display unit and repair the BAR decimal glyph
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 review extension
+- Decision: Add a persistent Celsius/Fahrenheit temperature-unit preference. Keep
+  acquisition, state bands, colors, bar normalization, thresholds, and alarms in
+  canonical degrees Celsius; convert only the displayed temperature, unit, reference
+  labels, and simulator readout. Below the validated 50 °C floor, Fahrenheit mode
+  displays `<122 °F`. Regenerate the 96 px numeric font with the decimal-point glyph
+  required by one-decimal BAR values so LVGL never substitutes its missing-glyph box.
+- Why: Marcos requested Fahrenheit mode and reported a visible rectangle between the
+  BAR digits on the prior physical build. Inspection found that the renderer emits a
+  decimal point while the dedicated numeric font contains `-`, digits, and `<` but no
+  U+002E glyph.
+- Alternatives rejected (and why): Convert internal temperature thresholds to
+  Fahrenheit; it would duplicate safety logic and introduce rounding boundaries.
+  Draw the decimal with a smaller fallback font; it would not match the baseline or
+  preserve centered numeric typography.
+- Supersedes: none.
+
+## D-046 — Keep settings resident, loop warning audio, and use full-frame QSPI draw buffers
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 physical-review correction
+- Decision: A pressure warning never closes an already-open settings menu. While
+  settings owns the screen, the gauge renderer performs no background widget or
+  warning-overlay updates; it catches up from the current sample after `VOLVER`.
+  Warning audio repeats the existing ramped double beep for as long as the warning
+  remains active and stops when the warning clears or warning sound is disabled.
+  Keep the sound-test action as one isolated double beep. Use the BSP's public panel
+  and touch primitives from a project-owned display runtime, registering two 480x480
+  RGB565 PSRAM draw buffers instead of `bsp_display_start()`'s two 480x50 buffers,
+  so full-screen menu and red-warning invalidations are rendered and submitted as
+  one full-frame area rather than ten horizontal bands.
+- Why: Marcos physically confirmed the previous checks but observed tearing on both
+  the red warning and settings menu, requested a continuous warning-sound loop, and
+  required settings to remain resident without rendering the gauge behind it. Code
+  inspection confirms that the CO5300 is driven through `esp_lcd_panel` and
+  Espressif's LVGL adapter, but the pinned Waveshare BSP selects
+  `ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE` with double 50-line partial buffers.
+- Hardware boundary: The board BSP and pin map expose no CO5300 TE GPIO. Therefore
+  firmware cannot claim scan-synchronous tear elimination: full-frame buffering
+  removes the observed banded partial refresh mechanism, but the exact AMOLED still
+  requires physical judgment after a separately authorized flash. TE synchronization
+  would require evidence of a physically connected panel TE output.
+- Safety boundary: The warning is still evaluated while settings is visible and its
+  audio loop remains non-blocking. Demo mode stays enabled; no sensor, ADS1115, 12 V,
+  harness, or vehicle action is enabled.
+- Supersedes: D-043/AC-33/AC-38 only where warning closed settings, and D-044/AC-32
+  only where one double beep was requested per warning episode.
+
+## D-047 — Invalidate the full-screen warning only at visibility edges
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 exact-board correction
+- Decision: Keep the two full-height LVGL draw buffers, but change the 480×480 red
+  warning layer only when its visible/hidden state actually changes. Opening settings
+  explicitly hides that layer once, then the resident-menu early return prevents
+  background rendering. Log the persisted warning mode, sound state, and volume at
+  boot so physical audio evidence is self-contained.
+- Why: Exact-board app `728c4de` passed the write and boot gates but measured 44–56
+  FPS during every full-screen warning and never scheduled the lower-priority audio
+  loop. The renderer was clearing the already-clear hidden flag every 13 ms, causing
+  a complete 480×480 QSPI invalidation on every frame while red was visible. NVS
+  independently confirmed that warning sound was enabled at 77%, excluding a muted
+  setting as the cause.
+- Alternatives rejected (and why): Return to 50-line partial buffers; that restores
+  the reported band tearing. Raise the panel clock above the component's 40 MHz
+  default; no panel-limit evidence justifies overclocking. Raise only audio priority;
+  it would mask the unnecessary display work and leave the FPS failure.
+- Supersedes: D-046 only where it implied full-height buffers alone were sufficient;
+  its menu, audio-loop, demo, and no-TE boundaries remain active.
+
+## D-048 — Freeze the obscured gauge during each static red warning phase
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 exact-board correction
+- Decision: While the opaque full-screen warning is visible, update only its pressure
+  number and do not render the completely obscured gauge underneath. Pause the
+  completed-frame FPS assertion during that intentional one-second static red frame,
+  resume it after two seconds of dynamic gauge rendering, and log both transitions.
+- Why: Edge-gated app `7c3a7c5` proves five complete warning-audio loops, but still
+  measures 45–57 FPS while red because changing bars, labels, and values behind an
+  opaque 480×480 object make LVGL redraw their covered regions. A static warning has
+  no 60 FPS motion to measure; the meaningful requirement is at least 60 completed
+  FPS whenever the gauge is dynamically interpolating, plus physical judgment of
+  each 0.5 Hz red transition.
+- Alternatives rejected (and why): Keep rendering hidden content; it wastes both
+  cores and lowers display/audio headroom. Count an invisible animation to preserve
+  a nominal FPS number; D-022 already rejects counters that do not improve visible
+  motion. Report static frames as a failure; zero content changes do not define a
+  frame-rate requirement.
+- Supersedes: D-047 only where edge-gating alone was expected to remove all hidden
+  rendering; its 40 MHz panel-clock and no-overclock boundary remains active.
+
+## D-049 — Evaluate the gauge at a real 50 Hz cadence without a fictitious 50 MHz QSPI clock
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 performance experiment
+- Decision: Change the application and LVGL refresh period from 13 ms to 20 ms and
+  evaluate the physical gauge against a 50 completed-FPS target. Keep the CO5300
+  QSPI request at the BSP's 40 MHz. Do not configure a nominal 50 MHz value that
+  the ESP32-S3 GPSPI peripheral cannot generate.
+- Why: Marcos requested a 50 MHz / 50 Hz experiment to reduce tearing. ESP-IDF
+  6.0.2 shows that ESP32-S3 GPSPI uses the 80 MHz APB clock with integer divisors;
+  a requested 50 MHz clock resolves to 40 MHz, while the next realizable step is
+  80 MHz. Recording or logging 50 MHz would therefore be false, and 80 MHz would
+  exceed the current CO5300 safety boundary. The 20 ms cadence is independently
+  testable and reduces renderer scheduling pressure while matching the requested
+  50 Hz presentation target.
+- Alternatives rejected (and why): Set `pclk_hz` to 50 MHz; the physical clock
+  remains 40 MHz. Jump to 80 MHz; it is outside the presently accepted panel limit
+  and requires a separate explicit overclock decision. Retain the 13 ms cadence;
+  it does not perform the requested 50 Hz comparison.
+- Supersedes: D-021, D-022, D-032, and D-034 only for the active cadence/FPS target;
+  historical evidence and the 40 MHz/no-TE boundaries remain unchanged.
+
+## D-050 — Run the exact-board CO5300 QSPI bus at 80 MHz for comparison
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 performance experiment
+- Decision: At Marcos's explicit request, keep the application and LVGL cadence at
+  20 ms / 50 FPS but replace the Waveshare BSP's 40 MHz QSPI IO configuration with
+  a project-owned 80 MHz compile-time override. Test it only on the locally recorded
+  exact display and retain the 40 MHz implementation as a reversible Git baseline.
+- Why: The first exact-board 20 ms run spent most dynamic windows at 46–50 FPS and
+  later encountered one LVGL-lock timeout followed by a long low-refresh interval.
+  Doubling the physically realizable panel bus clock isolates transfer bandwidth
+  from the application cadence and directly tests whether it improves the visible
+  transitions. Marcos explicitly requested the 80 MHz hardware experiment after
+  seeing the 40 MHz result.
+- Alternatives rejected (and why): Request 50 MHz QSPI; ESP32-S3 GPSPI resolves it
+  to 40 MHz. Modify the downloaded managed component; a clean build would restore
+  it and invalidate its registry checksum. Return immediately to 13 ms/40 MHz; it
+  would not test the newly authorized bus-speed hypothesis.
+- Supersedes: D-049 only for the active QSPI clock boundary; its 20 ms/50 FPS target
+  and historical 40 MHz evidence remain valid.
+
+## D-051 — Evaluate the official CO5300 hardware-rotation and GPIO-TE path
+- Date / phase: 2026-08-15 / Phase 5, Sprint 6 synchronization experiment
+- Decision: At Marcos's request, replace the experimental full-frame software
+  rotation and custom TE gate with the pinned CO5300 driver's hardware orientation
+  API and `ESP_LV_ADAPTER_TEAR_AVOID_MODE_TE_SYNC`. Keep QSPI at the already tested
+  80 MHz, configure GPIO43 as the measured TE input, use a single full-frame PSRAM
+  buffer as required by adapter 0.6.3, and feed the approximately 60 Hz panel from a
+  15 ms application/LVGL cadence. Add summary timing telemetry before any flash.
+- Why: The current menu path serializes an approximately 15.5 ms software rotation
+  with an ideal 11.52 ms full-frame QSPI transfer, so it cannot deliver a new frame
+  inside every measured 16.82 ms panel period. The official path removes that CPU
+  rotation and makes TE govern every full-frame transfer instead of only exact
+  480x480 custom callbacks.
+- Reversible boundary: This is an exact-board diagnostic candidate. The 80 MHz
+  pre-TE commit remains the rollback point. No sensors, vehicle wiring, 12 V, or
+  flash action is authorized by this decision.
+- Alternatives rejected (and why): Change only 20 ms to 17 ms; it remains
+  unsynchronized with the measured 59.46 Hz TE signal. Keep the custom rotation
+  and add more timing patches; rotation plus DMA already exceeds one panel period.
+  Build the four-buffer custom presenter first; the simpler official path must be
+  measured before accepting that additional ownership and concurrency complexity.
+- Supersedes: D-049 and D-050 only for the active application/LVGL cadence and
+  display synchronization implementation. Their 40 MHz and 80 MHz hardware evidence
+  remains historical rollback evidence.
+- Outcome (2026-08-16): the exact authorized display received app `c09589f` and
+  passed write-time plus immutable post-boot digest verification. GPIO43 TE was
+  usable at 59.483 Hz and the intended official path started without a runtime
+  fault, but it presented mostly 14.84–14.86 FPS with average full-frame render
+  times around 61–65 ms and average flush times around 31–35 ms. This rules out the
+  adapter's serialized single-buffer `TE_SYNC` path for the product target. Marcos's
+  subsequent physical A/B showed the image rotated 180 degrees and restored the
+  diagonal tearing that was absent from the previous version. D-051 is rejected;
+  changing mirror flags alone cannot rescue a path that also fails scan-order
+  presentation and throughput. The next experiment must retain native panel scan
+  order, or the prior `443eb72` baseline must be restored.
+
+## D-052 — Preserve `443eb72` as Golden Prototype 1 and isolate the D-051 failures
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization investigation
+- Decision: Keep commit `443eb72` as **Golden Prototype 1**, the first exact-board
+  regression reference for subsequent display work. This is a Git-history reference,
+  not a duplicated golden firmware tree, production release, or claim that every
+  menu/red transition is tear-free. Do not discard CO5300 hardware orientation or
+  GPIO-TE based only on the combined D-051 result. No new candidate or flash is
+  authorized by this decision.
+- Why: Source tracing proves that D-051 changed more than one independent variable.
+  Waveshare initializes this exact panel with `MADCTL=0xA0`; the candidate's
+  `swap_xy(true)` plus `mirror(true, false)` sequence leaves the CO5300 driver at
+  `0x60`, which Waveshare maps 180 degrees opposite to `0xA0`. The observed inverted
+  image therefore diagnoses the selected orientation, not hardware rotation as a
+  category. Separately, adapter 0.6.3 maps `TE_SYNC` to LVGL FULL mode with one
+  buffer. Every small invalidation redraws 480x480, then the bridge byte-swaps the
+  complete RGB565 buffer, waits for TE, starts QSPI and waits for DMA completion
+  before `flush_ready`. The recorded 61–65 ms render event includes the nested
+  31–35 ms flush; it is not an additional pure-render interval. These serialized
+  costs explain the roughly 67 ms transfer interval and 14.85 FPS without invoking
+  hardware rotation overhead.
+- Remaining uncertainty: The returned diagonal is not isolated. Changing
+  `MADCTL` from `0xA0` to `0x60` reverses row and column increment directions and
+  can make the host writer cross the panel reader after the TE edge, but D-051 also
+  changed PARTIAL/double-buffered asynchronous presentation into FULL/single-buffer
+  synchronous presentation. The CO5300 datasheet marks MADCTL D5 as don't-care,
+  while driver 2.1.0 implements `swap_xy()` using the generic D5/MV mask; its QSPI
+  rotation test checks only API success and does not draw/verify orientation.
+- Next diagnostic, only after authorization: retain D-051's 80 MHz, GPIO43 TE,
+  FULL/single-buffer and timing variables but preserve the Waveshare `0xA0`
+  orientation. Add separate timestamps for pure draw, RGB565 swap, TE wait and DMA,
+  plus an ISR-level physical TE-period counter and UI-state tag. This one-variable
+  A/B can determine whether the diagonal follows memory write direction while the
+  expected approximately 15 FPS FULL/single-buffer limit is measured independently.
+- Supersedes: D-051 only where its outcome ruled out hardware orientation as a
+  category or treated mirror changes as unable to isolate the failure. D-051 remains
+  the valid record of the exact failed `c09589f` candidate and its hardware evidence.
+
+## D-053 — Run the orientation-only `MADCTL=0xA0` GPIO-TE diagnostic
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization investigation
+- Decision: With Marcos's explicit authorization, create and exact-board test the
+  first D-052 isolation candidate. Retain D-051's 80 MHz QSPI, GPIO43 rising-edge
+  TE, 15 ms producer/LVGL cadence, FULL render mode, one PSRAM draw buffer and
+  synchronous adapter `TE_SYNC` path. Remove only the post-initialization
+  `swap_xy()`/`mirror()` calls so the Waveshare sequence remains at
+  `MADCTL=0xA0`. Keep demo mode and the existing touch mapping.
+- Why: This is the smallest A/B that can determine whether the 180-degree inversion
+  and diagonal follow the memory-address direction without conflating that result
+  with a new buffering architecture. The source contract must reject any panel
+  orientation call and require an explicit `0xA0` boot statement.
+- Telemetry boundary: Add a non-nested `draw` duration derived per LVGL render by
+  subtracting the enclosed flush duration. Do not patch the managed adapter to split
+  RGB565 swap, TE wait and DMA in this first candidate, because doing so would add
+  another implementation variable. The existing boot TE probe remains the physical
+  59 Hz reference; deeper adapter instrumentation follows only if this A/B cannot
+  decide the diagonal.
+- Safety: USB/demo-only exact board. No sensors, ADS1115, MTX-D, 12 V or vehicle.
+  A build does not authorize a different board or any wiring change.
+- Result: Commit `dbdc856` passed the display/audio contract 24/24, native tests
+  23/23 and a clean ESP-IDF 6.0.2 build. Its 755,744-byte application has SHA-256
+  `7b4ae20345c537cd7a329bc5649153babe43ca1e40bac9a0dcbec471f0e960ce`.
+  The separately authorized exact-board MAC was verified before writing; esptool
+  verified the hash of every written region. The boot capture confirms Waveshare `0xA0`, usable
+  GPIO43 TE at 59.403 Hz and the intended adapter path. Stable dynamic windows were
+  normally 14.82–14.85 FPS, with about 29–31 ms of non-nested draw and 32–36 ms of
+  synchronous flush inside each 62–66 ms render event. This proves orientation was
+  not the only performance problem: FULL/single-buffer `TE_SYNC` remains serialized
+  even after software rotation is absent. Marcos confirmed that `0xA0` restores
+  correct orientation while the diagonal remains. The address-direction change to
+  `0x60` caused the inversion but was not the cause of the diagonal. Preserve this
+  distinction: do not reject hardware orientation broadly, and do not continue
+  shifting TE timing without measuring transfer start/completion against scanout.
+
+## D-054 — Present immutable native-scan frames and rotate with LVGL
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 synchronization correction
+- Decision: Replace the rejected FULL/single-buffer adapter `TE_SYNC` path with a
+  project-owned QSPI presenter. Restore the CO5300 to native `MADCTL=0x00`, retain
+  the approved upright appearance with LVGL `LV_DISPLAY_ROTATION_270`, and render
+  through two 120-row PARTIAL draw buffers. Rotate dirty areas into one canonical
+  native-order RGB565 framebuffer. At the last LVGL flush, copy that coherent
+  frame into one of two independently owned transmit snapshots. A dedicated task
+  may start only the newest READY snapshot on a GPIO43 TE rising edge, may never
+  modify an IN_FLIGHT snapshot, and may release it only from the ESP LCD
+  `on_color_trans_done` signal. Allocate both snapshots as 64-byte-aligned,
+  external-DMA-capable PSRAM and enable ESP LCD's `psram_dma_direct` path so no
+  hidden full-frame bounce copy begins after TE. Keep 80 MHz QSPI and the 15 ms producer cadence so
+  this correction changes scan order and ownership rather than the already measured
+  bus profile.
+- Why: D-053 proves `0xA0` restores orientation but not the diagonal, while the
+  official Espressif LCD FAQ identifies diagonal tearing after SPI hardware
+  rotation by 90/270 degrees and prescribes LVGL software rotation. LVGL 9.5
+  documents PARTIAL rendering plus `lv_display_rotate_area()` and
+  `lv_draw_sw_rotate()` for that case. The pinned adapter cannot provide the needed
+  combination: its QSPI `TE_SYNC` bridge forces FULL, one buffer, in-place RGB565
+  swap, TE wait and DMA completion before `flush_ready`. ESP-IDF 6.0.2 separately
+  requires the color buffer to remain alive until `on_color_trans_done`.
+- Ownership invariant: LVGL writes only the canonical framebuffer. The presenter
+  reads only a READY snapshot after atomically changing it to IN_FLIGHT. A new
+  complete render may overwrite an older READY snapshot but never an IN_FLIGHT one;
+  the presenter drops every older READY generation before sending the newest. This
+  prevents partial-frame snapshots, use-after-DMA-buffer reuse and out-of-order
+  presentation.
+- Timing boundary: GPIO43 remains the only physical presentation clock. The panel
+  measured about 59.4 Hz, so the honest physical ceiling is about 59.4 unique
+  frames/s rather than a literal 60. Telemetry must separately report completed
+  LVGL frames, snapshots, presented frames, overwritten/dropped generations, TE
+  edges, DMA duration and presentation interval. No LVGL FPS counter alone may be
+  accepted as proof.
+- Safety and verification: USB/demo-only; `CONFIG_OIL_GAUGE_DEMO_MODE=y` remains
+  mandatory. Add a deterministic slot-ownership regression, source contract,
+  native suite and complete ESP-IDF build. Clean commit `50dee93` produces a
+  734,816-byte app with SHA-256
+  `d02ba8f1a9a5cb819a7fa63b6d05c6eae859a842a18e2d543b365aeb5b6fabc1`.
+  A build does not authorize flashing;
+  exact-board orientation, touch mapping, diagonal removal and menu/red-transition
+  smoothness remain HARDWARE/JUDGMENT and require a new explicit authorization.
+- Alternatives rejected (and why): Keep shifting the TE phase with `MADCTL=0xA0`;
+  it does not correct the orthogonal hardware write/scan directions. Send each
+  rotated PARTIAL strip directly; those become native vertical strips and can expose
+  multiple updates within one scan. Reuse one framebuffer for render and DMA; ESP
+  LCD explicitly forbids recycling it before transfer completion. Keep adapter
+  `TE_SYNC`; D-051/D-053 measured its serialized approximately 14.8 FPS result.
+- Supersedes: D-051 and D-053 for the active display implementation. Their exact
+  hardware evidence remains the reason for this architecture; `443eb72` remains
+  Golden Prototype 1 and the rollback reference.
+
+## D-055 — Stage 80 MHz QSPI through bounded internal DMA buffers
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 hardware-failure correction
+- Decision: Preserve D-054's native `MADCTL=0x00`, LVGL 270-degree PARTIAL
+  software rotation, canonical frame, two immutable snapshots and GPIO43 TE
+  presenter. Replace only the unsafe direct PSRAM-to-GPSPI leg: set
+  `psram_dma_direct=false`, cap ESP LCD transfers to eight RGB565 rows (7,680
+  bytes), and allow three queued transactions (23,040 bytes of temporary internal
+  DMA data at most). Keep QSPI at 80 MHz for the controlled A/B. If draw start or
+  completion fails, latch `fatal=1` and stop the presenter; do not retry a panel-IO
+  queue after `ESP_ERR_INVALID_STATE`.
+- Evidence: the exact authorized D-054 flash passed all four write-time hashes and
+  booted app `50dee93`, native scan and 59.434 Hz TE. The first color transfer then
+  logged ESP-IDF's `DMA TX underflow detected`, ESP LCD returned
+  `ESP_ERR_INVALID_STATE`, and every captured window remained at 0 completed FPS.
+  ESP-IDF's SPI Master guide states that direct PSRAM DMA shares MSPI bandwidth
+  and can lose data when GPSPI bandwidth is too high; its own ESP32-S3 test limits
+  the direct path and checks the TX-fail flag. Pointer capability therefore did
+  not validate D-054's throughput assumption.
+- Verification: red was the absent transfer-profile compile failure plus 6/13
+  source contract. Green is native 27/27, QSPI 13/13, display/audio 34/34 and a
+  clean ESP-IDF 6.0.2 build. Commit `aa38f5f` produces a 734,896-byte app with
+  SHA-256
+  `92392058e67e0dde440f805f159e98c60754dca4c83164ddf87aa03dc3d6065a`.
+  The separately authorized exact-board run passed all four write-time hashes and
+  booted app `aa38f5f`. Its 30-second capture maintained
+  `timeouts=0 errors=0 no_slot=0 fatal=0`, with 13.0–13.5 ms DMA transfers and
+  load-dependent completed presentation at about 17–35 FPS. This validates the
+  bounded transport correction but does not decide the diagonal, orientation,
+  touch mapping or perceived scroll smoothness.
+- Sources: [ESP-IDF 6.0 SPI Master — transactions with data on PSRAM](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/spi_master.html#transactions-with-data-on-psram),
+  [ESP-IDF v6.0.2 direct-PSRAM transaction test](https://github.com/espressif/esp-idf/blob/v6.0.2/components/esp_driver_spi/test_apps/master/main/test_spi_master.c#L2091-L2168),
+  and the exact-board capture at
+  `.artifacts/hardware/2026-08-16/d054-50dee93-runtime.typescript` and
+  `.artifacts/hardware/2026-08-16/d055-aa38f5f-runtime.typescript`.
+- Alternatives rejected (and why): lower the whole QSPI bus to 40 MHz; one
+  480x480 RGB565 frame then needs at least 23.04 ms of payload time and cannot fit
+  the measured 16.82 ms TE period. Keep direct PSRAM DMA and merely reduce chunk
+  size; the bandwidth-limited path and its data-loss mode remain active. Allocate
+  a full 460,800-byte internal frame; the board does not have that internal SRAM
+  budget.
+- Supersedes: D-054 only for its direct PSRAM DMA transport. D-054's scan-order,
+  software-rotation and immutable-buffer ownership decisions remain active;
+  `443eb72` remains Golden Prototype 1.
+
+## D-056 — Keep display and LVGL in native orientation
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 orientation simplification
+- Decision: Preserve D-055's native `MADCTL=0x00`, GPIO43 TE presenter, canonical
+  canvas, two immutable snapshots, bounded 8-row transfers and completion-based
+  ownership. Remove all LVGL display/area/pixel rotation. Copy each PARTIAL dirty
+  row directly into its native canvas coordinates and perform only the panel-endian
+  RGB565 byte swap. Keep touch untransformed so display and input share native
+  coordinates.
+- Why: Marcos physically confirmed that D-055 has no tearing or diagonal. Its UI
+  is rotated 180 degrees relative to the previous desired mounting direction, but
+  physical display orientation is unconstrained. Rotation therefore has no product
+  value and consumes composition time; the simplest controlled A/B is no rotation
+  anywhere above the controller's native scan.
+- Verification: the source contract failed 31/35 before implementation and passes
+  35/35 after it. Native tests pass 27/27. Clean commit `9b59722` produces a
+  733,232-byte ESP-IDF 6.0.2 app with SHA-256
+  `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`.
+  The separately authorized exact-board run passed all four write hashes and
+  booted app `9b59722` with TE at 59.522 Hz. Its 30-second capture maintained
+  `timeouts=0 errors=0 no_slot=0 fatal=0`; composition averaged about 0.3–1.1 ms,
+  snapshot copies about 16–21 ms, DMA about 13.1 ms and completed presentation
+  about 17–33 FPS. Marcos confirmed native orientation with USB-C on the right,
+  correct touch, no tearing or diagonal, and smoother menu motion than D-055;
+  menu FPS remain visibly low. The 16–21 ms full-frame snapshot copy, not native
+  area composition or QSPI DMA, is the next measured performance bottleneck.
+- Safety: USB/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
+  sensors, ADS1115, MTX-D, 12 V or the vehicle.
+- Supersedes: D-054/D-055 only for logical rotation. D-055's physically proven
+  scan order, no-tearing result, bounded transport and ownership remain active;
+  `443eb72` remains Golden Prototype 1.
+
+## D-057 — Render directly into two complete panel-endian framebuffers
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 performance correction
+- Decision: Keep D-056's native CO5300 scan, native touch coordinates, GPIO43 TE,
+  80 MHz QSPI, bounded eight-row internal DMA staging, and completion-owned
+  framebuffer lifetime. Replace the PARTIAL canvas plus two copied snapshots with
+  two complete PSRAM draw buffers in LVGL `FULL` mode and
+  `RGB565_SWAPPED`. The flush callback queues the complete rendered buffer without
+  copying it; the presenter starts it on TE and calls `lv_display_flush_ready()`
+  only after `on_color_trans_done` has completed the transfer. In the same visual
+  candidate, remove only the four fixed threshold notes below the bars, retain all
+  live state labels, and increase both bars from 9 px to 15 px.
+- Why: D-056 measured the 460,800-byte snapshot copy at 16–21 ms, longer than one
+  59.5 Hz panel period. Pinned LVGL's double-buffered `DIRECT` mode copies every
+  previous invalid area into the next buffer before rendering; its triple-buffer
+  branch copies those areas into two off-screen buffers. Menu scroll invalidates
+  the full 480×480 object, so `DIRECT` would preserve or multiply the measured
+  full-frame copy. `FULL` redraws instead, allows LVGL to render the second buffer
+  while the first is transferred, and removes both the snapshot copy and byte-swap
+  pass.
+- Verification: the revised source contract first failed 34/46, then passes 46/46.
+  Native tests pass 27/27 and the complete ESP-IDF 6.0.2 build succeeds. The
+  Clean commit `9febd47` produces a 731,104-byte candidate with SHA-256
+  `625715cffaeca5c12100aad6754979e24e7bba5c163950b3e837e85dd9160e33`.
+  Marcos authorized the exact-board flash. VID/PID, serial and ESP32-S3 MAC
+  matched before every region passed esptool's write hash verification. Boot
+  identifies app `9febd47`, native scan, the FULL double-buffer path and GPIO43
+  TE at 59.554 Hz. A bounded capture records 13.2–14.6 ms DMA with
+  `timeouts=0 errors=0 fatal=0`, but only about 26.5–29.0 completed presentations
+  per second during the dynamic gauge while LVGL produces about 53–58 frames per
+  two-second window; a lower-activity demo interval falls to about 16 FPS. The
+  ownership and transport are valid, but the 50–60 FPS objective is not met.
+  Tearing, color order, menu smoothness and the 15 px visual weight still require
+  Marcos's physical judgment.
+- Safety: demo-only. No sensor, ADS1115, MTX-D, 12 V, or vehicle connection. No
+  flash without exact-board authorization.
+- Supersedes: D-056 only for its canvas/snapshot/render-mode pipeline and 9 px bar
+  geometry. D-056's accepted native orientation, touch mapping, no-tearing baseline,
+  and D-055's bounded QSPI transport remain binding; `443eb72` remains Golden
+  Prototype 1.
+
+## D-058 — Preserve D-057 and render one clean rounded bar endpoint
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Mark implementation commit `9febd47` as Accepted Physical Baseline 2.
+  Keep its display synchronization, buffer ownership, native orientation, warning,
+  colors, labels and menu behavior unchanged. Increase both indicator bars from
+  15 px to 18 px. Remove the separate one-pixel square leading-edge object and
+  round the single rounded fill object's width to the nearest physical pixel.
+- Why: Marcos confirmed D-057 has no tearing, the best menu motion yet, correct
+  warning and colors, correct removal of only the fixed notes, and every dynamic
+  indicator intact. The remaining visible defect is a halo at the moving endpoint,
+  caused by D-022's fractional-opacity square overlapping a rounded fill. A 404 px
+  travel already provides fine spatial steps; one rounded object gives a coherent
+  antialiased cap without a square/curved transparency seam.
+- Verification: the source contract rejected the old 15 px/separate-edge renderer
+  at 45/48 and now passes 48/48. Native tests pass 27/27. Clean commit `c0be6df`
+  produces a 730,496-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-3-gc0be6df`, with SHA-256
+  `3ad8e75542bb25dbb27b3b8685e0ce9f2557a4bf5da3c0118e1d22f3d7ae415c`.
+  Marcos authorized the exact-board flash. Image and exact device identity matched,
+  all four write hashes passed, and boot confirmed `pb2-d057-3-gc0be6df`, native
+  scan, FULL double buffering and TE at 59.491 Hz. The bounded capture reports DMA
+  around 13.1–14.6 ms with `timeouts=0 errors=0 fatal=0`; cadence stays within
+  D-057's already accepted exception. Physical weight and endpoint cleanliness
+  remain Marcos's exact-board judgment.
+- Safety: demo-only. Do not connect sensors, ADS1115, MTX-D, 12 V, or the vehicle.
+- Supersedes: D-022 only for the fractional leading-edge object and D-057 only for
+  15 px bar geometry. All D-057 display-pipeline and accepted physical behavior
+  remains binding; `443eb72` remains Golden Prototype 1.
+
+## D-059 — Serialize brightness with frame DMA and revise temperature bands
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Keep D-058's accepted clean single-object rounded endpoint and
+  no-tearing display pipeline. Increase both bars from 18 px to 21 px. Change
+  semantic temperature bands to cold below 60 °C, warming 60–75 °C, optimal
+  76–95 °C, hot 96–100 °C, and very hot above 100 °C; temperatures below the
+  measurable 50 °C floor still display `<50` and use the cold label. Coalesce
+  rapid brightness changes into one atomic newest value and send CO5300 command
+  `0x51` only from the display presenter after frame DMA completion.
+- Why: Marcos accepted D-058's endpoint and no-tearing result but requested 21 px
+  bars and the revised state ranges. He also reproduced intermittent lock-up when
+  dragging brightness quickly. The prior path called the synchronous BSP panel-IO
+  command from the main task for every collected slider update while the presenter
+  could own the same QSPI IO for frame DMA. Serializing the newest-only command at
+  the already-proven DMA completion boundary removes that concurrent ownership and
+  avoids an arbitrary debounce timer.
+- Verification: red evidence includes the old temperature-boundary native failure,
+  the prior 18 px geometry, and absence of the brightness serialization contract.
+  The implementation passes 27/27 native tests, 55/55 display/audio invariants and
+  the complete Keel verifier. Clean commit `08b04eb` produces a 730,672-byte
+  ESP-IDF 6.0.2 app identified as `pb2-d057-6-g08b04eb`, with SHA-256
+  `64f04f9a9ef40fa02b57e75593c19ee0d1f5f5fd0475b2c863f6f694258efb43`.
+  Marcos authorized the exact-board flash. VID/PID `303a:1001`, the recorded exact
+  serial/MAC and the binary identity matched; all four regions passed write-time
+  hash verification. Boot confirmed `pb2-d057-6-g08b04eb`, TE at 59.511 Hz, DMA
+  about 13.1–14.6 ms and zero timeout/error/fatal counters in the bounded capture.
+  Marcos confirmed rapid brightness works without blocking, 21 px is optimal and
+  tearing remains absent. He rejected only the temperature color progression as
+  inconsistent with the revised semantic bands.
+- Safety: demo-only. Brightness is clamped to the existing 5–100% safe range. No
+  sensors, ADS1115, MTX-D, 12 V, or vehicle connection.
+- Supersedes: D-058 only for 18 px thickness, the prior semantic portions of the
+  temperature bands, and the main-task live-brightness apply path. D-058's clean
+  endpoint and D-057's physical display baseline remain binding.
+
+## D-060 — Align thermal colors and lower both metric groups
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 physical-review correction
+- Decision: Retain D-059 as Physical Baseline 3 for transport, brightness,
+  thickness and no-tearing behavior. Use 50/59 blue, 76 light green, 90 light
+  amber, 100 intense orange and 120/140 red. This makes 76–90 the gradual
+  green-to-amber band, 91–100 the amber-to-orange band, 101–120 the orange-to-red
+  band, and 120–140 fixed red. At 120 °C replace `MUY CALIENTE` with a red
+  `WARNING` blinking at 2 Hz while number, icon and bar remain visible. Move only
+  the icon, centered number, unit and bar of
+  both halves down 4 px; headings and dynamic state labels stay fixed.
+- Why: Marcos accepted every D-059 hardware behavior except that the prior
+  old color stops still represented superseded thresholds; he then refined the
+  first D-060 draft before flash with exact 76/90/100/120/140 behavior.
+  A uniform 4 px group offset answers the requested small downward adjustment
+  without changing the 50/50 divider or number centering.
+- Verification: red evidence is the old color function failing the new stop
+  fixture and the old placement passing only 55/63 display invariants. Green is
+  initial 27/27 native tests and 63/63 display/audio invariants produced clean app
+  `476cf4d`, but Marcos refined the unflashed contract. The refined red failed to
+  compile without the warning state and passed only 61/68 invariants; green is
+  28/28 native tests, 68/68 display/audio invariants and the complete Keel verifier.
+  Clean commit `c15e63f` produces a 730,640-byte ESP-IDF 6.0.2 app identified as
+  `pb2-d057-11-gc15e63f`, with SHA-256
+  `8705132d455e5eba09f6cc1e087a471d21975afcdbbcb266d58712e1c12e92d0`.
+  Exact-board judgment remains pending fresh flash authorization.
+- Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
+  fresh explicit authorization.
+- Supersedes: D-059 only for temperature color stops and metric-group vertical
+  coordinates. Physical Baseline 3 remains binding for all other behavior.
+
+## D-061 — Use supplied oil icons and enlarge unit labels
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 visual revision
+- Decision: Replace the hand-built pressure and temperature symbols with the
+  respective user-supplied PNG silhouettes. Convert each to a 92 x 72 alpha mask:
+  LVGL A8 data for firmware and transparent PNG for the editable simulator. Keep
+  icon color dynamic through recoloring. Raise PSI, BAR, °C and °F from Montserrat
+  24 px to 28 px without moving the centered numeric value.
+- Why: Marcos selected these two references explicitly and requested more readable
+  units. A monochrome mask preserves the accepted warning and temperature-color
+  behavior while avoiding a runtime dependency on files outside the repository.
+- Verification: source files were visually inspected and hashed before conversion.
+  Native tests pass 28/28 and display/audio and asset invariants pass 74/74.
+  Clean implementation commit `c0bce25` produces a 780,368-byte app identified as
+  `pb2-d057-13-gc0bce25`, with SHA-256
+  `61d93b65a481a3712babef21f2afdf528645f3f4c77c0a25d48744feb4a4443f`.
+  Marcos separately authorized the exact-board flash. VID/PID, ESP32-S3/8 MB
+  PSRAM and recorded MAC matched; every written region passed hash verification.
+  Boot confirms exact app `pb2-d057-13-gc0bce25`, TE 59.620 Hz, DMA about
+  13.2–14.8 ms and no timeout/error/fatal counters in the bounded capture.
+  Marcos then accepted both icon silhouettes, enlarged-unit readability,
+  alignment/spacing, dynamic recoloring and the absence of tearing. D-061 is
+  Accepted Physical Baseline 4.
+- Safety: demo-only. No sensor, ADC, 12 V or vehicle connection. Flash requires
+  fresh explicit authorization.
+- Supersedes: D-060 only for icon silhouettes and unit-label font size. D-060's
+  colors, warning behavior and placement remain binding. D-061 becomes the latest
+  accepted visual/physical baseline; D-059 remains the implementation reference
+  for serialized brightness and the accepted display transport.
+
+## D-062 — Reconcile Keel v5.13.0 with conservative project controls
+- Date / phase: 2026-08-16 / Phase 5 process maintenance
+- Decision: Refresh both portability-lock blocks from the canonical Keel v5.13.0
+  copy and set the project baseline to v5.13.0. Use manual autonomy, disable the
+  automatic forge issue duty and issue capture, use no external notification
+  channel, retain chaining off, and apply the `pure-logic` test-first policy only
+  to future pure conversion/protocol/state logic.
+- Why: Marcos explicitly approved the recommended reconciliation choices. They
+  preserve the project's existing authorization gates for flashing and publishing
+  while adding reproducible red-first coverage where hardware-independent logic is
+  introduced.
+- Verification: `CLAUDE.md` and `AGENTS.md` lock blocks byte-match the canonical
+  v5.13.0 block. The full Manifest Table 1/Table 3 reconciliation is recorded in
+  `docs/keel-conformance.md`; conditional chaining, website, guide, Phase 6/7 and
+  fan-out artifacts remain not applicable at the current project position.
+- Supersedes: D-008 only by recording the newer operating choices; its deferral of
+  the full assistant-config package remains binding.
+
+## D-063 — Probe the bare ADS1115 before connecting sensors
+- Date / phase: 2026-08-16 / Phase 5, Sprint 7
+- Decision: Reuse the display BSP's existing GPIO15/GPIO14 I²C master bus and probe
+  only ADS1115 address `0x48`. When present, sample A0–A3 as independent single-shot
+  inputs at PGA ±4.096 V and 128 SPS, logging signed counts and ADC-pin volts once
+  per second. Keep demo rendering active and all sensor calibrations invalid.
+- Why: Marcos has wired and powered the ADS1115 at a measured 3.3 V with no sensors
+  attached. Proving address, protocol and shared-bus coexistence now isolates wiring
+  and ADC integration before any analog front end can introduce ambiguity.
+- Verification: pure-logic policy applied: the first native run failed with
+  `fatal error: ads1115_protocol.h: No such file or directory`; implementation then
+  passes 29/29 native tests. Clean commit `d770bb5` builds app
+  `pb2-d057-17-gd770bb5` (782,416 bytes; SHA-256
+  `1a472ab5fb757c8ed4c5e6146e01a9b7e8f92c28b204ea394a647d8bb53eda86`).
+  The separately authorized exact-board flash matched VID/PID, ESP32-S3/8 MB PSRAM,
+  USB mode and MAC; all four write hashes passed. Runtime found `0x48` and repeatedly
+  read all four floating inputs around 0.552–0.562 V while display, touch and audio
+  initialized and display fault counters remained zero.
+- Safety: no A0–A3 sensor wiring, no 5 V/12 V input, no pressure/temperature
+  conversion, no retained ADC value and no vehicle connection.
+- Supersedes: none; D-061 remains Accepted Physical Baseline 4.
+
+## D-064 — Use bold 36 px text for the full-screen danger message
+- Date / phase: 2026-08-16 / Phase 5, Sprint 6 visual-review extension
+- Decision: Render both `PELIGRO` and `PRESIÓN MUY BAJA` with a dedicated
+  Montserrat Bold 36 px embedded subset in centered 404 x 48 boxes. Move only
+  `PELIGRO` upward to y=210; retain the second line at y=266.
+- Why: Marcos found the existing 24 px Medium text too small and thin to read at
+  distance. A dedicated glyph subset increases size and weight without changing
+  the accepted 96 px pressure number or loading an unnecessary complete font.
+- Verification: red-first source contract failed 0/9 before implementation and
+  passes 11/11 afterward. The standalone simulator is synchronized and the complete
+  ESP-IDF 6.0.2 firmware build passes. Clean commit `bf3faa0` builds app
+  `pb2-d057-19-gbf3faa0` (787,968 bytes; SHA-256
+  `95a8a245f8d02f535b12c4f7306c48a35269e79b6cbd8b43f51eb0d0f0cb62e4`).
+  Marcos authorized the exact-board flash. The resulting app identity is
+  `pb2-d057-20-gff4c17c` (787,968 bytes; SHA-256
+  `f7928e6bac7177ccb3e7226f117f297fa26f66b8aae80f797970978cf0952fb4`). Exact
+  ESP32-S3/MAC identity matched, all four written regions passed hash verification,
+  and the bounded boot capture confirmed demo mode, touch/audio, ADS1115 `0x48`,
+  usable TE and zero display timeout/error/fatal counters. Marcos then confirmed
+  that all visually inspected aspects appear correct; D-064 is physically accepted.
+- Safety: typography only; demo mode, warning cadence, audio, display transport,
+  ADS1115 diagnostics and invalid sensor calibrations are unchanged.
+- Supersedes: D-041/D-061 only for the two full-screen warning text faces and boxes;
+  their warning behavior, number visibility and accepted baseline remain binding.
+
+## D-065 — Persist a canonical PSI warning threshold and Honda boot duration
+- Date / phase: 2026-08-17 / Phase 5, Sprint 8
+- Decision: Add a 1–30 PSI low-pressure warning setting with a 10 PSI default and
+  a 0–10 second Honda startup-logo setting with a 1 second default. Store the
+  threshold as whole canonical PSI; PSI presents whole values and BAR presents one
+  decimal without rewriting the setting merely because units changed. A zero-second
+  boot duration disables the splash.
+- Why: Marcos requested user-adjustable warning pressure in the selected unit and
+  the same boot artwork/time control as the boost gauge. Canonical PSI preserves
+  alarm meaning across unit changes and bounded settings remain safe after corrupt
+  NVS input.
+- Verification: test-first compile failed for the absent fields, conversion helpers
+  and threshold-aware state API. The implementation passes 31/31 native tests, the
+  16/16 model/store/menu/runtime/asset contract and a complete ESP-IDF 6.0.2 build.
+  The authorized exact-board flash matched device/app identity and all four write
+  hashes. Boot confirmed 59.555 Hz TE, touch/audio/ADS1115 initialization and zero
+  display timeout/error/fatal counters. Visual timing, persistence and touch
+  judgment remain pending.
+- Safety: engine unknown/stopped still suppresses pressure warning; demo mode,
+  calibration gate, display transport and ADS1115 diagnostics remain unchanged.
+- Supersedes: AC-06/D-064 only for the configurable numerical pressure boundary;
+  all warning presentation, cadence and readability decisions remain binding.
+- Correction: the boost boot composition contains two independent source assets.
+  D-065 therefore requires both the 320×215 Honda artwork and the 310×42 Civic
+  wordmark; importing only Honda was incomplete and is corrected without changing
+  duration, black background or display transport.
+  The corrected exact-board candidate passed identity, four write hashes and clean
+  bounded boot. Marcos then confirmed the complete Honda/Civic composition is
+  perfect on the exact AMOLED, making it Accepted Physical Baseline 5.
+
+## D-066 — Preserve the current firmware and gate triple-buffer production from TE
+- Date / phase: 2026-08-17 / Phase 5 display-performance experiment
+- Decision: Mark tag `pb5-good-base` as Accepted Physical Baseline 6 before changing
+  display scheduling. The candidate uses three complete panel-endian PSRAM draw
+  buffers with explicit ownership. Exactly one complete frame may be READY. It is
+  handed to DMA only on TE; that hand-off, rather than an independent refresh
+  timer, authorizes LVGL to begin the next render. A READY frame is never replaced,
+  and an IN_FLIGHT buffer remains immutable until `on_color_trans_done`.
+- Why: The accepted double-buffer implementation is tear-free but completes only
+  about 31–33 presentations per second because frame production, TE wait and DMA
+  completion remain effectively serialized. Rendering the next generation while
+  the previous generation is transmitted uses the measured 13–15 ms DMA interval
+  without producing frames that cannot be presented.
+- Verification required: native ownership/state-transition tests, display source
+  contract, complete ESP-IDF 6.0.2 build, and separately authorized exact-board
+  proof measuring TE, render-ready latency, DMA duration, missed presentation
+  opportunities, faults and physical tearing/menu motion.
+- Safety: display/demo-only. Keep `CONFIG_OIL_GAUGE_DEMO_MODE=y`; do not connect
+  sensors, MTX-D, 12 V or the vehicle. Do not flash without fresh authorization.
+- Supersedes: D-057 only for buffer count and production scheduling after physical
+  acceptance. Until then `pb5-good-base` remains the rollback authority.
+
+## D-072 — Park the triple-buffer experiment and resume from the accepted base
+- Date / phase: 2026-08-17 / Phase 5 branch and hardware rollback
+- Decision: Preserve all triple-buffer investigation on
+  `codex/triple-buffer-pipeline` at `0594dba`, without merging it. Create
+  `codex/post-triple-tasks` directly from commit `8408d87` at tag
+  `pb5-good-base`, rebuild that source and restore it to the exact display.
+- Why: Marcos explicitly postponed the display-architecture experiment and wants
+  unrelated work to continue from the last accepted no-tearing implementation.
+- Verification: app `pb5-good-base` is 1,035,168 bytes with SHA-256
+  `e467ad9b063b62ba282ad04b0dff96ebfaca8f36f91c4c4bc63e87233e842113`.
+  Exact USB/chip identity matched, all four write hashes passed, and the bounded
+  run settled at 30.493–32.707 FPS with TE about 59.5 Hz and
+  `timeouts=0 errors=0 fatal=0`. Runtime capture SHA-256 is
+  `5034a082ff44def10164651e2f12a2931d40fc0ffe5fe4cee13cd98716ece70d`.
+- Safety: demo/display only. The rollback does not authorize sensors, MTX-D, 12 V
+  or vehicle work. Triple-buffer changes remain parked until Marcos reopens them.
+
+## D-073 — Keep the custom QSPI presenter and require one LVGL refresh authority
+- Date / phase: 2026-08-18 / Phase 5 display-architecture documentation
+- Decision: Keep `pb5-good-base` and the current custom GPIO43 TE presenter as the
+  accepted implementation. Continue using `esp_lvgl_adapter` 0.6.3 for LVGL
+  lifecycle, locking, timers and touch, but do not replace the display path with
+  `esp_lv_adapter_register_display()` or its QSPI `TE_SYNC` bridge. When the parked
+  triple-buffer work resumes, first delete the automatic LVGL display refresh
+  timer and prove that one application-owned scheduler is the only source of
+  display refreshes. Only then restore generation-aware PARTIAL composition.
+- Why: The pinned adapter's QSPI TE path uses FULL/single-buffer rendering and
+  waits for TE plus DMA inside the flush; the project already measured that
+  serialized design at about 14.8 FPS. The accepted custom path is tear-free at
+  about 30.5–32.7 FPS. The triple-buffer ownership model was directionally sound,
+  but pausing the LVGL timer was not exclusive because `LV_EVENT_REFR_REQUEST`
+  resumes it, allowing the adapter worker to flush outside the app-owned frame.
+  The RGB-panel sequence described by the LVGL community applies to coherent
+  buffer ownership, but the CO5300 still requires every complete image to cross
+  QSPI into its internal GRAM.
+- Documentation: `docs/reference/display-pipeline.md` is the canonical as-built
+  comparison and future experiment contract. `docs/ARCHITECTURE.md` now describes
+  the accepted FULL/two-buffer implementation instead of the superseded rotated
+  PARTIAL/snapshot path.
+- Verification: documentation links, source assertions and the complete project
+  verifier must pass. No firmware code or hardware state changes in this decision.
+- Safety: the future experiment remains isolated on
+  `codex/triple-buffer-pipeline`; any build and exact-board flash still require a
+  separately authorized candidate. Demo mode and all sensor/vehicle gates remain.
+- Supersedes: D-066 only as the required first implementation step when the
+  experiment resumes. D-072 continues to keep the experiment parked and
+  `pb5-good-base` authoritative.
+
+## D-074 — Update embedded Keel without inventing unverified close automation
+- Date / phase: 2026-08-18 / repository maintenance
+- Decision: Update the two embedded Keel trees and portability-lock stamps from
+  v5.13.0 to official v5.15.1. Install the deterministic post-commit hand-off
+  invalidation hook and shared session-identity helper. Keep `scripts/keel-close`
+  and `scripts/keel-stop-hook` explicitly missing until a dedicated automation
+  slice can implement and test their full contracts.
+- Why: v5.14–v5.15.1 specifies both scripts by behavior but supplies no canonical
+  executable template. `keel-close` can commit, merge and push, while the Stop
+  hook can block every turn; improvising either during a documentation snapshot
+  would create materially greater repository risk. Codex Desktop also has no
+  repository-level Stop-hook registration surface to validate real firing.
+- Applied: `.githooks/post-commit` removes any stale continuation courier after
+  each commit, `core.hooksPath` points to `.githooks`, and
+  `scripts/keel-session-pid.sh` provides a stable PID-plus-start-time identity.
+- Verification: both embedded trees must match the official v5.15.1 source;
+  lock stamps must match; the next real commit must prove the post-commit hook
+  deletes the old courier. `docs/keel-conformance.md` and `keel-verify` must keep
+  both missing automation rows visible rather than claiming full reconciliation.
+- Scope: this maintenance does not alter firmware, hardware, remote branches or
+  the accepted `pb5-good-base` display behavior.
+
+## D-075 — Publish the accepted project history through a draft pull request
+- Date / phase: 2026-08-18 / repository publication
+- Decision: Publish `codex/post-triple-tasks` to the public `origin` and open
+  draft PR #1 against the default `main` branch. Keep the PR in draft so that
+  publication does not silently merge a large accepted-history update into the
+  default branch.
+- Why: Marcos clarified that “update the repository” meant uploading the current
+  project to GitHub. The local branch contained the complete accepted project
+  history while public `main` remained 83 commits behind before publication.
+- Verification: local and remote branch tips both resolved to
+  `7c94cb0f6a5d000acc58d07b83aab7fcbb6661dc` immediately after push. GitHub
+  reported PR #1 open, draft and mergeable. Native tests were 31/31 and
+  `scripts/keel-verify` passed before publication.
+- Safety: no firmware flash or vehicle action occurred. The parked
+  `codex/triple-buffer-pipeline` branch was not merged or published as part of
+  this action. Merging PR #1 into `main` remains a separate explicit action.

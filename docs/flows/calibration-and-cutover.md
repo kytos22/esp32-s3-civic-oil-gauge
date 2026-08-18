@@ -11,16 +11,15 @@ The Waveshare board, bench ADC, reversible connectors, measurement tools, and MT
 3. Verify ground, excitation, and signal by measurement rather than color.
 4. Capture raw pressure A0, excitation A2, MTX-D/LogWorks pressure, and engine/RPM state at the documented operating points.
 5. Map the MTX-D thermistor input with a decade box, then compare the installed sensor against a reference thermometer.
-6. Capture MTS RX-only frames and identify channel order by synchronized LogWorks comparison.
+6. If useful, capture MTS on the laptop and identify channel order by synchronized LogWorks comparison.
 7. Fit candidate calibration models only when residuals justify them; preserve raw points.
 8. Validate on held-out points and reject a model that misses AC-13/AC-14.
 9. Enable calibrated firmware only for bench comparison, keeping MTX-D installed.
 10. Repeat cold/hot/multiple-speed tests over at least three supervised drives.
 11. Confirm fault behavior, startup/brownout behavior, power, enclosure temperature, and visibility.
 12. Decide:
-    - Route A passes → prepare final protected PCB/harness and cutover;
-    - Route A inconclusive → retain Route B/MTX-D conditioning;
-    - either route fails safety gates → keep MTX-D visible and stop.
+    - direct ADS1115 acquisition passes → prepare final protected PCB/harness and cutover;
+    - direct acquisition is inconclusive or fails any safety gate → keep the MTX-D visible and stop.
 
 ```mermaid
 flowchart TD
@@ -28,9 +27,7 @@ flowchart TD
   B --> C["Fit candidate models"]
   C --> D{"Held-out error limits pass?"}
   D -- no --> E["Keep calibration invalid"]
-  E --> F{"MTS route reliable?"}
-  F -- yes --> G["Route B fallback"]
-  F -- no --> H["Keep MTX-D; stop"]
+  E --> H["Keep MTX-D; stop"]
   D -- yes --> I["Bench comparison with calibrated firmware"]
   I --> J{"Three-drive and fault/power gates pass?"}
   J -- no --> E

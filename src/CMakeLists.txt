@@ -1,16 +1,30 @@
 idf_component_register(
     SRCS
         "main.cpp"
+        "ads1115_diagnostics.cpp"
+        "ads1115_protocol.cpp"
         "demo_sequence.cpp"
+        "display_runtime.cpp"
         "gauge_core.cpp"
+        "gauge_settings.cpp"
         "oil_gauge_ui.cpp"
+        "settings_store.cpp"
+        "warning_audio.cpp"
+        "warning_tone_gate.cpp"
         "fonts/oil_font_ui_12.c"
         "fonts/oil_font_ui_16.c"
         "fonts/oil_font_ui_24.c"
+        "fonts/oil_font_warning_36.c"
         "fonts/oil_font_value_96.c"
+        "icons/oil_icon_assets.c"
+    "icons/startup_honda.c"
+    "icons/startup_civic.c"
     INCLUDE_DIRS
         "."
         "../include"
     PRIV_REQUIRES
+        esp_driver_i2c
+        esp_codec_dev
         esp_timer
+        nvs_flash
 )

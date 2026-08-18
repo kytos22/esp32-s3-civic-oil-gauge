@@ -2,15 +2,17 @@
 
 ## Decision
 
-Two reversible routes are retained; **Route A** is the target.
+**Route A is the selected gauge implementation.** MTS remains available only
+as a laptop-side calibration reference; no RS-232 level converter will be
+installed in the ESP32 gauge.
 
 | Route | Retained hardware | Added hardware | Advantage | Cost/risk |
 |---|---|---|---|---|
 | A. Direct sensors | Sensors and installed wiring | ADS1115 + protected analog conditioning | MTX-D can be removed | Both sensor interfaces must be characterized |
-| B. MTS | Sensors and hidden MTX-D electronics | 3.3 V RS-232 receiver | Retains Innovate's conversions | MTX-D body remains powered/hidden; MTS must be decoded |
+| B. Laptop MTS reference | Sensors and existing MTX-D | Innovate serial cable + laptop RS-232 interface | Independent calibration reference | Not part of the replacement gauge |
 
-Route B is also a development reference. If MTS exposes synchronized pressure
-and temperature, it can validate Route A independently of visual readings.
+If laptop MTS capture exposes synchronized pressure and temperature, it can
+validate Route A independently of visual readings.
 
 ## Route A — direct acquisition
 
@@ -19,19 +21,34 @@ Switched vehicle 12 V
   ├── 2 A fuse near ACC
   ├── automotive TVS + reverse-polarity protection
   └── wide-input 5 V buck, at least 3 A
-        ├── Waveshare VBUS
-        └── pressure-sensor excitation (value still unknown)
+        └── Waveshare VBUS
+
+Protected power ── characterized pressure excitation circuit
+                  (voltage and implementation still unknown)
 
 Waveshare 3V3 ── ADS1115 (bench module first; Q1 part on final PCB)
 GPIO15 SDA ───── ADS1115 SDA
 GPIO14 SCL ───── ADS1115 SCL
 Star ground ──── ESP32 + ADC + sensors
 
-Pressure signal ── divider/protection/RC ── A0
-Thermistor ─────── selectable pull-up/RC ── A1
-Pressure excitation monitor /2 ──────────── A2
+Pressure signal conductor ── divider/protection/RC ── A0
+Temperature gauge conductor ── selectable pull-up/RC ── A1
+Pressure excitation monitor ── divider/protection/RC ── A2
 Protected 12 V lighting input ───────────── A3
 ```
+
+The supplied MTX-D diagram confirms a two-terminal temperature circuit and a
+three-terminal pressure circuit. After characterization and only when the
+MTX-D is removed, the temperature gauge conductor will connect to A1 at the
+known precision pull-up node and its other conductor to star ground. The
+pressure sensor will connect to the separately characterized excitation,
+star ground, and A0 signal front end; A2 will monitor the excitation through
+its own protected divider. Until measurements identify the two pressure
+conductors, neither may be connected to excitation or an ADC channel.
+
+While the MTX-D remains connected for characterization, do not add the new
+temperature pull-up or any other bias source in parallel. Measure its existing
+bias and the pressure excitation with a high-impedance meter first.
 
 ### Why an external ADC
 
@@ -48,6 +65,12 @@ The ADC runs at **3.3 V** and address `0x48`. An input must never exceed
 VDD + 0.3 V even when the selected PGA full-scale range is larger. Every
 possible 5/12 V signal therefore requires division and protection.
 
+The first firmware integration is deliberately diagnostic-only. It reuses the BSP's
+already-created I²C master bus, probes only `0x48`, registers the ADS1115 at 100 kHz,
+and performs four 128-SPS single-shot readings at PGA ±4.096 V. It logs signed raw
+counts and ADC-pin volts; it does not interpret a floating input as oil data and does
+not enable either installed sensor calibration.
+
 ### Provisional bench front end
 
 These values support characterization only; they are not a final PCB design.
@@ -59,9 +82,29 @@ These values support characterization only; they are not a final PCB design.
 | A2 | 33 kΩ / 33 kΩ, 0.1%, 100 nF | Excitation monitoring |
 | A3 | 150 kΩ / 22 kΩ, 0.1%, 100 nF, clamp | Lighting detection |
 
-Measure A0 minimum/maximum before connecting it. Measure thermistor resistance
-only while disconnected. Select the pull-up from evidence so the useful range
-uses the ADC well without excessive self-heating.
+For the candidate 0.5–4.5 V pressure hypothesis, the equal 33 kΩ / 33 kΩ
+divider maps the nominal signal to 0.25–2.25 V. That intentionally gives the
+16-bit ADC more voltage headroom than a 10 kΩ / 20 kΩ divider, whose output
+would reach 3.333 V at a 5 V input and leave effectively no tolerance margin at
+3.3 V VDD. The divider is still provisional until the real range is measured.
+
+Measure the pressure signal minimum/maximum before connecting A0. Measure the
+temperature sensor resistance only while unpowered and disconnected. Select
+the pull-up from evidence so the useful range uses the ADC well without
+excessive self-heating.
+
+### Deferred automatic brightness
+
+The Waveshare has no onboard ambient-light sensor. If true automatic brightness is
+added later, the preferred final candidate is an automotive-qualified `OPT4001-Q1`
+on the existing 3.3 V I²C bus. It can coexist with ADS1115 address `0x48` by selecting
+and verifying a free address. Do not add another strong SDA/SCL pull-up pair on the
+final PCB.
+
+The protected A3 lighting input remains useful as an optional headlight/illumination
+signal, but it is binary vehicle state rather than ambient lux. A true optical sensor
+also requires a characterized enclosure window and a filtered, hysteretic brightness
+mapping. Both routes are deferred; the v1 settings menu keeps manual brightness.
 
 ### Grounding
 
@@ -69,24 +112,65 @@ Innovate requires the pressure sensor's additional black wire to share the
 gauge ground. Use a star point for sensor, ADC, ESP32, and converter input,
 away from ignition, fuel pump, radio, alternator, and audio grounds.
 
-## Route B — MTX-D as the conditioner
+## Laptop-only MTS calibration reference
 
 ```text
 Sensors ── MTX-D OUT ── Innovate 38400 cable ── RS-232
                                                    │
                                                    ▼
-                                      MAX3232E-Q1 / TRS3232E-Q1
-                                                   │ 3.3 V UART
-                                                   ▼
-                                      Waveshare GPIO44 RX
+                                      Laptop RS-232 port or
+                                      proper USB-to-RS-232 adapter
 ```
 
 Public MTS documentation suggests 19200 baud, 8N1, big-endian 16-bit words.
-Treat that as a hypothesis. Capture this MTX-D's frames and compare with
-LogWorks. Start RX-only so the ESP32 cannot send accidental commands.
+Treat that as a hypothesis. Capture this MTX-D's frames on the laptop and
+compare with LogWorks. A TTL UART adapter such as FTDI, CP2102, or CH340 is not
+an RS-232 adapter and must not be connected directly to MTX-D OUT.
 
-If stable, Route B does not need ADS1115 for oil values, but the powered 52 mm
-MTX-D body must remain hidden.
+This path is calibration equipment only. Production oil measurements use the
+ADS1115 and the MTX-D can be removed after direct readings pass comparison.
+
+## Display presentation
+
+The accepted base keeps the CO5300 in native `MADCTL=0x00` scan order and uses
+native touch coordinates. LVGL renders in `FULL` mode directly into two complete
+480×480 PSRAM buffers using `RGB565_SWAPPED`; there is no rotation, snapshot copy
+or post-render byte swap. A project-owned presenter starts a complete immutable
+buffer on the next GPIO43 TE rising edge and releases it only after
+`on_color_trans_done` reports that QSPI DMA has completed.
+
+`esp_lvgl_adapter` 0.6.3 remains responsible for LVGL lifecycle, locking, timers
+and touch, but the project deliberately does not use its display-registration
+bridge. Its QSPI `TE_SYNC` mode is FULL/single-buffer and waits for TE plus DMA
+inside the flush, which was measured as a serialized performance regression.
+
+Direct PSRAM DMA remains disabled because the exact board proved that path can
+underflow at 80 MHz QSPI. ESP LCD instead stages bounded 8-row chunks through at
+most 23,040 bytes of internal DMA memory. The exact panel measures about 59.5 TE
+edges/s and 13–15 ms per complete transfer. The accepted base is tear-free and
+completes approximately 30.5–32.7 physical presentations per second.
+
+The detailed as-built path, rejected adapter mode, parked triple-buffer findings
+and sole-scheduler design for the next experiment are maintained in
+[`reference/display-pipeline.md`](reference/display-pipeline.md).
+
+## Onboard warning audio
+
+The synthetic demo uses the display board's existing ES8311 codec, I²S output
+and integrated speaker. A renderer-independent rising-edge gate requests one
+double beep when pressure state changes into `warning`; a dedicated FreeRTOS
+CPU1-pinned task performs 512-sample blocking PCM writes so the 15 ms UI producer
+never waits for
+audio. The codec is opened and settled once, then remains unmuted at digital zero
+between cues; each enveloped tone is wrapped in 40 ms of zero samples so its edges
+do not toggle the analogue mute path. Initialization or write failure is
+logged and degrades to a silent visual gauge rather than stopping the display.
+
+The current pattern is approximately 2.2 kHz, 120 ms on, 90 ms off and 120 ms
+on at 35% codec volume. It is enabled only for the calibration-safe demo. A
+future calibrated vehicle alarm policy must be safety-reviewed separately; the
+reported edge puff, physical loudness, cabin audibility, and post-change FPS remain
+hardware checks for the revised image.
 
 ## Power
 
@@ -115,7 +199,6 @@ Select only after real current and signal measurements:
 - `ADS1115-Q1` VSSOP-10.
 - 60/65 V automotive buck such as `LM76003-Q1`/`LM65635-Q1`.
 - `SLD8S24A` TVS coordinated with fuse and converter.
-- `TRS3232E-Q1` only if MTS is adopted.
 
 ## Mechanical concept
 

@@ -18,15 +18,16 @@ and alarm math remains isolated so it can run natively without hardware.
 | Target | Declared support | Current evidence |
 |---|---|---|
 | Waveshare ESP32-S3-Touch-AMOLED-2.16 | 480×480, ESP32-S3R8, 16 MB flash / 8 MB PSRAM | Serialized-font app `701d0b4` flashed and every region verified on the locally recorded exact board; bounded boot proves ESP-IDF 6.0.2, demo mode, 16 MB flash, 8 MB PSRAM, and 480×480 display/touch initialization; corrected physical text appearance pending |
-| ADS1115 bench module | 3.3 V, I²C 0x48 | Code and architecture only |
+| ADS1115 bench module | 3.3 V, I²C 0x48 | Physically wired without sensors; 3.3 V supply measured; diagnostic candidate pending flash |
 | ADS1115-Q1 final design | AEC-Q100 device on custom protected PCB | Planned, not purchased/finalized |
 | Honda Civic Sport 1.5 2017 | switched 12 V automotive environment | Vehicle integration unverified |
 
 Budgets:
 
-- UI refresh: 15 ms application and LVGL cadence; Sprint 1 requires at least 60
-  completed physical display FPS, measured by the pinned adapter rather than
-  inferred from the scheduler.
+- UI producer and LVGL refresh: 15 ms. GPIO43 TE is the sole presentation clock;
+  the exact panel measured about 59.4 Hz, so the candidate ceiling is about 59.4
+  unique completed transfers per second. Measure `on_color_trans_done`, never a
+  scheduler or LVGL-only counter.
 - No valid input may exceed 3.3 V at the ADC/ESP32 boundary.
 - Calibrated pressure error target: ≤2 PSI in the normal range.
 - Calibrated temperature error target: ≤2 °C from 60–130 °C.
@@ -42,13 +43,14 @@ flowchart LR
   S2["Innovate thermistor"] --> AF
   AF --> A["ADS1115 at 0x48, 3.3 V"]
   A -->|GPIO15 SDA / GPIO14 SCL| W
-  M["MTX-D OUT / MTS"] --> R["RS-232 to 3.3 V receiver"]
-  R -->|RX-only GPIO44 during discovery| W
+  M["MTX-D OUT / MTS"] --> R["Laptop RS-232 calibration capture"]
+  R -.->|reference data only| A
   C["Engine/RPM state"] --> W
 ```
 
-- Route A: direct protected sensors → ADS1115 → conversion/filter/state → display.
-- Route B: MTX-D retains sensor conditioning → MTS RS-232 receiver → display.
+- Production: direct protected sensors → ADS1115 → conversion/filter/state → display.
+- Calibration reference: MTX-D MTS → laptop RS-232 capture; it is not connected
+  to the ESP32 gauge.
 - No runtime persistence exists; calibration is compile-time and invalid by default.
 - CAN/OBD belongs to the separate second display. Only an evidence-backed engine-running/RPM signal may cross into this project.
 
@@ -61,14 +63,24 @@ flowchart LR
 | `platformio.ini` | [E] | Native Unity test environment only |
 | `partitions.csv` | [E] | 16 MB partition layout |
 | `include/board_pins.h` | [E] | Verified Waveshare pins and ADS1115 address |
+| `include/ads1115_protocol.h` / `src/ads1115_protocol.cpp` | [E] | Native-tested single-shot configuration and raw-voltage scale |
+| `src/ads1115_diagnostics.h` / `src/ads1115_diagnostics.cpp` | [E] | Shared-bus 0x48 probe and raw A0–A3 serial diagnostics |
 | `include/calibration_config.h` | [E] | Invalid-by-default calibration and provisional front end |
 | `include/gauge_core.h` | [E] | Public conversion, filtering, fault, and alarm types/functions |
 | `src/gauge_core.cpp` | [E] | Native-testable measurement math |
 | `include/demo_sequence.h` / `src/demo_sequence.cpp` | [E] | Native-testable continuous seven-scene demo interpolation |
+| `include/warning_tone_gate.h` / `src/warning_tone_gate.cpp` | [E] | Native-testable warning-loop start/stop gate |
+| `src/display_runtime.h` / `src/display_runtime.cpp` | [E] | Native-orientation LVGL composition and GPIO-TE full-frame presenter with explicit PSRAM-DMA ownership |
+| `src/frame_slot_policy.h` | [E] | Native-testable READY/SNAPSHOT/IN_FLIGHT slot-selection invariants |
+| `include/gauge_settings.h` / `src/gauge_settings.cpp` | [E] | Native-testable settings sanitization, units, and warning presentation |
+| `src/warning_audio.h` / `src/warning_audio.cpp` | [E] | Non-blocking ES8311/I²S warning-tone worker |
+| `src/settings_store.h` / `src/settings_store.cpp` | [E] | NVS-backed safe preference persistence |
 | `src/main.cpp` | [E] | Official BSP display initialization and deterministic demo/calibration gate |
 | `src/oil_gauge_ui.cpp` | [E] | Approved fixed 480×480 LVGL renderer |
+| `src/icons/startup_honda.c` | [E] | Reused 320×215 Honda RGB565A8 startup artwork |
+| `src/icons/startup_civic.c` | [E] | Reused 310×42 Civic RGB565A8 startup artwork |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Fourteen Unity native tests |
+| `test/test_gauge_core/test_main.cpp` | [E] | Thirty-one Unity native tests, including ADS1115 protocol, configurable warning threshold and display ownership |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |
@@ -108,13 +120,15 @@ flowchart LR
 | `scripts/keel-verify` | [E] | Project consistency checks |
 | `scripts/keel-handoff-verify` | [E] | Continuation courier verification |
 | `scripts/generate-readme-demo-gif.py` | [E] | Reproducible Edge/Pillow renderer for the README GIF |
+| `scripts/sync-standalone-design.py` | [E] | Deterministic editable-fragment to Pages-wrapper synchronization |
 | `scripts/pio` | [E] | Project-isolated PlatformIO entry point |
 | `scripts/idf` | [E] | Pinned ESP-IDF 6.0.2 firmware entry point |
 | `docs/playground.md` | [E] | Reproducible software and hardware-tagged exercises |
 | `docs/calibration-data/` | [A] calibration sprint | Raw and processed evidence datasets |
-| `.claude/skills/keel/` / `.agents/skills/keel/` | [E] | Verified embedded Keel v5.3.2 |
+| `.claude/skills/keel/` / `.agents/skills/keel/` | [E] | Verified embedded Keel v5.15.1 |
 | `CLAUDE.md` / root `AGENTS.md` | [E] | Keel portability lock and project safety rules |
 | `include/AGENTS.md`, `src/AGENTS.md`, `test/AGENTS.md` | [E] | Codex path-scoped rules |
+| `docs/reference/display-pipeline.md` | [E] | As-built QSPI/LVGL ownership, rejected paths and next isolated experiment |
 
 ## Change map
 
@@ -122,7 +136,10 @@ flowchart LR
 |---|---|
 | Sensor conversion/calibration math | `include/gauge_core.h`, `src/gauge_core.cpp`, `include/calibration_config.h`, native tests, `docs/CALIBRATION.md`, AC rows, API index |
 | Alarm threshold or engine-state logic | `include/gauge_core.h`, `src/gauge_core.cpp`, `src/main.cpp`, native tests, `docs/UI_DESIGN.md`, functional spec |
+| Onboard warning-audio behavior | audio gate + ESP-IDF audio implementation, `src/main.cpp`, Kconfig/defaults, native tests, functional AC row, test ledger, sprint record, decision log, progress card, complete firmware build and separately authorized physical proof |
+| Settings, units, warning threshold, startup splash, or warning-presentation behavior | pure settings model, NVS store, `src/main.cpp`, `src/oil_gauge_ui.cpp`, warning audio/assets, native tests, editable prototype, build spec/UI design, functional AC rows, test ledger, sprint record, decision log, progress card, native suite and complete firmware build |
 | Visual state/renderer change | `src/main.cpp`, `src/oil_gauge_ui.cpp`, fonts when applicable, `docs/UI_DESIGN.md`, editable prototype if the binding design changes, new physical capture, affected AC tests |
+| Display scan/buffering/presentation change | `src/display_runtime.cpp`, internal ownership policy, native regression, QSPI override when applicable, functional AC row, build spec, test ledger, sprint record, decision log, progress card, source contract, complete firmware build and separately authorized exact-board proof |
 | Board pin or I²C address | `include/board_pins.h`, `src/main.cpp`, `docs/WAVESHARE_PINOUT.md`, `docs/ARCHITECTURE.md`, arrival checklist |
 | Analog front-end value/component | `include/calibration_config.h`, `docs/ARCHITECTURE.md`, `docs/BOM.md`/CSV, calibration evidence and conversion tests |
 | Automotive power/harness change | `docs/ARCHITECTURE.md`, BOM/CSV, arrival checklist, threat model; only later product code if diagnostics change |
@@ -157,12 +174,76 @@ flowchart LR
   `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`
   and the embedded application version is `3e0298a`. Exact-board flash and region
   verification pass; eight consecutive completed-frame windows measure 65–67 FPS.
-  Enlarged-label appearance remains `HARDWARE/JUDGMENT` pending a straight-on photo.
+  The current 13 ms app `bf5c932` retains that renderer and adds the accepted audio
+  path. A user-supplied 28.423-second 60 FPS physical cycle reviewed on 2026-08-14
+  confirms enlarged-label readability, intact glyphs, centered values, and no
+  clipping or overlap. The low-opacity warning phase was later rejected as
+  dotted-looking; Sprint 1 is reopened for a binary 2 Hz correction and new capture.
+- Current Sprint 1 correction result: the AC-06 contract failed first at 0/6, then
+  passes 6/6; the deterministic 250 ms boundary regression passes in the 16/16
+  native suite. Clean app `002581d` builds as a complete 724,336-byte ESP-IDF 6.0.2
+  demo image with SHA-256
+  `4443c6c7675e17abc105a316004530963569275e03eaba23f9fa0f2d2287e6e3`.
+  Exact-board app `002581d` passes identity-gated flash, write-time region
+  verification, post-boot immutable-region verification, clean demo boot, and 16
+  consecutive 64–77 FPS windows through two warning entries. The retained log
+  SHA-256 is `6251e71a1df6f8fd38447216e068198d7b3bf9004691d9a33bd4776f26893b63`.
+  Corrected physical appearance remains `JUDGMENT`.
+- Current Sprint 5 runtime result: exact-board app `bf5c932` uses a 13 ms
+  application/LVGL cadence and a CPU1-pinned audio worker. All four flash regions
+  verified; the retained bounded log records three completed tone paths and 29
+  consecutive completed-frame windows at 66–77 FPS with no panic, watchdog, or
+  audio error. Marcos confirmed the physical double beep is audible on 2026-08-11.
+- Current Sprint 6 software result: red-first settings tests now pass in the 19/19
+  native suite; the Keel verifier passes 9/9 menu and 11/11 warning invariants.
+  Clean app `65ebbfa` is 750,720 bytes with SHA-256
+  `f2de29c39b3cf7bdc4b06e24c85f98f02b55e17f05fb3fdeecc0743e1afd65fa`.
+  Its later authorized exact-board run passed write/boot verification and 24
+  consecutive 63–76 FPS windows; Marcos confirmed NVS reboot persistence and then
+  supplied the physical-review corrections below.
+- Current Sprint 6 physical-review correction: red-first compilation failed on the
+  absent `DataSource` and independent full-screen phase, and the review contract
+  failed 0/12. The implementation now passes 21/21 native tests, 9/9 menu, 11/11
+  split-cadence warning, and 12/12 review invariants plus a complete ESP-IDF 6.0.2
+  build. Clean app `da7cbfb` is 751,472 bytes with SHA-256
+  `995a743bb3b3e3153381669bc88fefa8b209ca96c22e6481656ec0e2d9af40f9`.
+  The later resident-menu/full-frame extension passes native 22/22 and its final
+  display/audio contract 14/14. Exact-board app `7c3a7c5` proves six complete audio
+  loop start/idle pairs. Final app `9d49ead`, 754,192 bytes, SHA-256
+  `f0975d82b45ba927a3fccc2ffe6937ed46b0e0487a12789e6517d36e9f34a699`, passed all
+  write and immutable post-boot digests and recorded 44 dynamic windows at 63–76
+  FPS. Its static opaque-red frames intentionally pause completed-frame measurement
+  while hidden gauge rendering is frozen. Guided menu/red tearing and final audible
+  edge quality remain `HARDWARE/JUDGMENT`.
+- Current Sprint 6 performance experiment: D-049 changes application and LVGL
+  cadence to 20 ms with a 50 completed-FPS target. The ESP32-S3 GPSPI clock remains
+  at its realizable 40 MHz value: its 80 MHz APB source and integer divider cannot
+  produce a physical 50 MHz clock, and 80 MHz is outside the accepted CO5300 limit.
+- Current exact-board extension: D-050 explicitly supersedes that panel-clock limit
+  for one reversible comparison. `include/display_clock_profile.h` owns the 80 MHz
+  request and `include/display_clock_override.h` is force-included only into the
+  pinned Waveshare BSP target to replace its QSPI IO macro; managed registry sources
+  remain byte-for-byte untouched. The UI cadence remains 20 ms so the bus speed is
+  the only changed performance variable.
+- Current synchronization correction: D-056 retains D-055's native scan order,
+  bounded transport and ownership while removing all LVGL rotation. Dirty PARTIAL
+  areas copy directly into the native canvas with panel-endian RGB565. The revised
+  source contract failed 31/35 before the implementation and now passes 35/35;
+  native tests pass 27/27. Clean commit `9b59722` produces a 733,232-byte
+  ESP-IDF 6.0.2 app with SHA-256
+  `a4ef30f5c0dd974cb02360dabf537fd2d6a2575e5c4e37a61e9e6ada3dc5ebd3`. A
+  canonical framebuffer and two explicit snapshots decouple rendering from the
+  GPIO43-TE presenter. ESP LCD stages each snapshot through three queued 8-row
+  internal-DMA chunks (23,040 bytes maximum), and `on_color_trans_done` is the
+  only release event. A start/completion failure latches `fatal=1`. D-055 app
+  `aa38f5f` proved this transport with zero errors and Marcos confirmed no tearing
+  or diagonal, but its logical image was rotated 180 degrees. D-056 separately
+  authorized exact-board proof remains pending.
 - Historical result: README/RESEARCH record a successful full build and eight passing native tests on 2026-07-28.
 - Browser prototype driver: Playwright/headless capture is planned but not present.
 - Embedded surface driver: serial log plus deterministic demo/calibration fixtures;
-  exact-board flash and boot capture are driven, while physical appearance remains
-  `HARDWARE/JUDGMENT`.
+  exact-board flash and boot capture are driven; indoor physical appearance passed
+  `HARDWARE/JUDGMENT`, while environmental appearance remains open.
 - Physical display/power/sensor/MTS/vehicle legs: `HARDWARE`; vehicle leg also `PRODUCTION-RISK`; real assistive/glanceability assessment is `JUDGMENT`.
 - Element addressability: compile-time state IDs and deterministic renderer-state names; the HTML prototype sliders need stable IDs if automated.
 - Read-back duty: fail on build/test error; capture serial boot log, I²C scan, ADC channels, reset reason, and fault state. Browser console errors must fail prototype checks once the driver exists.

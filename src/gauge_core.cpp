@@ -139,7 +139,8 @@ AlarmState evaluateAlarms(const ConvertedValue& pressure,
 }
 
 PressureState evaluatePressureState(const ConvertedValue& pressure,
-                                    const EngineState& engine) {
+                                    const EngineState& engine,
+                                    double warningThresholdPsi) {
   if (!pressure.valid() || !std::isfinite(pressure.value) ||
       pressure.value < 0.0) {
     return PressureState::fault;
@@ -150,7 +151,7 @@ PressureState evaluatePressureState(const ConvertedValue& pressure,
   if (!engine.running()) {
     return PressureState::engineStopped;
   }
-  if (pressure.value <= 10.0) {
+  if (pressure.value <= clamp(warningThresholdPsi, 1.0, 30.0)) {
     return PressureState::warning;
   }
   if (pressure.value < 15.0) {
@@ -170,19 +171,22 @@ TemperatureState evaluateTemperatureState(
   if (temperature.value < 50.0) {
     return TemperatureState::belowRange;
   }
-  if (temperature.value < 70.0) {
+  if (temperature.value < 60.0) {
     return TemperatureState::cold;
   }
-  if (temperature.value < 75.0) {
+  if (temperature.value < 76.0) {
     return TemperatureState::warming;
   }
-  if (temperature.value < 94.0) {
+  if (temperature.value < 96.0) {
     return TemperatureState::optimal;
   }
   if (temperature.value <= 100.0) {
     return TemperatureState::hot;
   }
-  return TemperatureState::veryHot;
+  if (temperature.value < 120.0) {
+    return TemperatureState::veryHot;
+  }
+  return TemperatureState::warning;
 }
 
 RgbColor temperatureColor(double temperatureC) {
@@ -192,12 +196,12 @@ RgbColor temperatureColor(double temperatureC) {
   };
   constexpr Stop kStops[] = {
       {50.0, {30, 132, 255}},
-      {57.0, {30, 132, 255}},
-      {75.0, {174, 205, 167}},
-      {89.0, {174, 205, 167}},
-      {94.0, {234, 190, 82}},
+      {59.0, {30, 132, 255}},
+      {76.0, {174, 205, 167}},
+      {90.0, {234, 190, 82}},
       {100.0, {255, 118, 28}},
-      {138.0, {255, 45, 56}},
+      {120.0, {255, 45, 56}},
+      {140.0, {255, 45, 56}},
   };
 
   if (!std::isfinite(temperatureC) ||
@@ -222,25 +226,31 @@ DisplayState evaluateDisplayState(const ConvertedValue& pressure,
                                   const ConvertedValue& temperature,
                                   const EngineState& engine,
                                   bool blinkPhaseOn,
-                                  bool reducedMotion) {
+                                  bool reducedMotion,
+                                  double warningThresholdPsi) {
   constexpr RgbColor kPressureNormal{255, 176, 32};
   constexpr RgbColor kPressureWarning{255, 57, 72};
 
   DisplayState result;
-  result.pressure = evaluatePressureState(pressure, engine);
+  result.pressure =
+      evaluatePressureState(pressure, engine, warningThresholdPsi);
   result.temperature = evaluateTemperatureState(temperature);
   const bool warning = result.pressure == PressureState::warning;
   result.pressureColor = warning ? kPressureWarning : kPressureNormal;
   result.temperatureColor = temperatureColor(temperature.value);
   result.pressureAttentionVisible =
       warning && (reducedMotion || blinkPhaseOn);
+  const bool temperatureWarning =
+      result.temperature == TemperatureState::warning;
+  result.temperatureAttentionVisible =
+      !temperatureWarning || reducedMotion || blinkPhaseOn;
   result.showTemperatureBelowRange =
       result.temperature == TemperatureState::belowRange;
   result.pressureBarFraction =
       pressure.valid() ? clamp(pressure.value / 150.0, 0.0, 1.0) : 0.0;
   result.temperatureBarFraction =
       temperature.valid()
-          ? clamp((temperature.value - 50.0) / 88.0, 0.0, 1.0)
+          ? clamp((temperature.value - 50.0) / 90.0, 0.0, 1.0)
           : 0.0;
   return result;
 }
@@ -297,6 +307,8 @@ const char* temperatureStateName(TemperatureState state) {
       return "hot";
     case TemperatureState::veryHot:
       return "very_hot";
+    case TemperatureState::warning:
+      return "warning";
   }
   return "unknown";
 }

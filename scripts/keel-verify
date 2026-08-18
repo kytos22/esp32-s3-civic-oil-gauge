@@ -61,7 +61,13 @@ def conformance() -> None:
     missing_rows = [
         line for line in conformance_text.splitlines() if re.search(r"\|\s*missing\s*\|", line)
     ]
-    check("Keel conformance", not missing_rows, f"{len(missing_rows)} missing row(s)")
+    undecided_rows = [line for line in missing_rows if not re.search(r"\bD-\d{3}\b", line)]
+    check(
+        "Keel conformance",
+        not undecided_rows,
+        f"{len(missing_rows)} visible missing row(s); "
+        f"{len(undecided_rows)} without a recorded decision",
+    )
 
 
 def acceptance_coverage() -> None:
@@ -250,17 +256,356 @@ def safety_invariants() -> None:
 
 def approved_geometry() -> None:
     ui = text("docs/UI_DESIGN.md")
+    renderer = text("src/oil_gauge_ui.cpp")
     fragment = text("docs/design/references/oil-gauge-design.fragment.html")
     conditions = [
         "480×480" in ui,
         "50/50" in ui,
-        "9 px" in ui,
+        "21 px" in ui,
         "--ogr-yellow: #ffb020" in fragment.lower(),
         "--ogr-danger: #ff3948" in fragment.lower(),
-        "height: 9px" in fragment,
+        "height: 21px" in fragment,
         'id="ogrRpmInput"' in fragment,
+        "&oil_pressure_icon" in renderer,
+        "&oil_temperature_icon" in renderer,
+        "oil-pressure-icon-mask.png" in fragment,
+        "oil-temperature-icon-mask.png" in fragment,
     ]
     check("Approved reference geometry", all(conditions), f"{sum(conditions)}/{len(conditions)} invariants")
+
+
+def bar_decimal_glyph_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    value_font = text("src/fonts/oil_font_value_96.c")
+    conditions = [
+        '"%.1f"' in renderer,
+        '/* U+002E "." */' in value_font,
+    ]
+    check(
+        "BAR decimal glyph regression",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} renderer/font invariants",
+    )
+
+
+def temperature_units_contract() -> None:
+    settings_header = text("include/gauge_settings.h")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    conditions = [
+        "enum class TemperatureUnit" in settings_header,
+        "temperatureForDisplay(" in settings,
+        '"temp_unit"' in store,
+        "TemperatureUnit::fahrenheit" in renderer,
+        '"°F"' in renderer,
+        'id="ogrTemperatureUnitInput"' in fragment,
+        "grados Fahrenheit" in fragment,
+    ]
+    check(
+        "Temperature unit presentation",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} model/store/renderer/simulator invariants",
+    )
+
+
+def warning_animation_contract() -> None:
+    demo_sequence = text("src/demo_sequence.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    settings = text("src/gauge_settings.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    standalone = text("docs/design/references/oil-gauge-design.html")
+    conditions = [
+        "kWarningBlinkHalfPeriodUs = 250'000U" in demo_sequence,
+        "evaluateWarningPresentation(" in renderer,
+        "presentation.pressureValueVisible = true" in settings,
+        "gUi.fullScreenPressureValue" in renderer,
+        "lv_obj_move_foreground(gUi.fullScreenWarning)" not in renderer,
+        "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in fragment,
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in fragment,
+        'id="ogrFullWarningValue"' in fragment,
+        "animation: ogr-pressure-warning-blink 0.5s step-end infinite" in standalone,
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in standalone,
+        "ogrFullWarningValue" in standalone,
+    ]
+    check(
+        "AC-06 warning animation",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} split-cadence and persistent-number invariants",
+    )
+
+
+def settings_menu_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    main = text("src/main.cpp")
+    store = text("src/settings_store.cpp")
+    conditions = [
+        "lv_indev_set_long_press_time(input, 700)" in main,
+        "kMenuTimeoutMs" not in renderer,
+        '"SIN DATOS · CALIBRACIÓN PENDIENTE"' in renderer,
+        "if (gUi.menuVisible)" in renderer,
+        "if (warning && gUi.menuVisible)" not in renderer,
+        "nvs_commit(handle)" in store,
+        "NVS unavailable; using safe defaults without erasing storage" in store,
+        "PressureUnit::bar" in renderer,
+        "WarningVisualMode::fullScreenBlink" in renderer,
+    ]
+    check(
+        "AC-33..38 settings menu",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} interaction and persistence invariants",
+    )
+
+
+def configurable_warning_and_boot_logo_contract() -> None:
+    settings_header = text("include/gauge_settings.h")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    main_source = text("src/main.cpp")
+    component = text("src/CMakeLists.txt")
+    logo = text("src/icons/startup_honda.c")
+    civic = text("src/icons/startup_civic.c")
+    logo_source_sha256 = hashlib.sha256(
+        (REPO / "docs/design/assets/startup-honda.png").read_bytes()
+    ).hexdigest()
+    civic_source_sha256 = hashlib.sha256(
+        (REPO / "docs/design/assets/startup-civic.png").read_bytes()
+    ).hexdigest()
+    conditions = [
+        "lowPressureWarningPsi = 10" in settings_header,
+        "startupLogoSeconds = 1" in settings_header,
+        "warningThresholdPsiFromDisplay" in settings,
+        '"pressure_warn"' in store,
+        '"boot_seconds"' in store,
+        "gUi.pressureWarningSlider" in renderer,
+        "gUi.startupLogoSlider" in renderer,
+        "gUi.settings.lowPressureWarningPsi" in renderer,
+        "setOilGaugeBootSplashVisible" in main_source,
+        "bootSplashDeadlineUs" in main_source,
+        '"icons/startup_honda.c"' in component,
+        '"icons/startup_civic.c"' in component,
+        "LV_COLOR_FORMAT_RGB565A8" in logo,
+        ".w = 320" in logo,
+        ".h = 215" in logo,
+        logo.count("0x") == 320 * 215 * 3,
+        logo_source_sha256 == "0b29066d360f6155de2ddfd851fbfe85c181f00035630bd391cf5c25c9897f28",
+        "LV_COLOR_FORMAT_RGB565A8" in civic,
+        ".w = 310" in civic,
+        ".h = 42" in civic,
+        civic.count("0x") == 310 * 42 * 3,
+        civic_source_sha256 == "901d98f7f5c0241495f2fbe37d13c0ed43a354f5f000c7088713e5b6b6b07ac3",
+        "lv_image_set_src(civic, &startup_civic_logo)" in renderer,
+    ]
+    check(
+        "Configurable pressure warning and Honda boot logo",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} model/store/menu/runtime/asset invariants",
+    )
+
+
+def full_frame_and_warning_loop_contract() -> None:
+    display_runtime = text("src/display_runtime.cpp")
+    renderer = text("src/oil_gauge_ui.cpp")
+    gauge_core = text("src/gauge_core.cpp")
+    main = text("src/main.cpp")
+    audio = text("src/warning_audio.cpp")
+    sdkconfig_defaults = text("sdkconfig.defaults")
+    sdkconfig_effective = text("sdkconfig")
+    conditions = [
+        "bsp_display_new(&panelConfig, &gPipeline.panel, &gPipeline.panelIo)" in display_runtime,
+        "lv_display_create(BSP_LCD_H_RES, BSP_LCD_V_RES)" in display_runtime,
+        "LV_DISPLAY_RENDER_MODE_FULL" in display_runtime,
+        "LV_COLOR_FORMAT_RGB565_SWAPPED" in display_runtime,
+        "lv_display_set_rotation" not in display_runtime,
+        "esp_lcd_panel_swap_xy(gPipeline.panel, false)" in display_runtime,
+        "esp_lcd_panel_mirror(gPipeline.panel, false, false)" in display_runtime,
+        "CO5300 native scan: MADCTL=0x00" in display_runtime,
+        "lv_display_rotate_area" not in display_runtime,
+        "lv_draw_sw_rotate" not in display_runtime,
+        "copyAreaIntoNativeCanvas" not in display_runtime,
+        "snapshotCompleteFrame" not in display_runtime,
+        "std::memcpy" not in display_runtime,
+        "lv_display_flush_ready(pipeline.display)" in display_runtime,
+        "esp_lcd_panel_io_register_event_callbacks" in display_runtime,
+        "esp_lcd_panel_draw_bitmap" in display_runtime,
+        "on_color_trans_done" in display_runtime,
+        "kDrawBufferRows" not in display_runtime,
+        "kFrameBufferCount = 2" in display_runtime,
+        "esp_ptr_external_ram" in display_runtime,
+        "touch_flags.swap_xy = 0" in display_runtime,
+        "touch_flags.mirror_x = 0" in display_runtime,
+        "touch_flags.mirror_y = 0" in display_runtime,
+        "if (gUi.menuVisible)" in renderer,
+        "bool fullScreenWarningVisible = false" in renderer,
+        "if (gUi.fullScreenWarningVisible !=" in renderer,
+        "if (presentation.fullScreenRedVisible)" in renderer,
+        "oilGaugeFullScreenWarningVisible()" in renderer,
+        "CO5300 pipeline:" in display_runtime,
+        "esp_lv_adapter_fps_stats_enable" not in main,
+        "lastFrameUs = nowUs" in main,
+        "static_assert(CONFIG_LV_DEF_REFR_PERIOD == kUiFramePeriodMs" not in renderer,
+        "CONFIG_LV_DEF_REFR_PERIOD=15" in sdkconfig_defaults,
+        "CONFIG_LV_DEF_REFR_PERIOD=15" in sdkconfig_effective,
+        "setWarningAudioActive(true)" in main,
+        "setWarningAudioActive(false)" in main,
+        "while (gWarningActive.load()" in audio,
+        "constexpr std::int32_t kBarHeight = 21" in renderer,
+        "lv_obj_t* edge" not in renderer,
+        "edgeOpacity" not in renderer,
+        "temperature.value < 60.0" in gauge_core,
+        "temperature.value < 76.0" in gauge_core,
+        "temperature.value < 96.0" in gauge_core,
+        "{59.0, {30, 132, 255}}" in gauge_core,
+        "{76.0, {174, 205, 167}}" in gauge_core,
+        "{90.0, {234, 190, 82}}" in gauge_core,
+        "{120.0, {255, 45, 56}}" in gauge_core,
+        "temperature.value < 120.0" in gauge_core,
+        "TemperatureState::warning" in gauge_core,
+        "temperatureAttentionVisible" in gauge_core,
+        "gUi.temperatureAttentionOpacity" in renderer,
+        'return "WARNING"' in renderer.split("const char* temperatureLabel", 1)[1],
+        '#include "icons/oil_icon_assets.h"' in renderer,
+        "lv_image_create(parent)" in renderer,
+        "&oil_pressure_icon" in renderer,
+        "&oil_temperature_icon" in renderer,
+        "lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, 0)" in renderer,
+        "&lv_font_montserrat_28" in renderer,
+        "lv_obj_set_pos(icon, 28, 90)" in renderer,
+        "lv_obj_set_pos(icon, 28, 328)" in renderer,
+        'gUi.gaugeRoot, 188, kPressureTicks' in renderer,
+        'gUi.gaugeRoot, 428, kTemperatureTicks' in renderer,
+        "requestOilDisplayBrightness(gSettings.brightnessPercent)" in main,
+        "bsp_display_brightness_set(gSettings.brightnessPercent)" not in main.split("void applyUiActions", 1)[1].split("}  // namespace", 1)[0],
+        "pendingBrightness.exchange" in display_runtime,
+        "applyPendingBrightness(pipeline)" in display_runtime,
+        "pressureLowReference" not in renderer,
+        "pressureOkReference" not in renderer,
+        "temperatureOptimalReference" not in renderer,
+        "temperatureHotReference" not in renderer,
+        'return "WARNING"' in renderer,
+        'return "OK"' in renderer,
+        'return "FRÍO"' in renderer,
+        'return "ÓPTIMO"' in renderer,
+    ]
+    check(
+        "AC-32/33/38/41 resident menu and full-frame warning loop",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} display/audio invariants",
+    )
+
+
+def display_qspi_clock_contract() -> None:
+    root_cmake = text("CMakeLists.txt")
+    display_runtime = text("src/display_runtime.cpp")
+    profile = text("include/display_clock_profile.h") if (
+        REPO / "include/display_clock_profile.h"
+    ).is_file() else ""
+    override = text("include/display_clock_override.h") if (
+        REPO / "include/display_clock_override.h"
+    ).is_file() else ""
+    conditions = [
+        "display_clock_override.h" in root_cmake,
+        "waveshare__esp32_s3_touch_amoled_2_16" in root_cmake,
+        "#define OIL_GAUGE_DISPLAY_QSPI_HZ (80 * 1000 * 1000)" in profile,
+        "#define OIL_GAUGE_DISPLAY_TRANSFER_ROWS (8)" in profile,
+        "#define OIL_GAUGE_DISPLAY_QUEUE_DEPTH (3)" in profile,
+        '#include "display_clock_profile.h"' in override,
+        "#undef CO5300_PANEL_IO_QSPI_CONFIG" in override,
+        ".pclk_hz = OIL_GAUGE_DISPLAY_QSPI_HZ" in override,
+        ".trans_queue_depth = OIL_GAUGE_DISPLAY_QUEUE_DEPTH" in override,
+        ".psram_dma_direct = false" in override,
+        ".max_transfer_sz = kPanelTransferBytes" in display_runtime,
+        "esp_ptr_dma_ext_capable" not in display_runtime,
+        "presenterFailed.store(true" in display_runtime,
+    ]
+    check(
+        "Sprint 6 80 MHz QSPI bounded-bounce path",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} project-owned clock override invariants",
+    )
+
+
+def sprint6_physical_revision_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    main = text("src/main.cpp")
+    settings = text("src/gauge_settings.cpp")
+    store = text("src/settings_store.cpp")
+    demo = text("src/demo_sequence.cpp")
+    audio = text("src/warning_audio.cpp")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    conditions = [
+        "DataSource::sensors" in settings,
+        re.search(r'nvs_set_u8\(\s*handle,\s*"source"', store) is not None,
+        "gSettings.dataSource == DataSource::demo" in main,
+        "kFullScreenWarningHalfPeriodUs = 1'000'000U" in demo,
+        '"PELIGRO"' in renderer,
+        '"PRESIÓN MUY BAJA"' in renderer,
+        "kMenuTimeoutMs" not in renderer,
+        "lv_obj_move_foreground(gUi.fullScreenWarning)" not in renderer,
+        "writeSegment(false, kEdgeSilenceMs)" in audio,
+        "esp_codec_dev_set_out_mute(gSpeaker, false)" not in audio.split("void warningAudioTask", 1)[1].split("}  // namespace", 1)[0],
+        "animation: ogr-full-screen-warning-blink 2s step-end infinite" in fragment,
+        "PELIGRO" in fragment and "PRESIÓN MUY BAJA" in fragment,
+    ]
+    check(
+        "Sprint 6 physical revisions",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} source/menu/warning/audio invariants",
+    )
+
+
+def sprint7_ads1115_diagnostic_contract() -> None:
+    main = text("src/main.cpp")
+    diagnostics = text("src/ads1115_diagnostics.cpp")
+    protocol = text("src/ads1115_protocol.cpp")
+    pins = text("include/board_pins.h")
+    kconfig = text("src/Kconfig.projbuild")
+    conditions = [
+        "CONFIG_OIL_GAUGE_ADS1115_DIAGNOSTICS" in main,
+        "bsp_i2c_get_handle()" in main,
+        "i2c_master_probe(bus, board::kAds1115Address" in diagnostics,
+        "scl_speed_hz = 100000" in diagnostics,
+        "raw-only floating inputs" in diagnostics,
+        "for (std::uint8_t channel = 0; channel < raw.size(); ++channel)" in diagnostics,
+        "ads1115RawToVolts" in protocol,
+        "kAds1115Address = 0x48" in pins,
+        "default y" in kconfig,
+        "oil_gauge_ui" not in diagnostics,
+    ]
+    check(
+        "Sprint 7 ADS1115 bench diagnostics",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} probe/raw-only safety invariants",
+    )
+
+
+def warning_typography_contract() -> None:
+    renderer = text("src/oil_gauge_ui.cpp")
+    fonts = text("src/oil_gauge_fonts.h")
+    cmake = text("src/CMakeLists.txt")
+    fragment = text("docs/design/references/oil-gauge-design.fragment.html")
+    font_path = REPO / "src/fonts/oil_font_warning_36.c"
+    font = text("src/fonts/oil_font_warning_36.c") if font_path.is_file() else ""
+    conditions = [
+        font_path.is_file(),
+        "Montserrat-Bold.ttf" in font,
+        "Size: 36 px" in font,
+        "oil_font_warning_36" in font,
+        "LV_FONT_DECLARE(oil_font_warning_36);" in fonts,
+        '"fonts/oil_font_warning_36.c"' in cmake,
+        renderer.count("&oil_font_warning_36") == 2,
+        re.search(r'"PELIGRO",\s*38,\s*210,\s*404,\s*48', renderer) is not None,
+        re.search(r'"PRESIÓN MUY BAJA",\s*38,\s*266,\s*404,\s*48', renderer) is not None,
+        fragment.count("font-size: clamp(28px, 7.5vw, 36px);") == 2,
+        "font-weight: 700;" in fragment,
+    ]
+    check(
+        "Full-screen warning typography",
+        all(conditions),
+        f"{sum(conditions)}/{len(conditions)} bold 36 px warning invariants",
+    )
 
 
 def marked_existing_paths() -> None:
@@ -415,6 +760,16 @@ def main() -> int:
     code_fences()
     safety_invariants()
     approved_geometry()
+    bar_decimal_glyph_contract()
+    temperature_units_contract()
+    warning_animation_contract()
+    settings_menu_contract()
+    configurable_warning_and_boot_logo_contract()
+    full_frame_and_warning_loop_contract()
+    display_qspi_clock_contract()
+    sprint6_physical_revision_contract()
+    sprint7_ads1115_diagnostic_contract()
+    warning_typography_contract()
     marked_existing_paths()
     suppressions()
     print(f"VERDICT: {'PASS' if not FAILURES else 'FAIL'}")
