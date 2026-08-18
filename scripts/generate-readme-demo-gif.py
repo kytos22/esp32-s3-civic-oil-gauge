@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import re
 import subprocess
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "docs/design/references/oil-gauge-design.html"
 OUTPUT = ROOT / "assets/oil-gauge-demo.gif"
 TEMP = ROOT / "tmp/readme-demo-gif"
+SOURCE_ASSETS = ROOT / "docs/design/assets"
 
 
 @dataclass(frozen=True)
@@ -70,6 +72,18 @@ def render_html(source: str, frame: FrameSpec) -> str:
     rendered = set_input(source, "ogrPressureInput", frame.pressure)
     rendered = set_input(rendered, "ogrRpmInput", frame.rpm)
     return set_input(rendered, "ogrTemperatureInput", frame.temperature)
+
+
+def inline_relative_assets(source: str) -> str:
+    """Inline srcdoc mask assets because browsers block nested file URLs."""
+    asset_names = sorted(set(re.findall(r"\.\./assets/([A-Za-z0-9][A-Za-z0-9._-]*)", source)))
+    for asset_name in asset_names:
+        source_path = SOURCE_ASSETS / asset_name
+        if not source_path.is_file():
+            raise FileNotFoundError(f"Referenced simulator asset was not found: {source_path}")
+        encoded = base64.b64encode(source_path.read_bytes()).decode("ascii")
+        source = source.replace(f"../assets/{asset_name}", f"data:image/png;base64,{encoded}")
+    return source
 
 
 def capture(edge: Path, frame: FrameSpec, html_path: Path, png_path: Path) -> None:
@@ -150,7 +164,7 @@ def main() -> int:
     args = parser.parse_args()
 
     edge = args.edge or default_edge()
-    source = SOURCE.read_text(encoding="utf-8")
+    source = inline_relative_assets(SOURCE.read_text(encoding="utf-8"))
     TEMP.mkdir(parents=True, exist_ok=True)
 
     frames = animation_frames()

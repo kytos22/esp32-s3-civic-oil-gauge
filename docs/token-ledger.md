@@ -56,8 +56,9 @@
 | 2026-08-18 | Repository state and display-architecture reconciliation | Codex session model | 36000 | 9000 | estimated, rounded up from official adapter/LVGL comparison, accepted-source audit, parked triple-buffer failure analysis, Keel maintenance, documentation and repository verification; environment exposes no exact counter | Made the accepted two-FULL-buffer QSPI presenter authoritative in the docs, recorded the sole-refresh-owner requirement and triple-buffer lessons, updated embedded Keel to v5.15.1, and kept unimplemented high-impact automation explicitly visible |
 | 2026-08-18 | Public GitHub synchronization | Codex session model | 9000 | 2500 | estimated, rounded up from remote/authentication checks, full branch-scope audit, publication, PR creation and remote identity verification; environment exposes no exact counter | Published the accepted project history on `codex/post-triple-tasks` and opened mergeable draft PR #1 against `main`; no firmware or vehicle state changed |
 | 2026-08-18 | Public main merge | Codex session model | 5000 | 1500 | estimated, rounded up from final PR gates, ready transition, merge and ancestry verification; environment exposes no exact counter | Merged PR #1 with full history into public `main` at `ef8e86c` and verified the accepted branch tip is its ancestor |
+| 2026-08-18 | Current README GIF regeneration | Codex session model | 14000 | 3500 | estimated, rounded up from three complete 205-frame captures, visual sampling, browser asset diagnosis, deterministic generator repair and evidence reconciliation; environment exposes no exact counter | Replaced the outdated preview with the current icons/bars/colours/units, fixed silent `file://` mask omission by embedding assets, and verified the 4.1-second 50 FPS logical timeline |
 
-Running total: approximately 1627500 input / 412000 output.
+Running total: approximately 1641500 input / 415500 output.
 
 ## Final reconciliation
 

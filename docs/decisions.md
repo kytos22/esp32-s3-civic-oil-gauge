@@ -1300,3 +1300,24 @@
   `origin/main`, proving that the published accepted history is present.
 - Safety: no branch was deleted, no firmware was flashed and the isolated
   triple-buffer branch was not included.
+
+## D-077 — Regenerate the README GIF from the current simulator with embedded icons
+- Date / phase: 2026-08-18 / Phase 6 documentation preview
+- Decision: Replace `assets/oil-gauge-demo.gif` with a fresh 205-sample, 50 FPS
+  capture from the current standalone simulator. Keep the existing 736×700,
+  4.1-second infinite-loop contract and inline every relative PNG mask into the
+  temporary HTML before Edge capture.
+- Why: the previous GIF was generated on 2026-08-04 and predated the accepted
+  icon, 21 px bar, unit, temperature-colour and warning revisions. The first
+  regeneration exposed a hidden generator defect: nested `file://` mask URLs in
+  the simulator `srcdoc` were omitted by Edge, producing frames without icons.
+  Data-URI inlining makes the capture self-contained and fails if a referenced
+  source asset is absent.
+- Verification: Pillow reports 736×700, 148 optimized frames, infinite loop and
+  4,100 ms duration; 136 frames retain the exact 20 ms delay. The 1,238,704-byte
+  GIF has SHA-256
+  `0379ef71618ba94524497442d9f0fce812899563747b50e97588f4fcedb3cb80`.
+  Frames 0, 50, 100, 150, 175 and 200 were visually inspected for stopped/cold,
+  warning/warming, optimal, hot, 120 °C warning and return-to-optimal states.
+- Safety: synthetic demo values only; no firmware, display flash, sensor or
+  vehicle state changed.
