@@ -55,8 +55,9 @@
 | 2026-08-17 | Phase 5 / accepted-base rollback and branch separation | Codex session model | 6000 | 1500 | estimated, rounded up from branch preservation, deterministic baseline rebuild, exact device/image gates, four-region verified flash, bounded runtime capture and documentation; environment exposes no exact counter | Parked triple-buffer work on its existing branch, created `codex/post-triple-tasks` from `pb5-good-base`, restored the accepted firmware and confirmed zero timeout/error/fatal counters |
 | 2026-08-18 | Repository state and display-architecture reconciliation | Codex session model | 36000 | 9000 | estimated, rounded up from official adapter/LVGL comparison, accepted-source audit, parked triple-buffer failure analysis, Keel maintenance, documentation and repository verification; environment exposes no exact counter | Made the accepted two-FULL-buffer QSPI presenter authoritative in the docs, recorded the sole-refresh-owner requirement and triple-buffer lessons, updated embedded Keel to v5.15.1, and kept unimplemented high-impact automation explicitly visible |
 | 2026-08-18 | Public GitHub synchronization | Codex session model | 9000 | 2500 | estimated, rounded up from remote/authentication checks, full branch-scope audit, publication, PR creation and remote identity verification; environment exposes no exact counter | Published the accepted project history on `codex/post-triple-tasks` and opened mergeable draft PR #1 against `main`; no firmware or vehicle state changed |
+| 2026-08-18 | Public main merge | Codex session model | 5000 | 1500 | estimated, rounded up from final PR gates, ready transition, merge and ancestry verification; environment exposes no exact counter | Merged PR #1 with full history into public `main` at `ef8e86c` and verified the accepted branch tip is its ancestor |
 
-Running total: approximately 1622500 input / 410500 output.
+Running total: approximately 1627500 input / 412000 output.
 
 ## Final reconciliation
 

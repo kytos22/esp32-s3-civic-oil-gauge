@@ -25,7 +25,7 @@
 - Client budget: no
 - User guide: deferred until the hardware-validated release candidate
 - Docs theme: n/a until Phase 6
-- Durability: git remote `origin` at `https://github.com/kytos22/esp32-s3-civic-oil-gauge.git`; current accepted branch published and tracked; draft PR #1 targets `main`
+- Durability: git remote `origin` at `https://github.com/kytos22/esp32-s3-civic-oil-gauge.git`; accepted history published through merged PR #1; public `main` contains the project baseline
 - Branches: integration branch `develop`; current work branch
   `codex/post-triple-tasks` starts at `pb5-good-base`. The parked display experiment
   remains isolated on `codex/triple-buffer-pipeline` at `0594dba` and is not merged
@@ -74,10 +74,10 @@
   remain gated.
 
 ## Open items
-- D-075 publishes `codex/post-triple-tasks` through commit `7c94cb0` and opens
-  public draft PR #1 against `main`. The remote branch exactly matched the local
-  commit after push and GitHub reported the PR mergeable. `main` remains unchanged
-  until the PR is explicitly merged.
+- D-075/D-076 publish `codex/post-triple-tasks` and merge public PR #1 into
+  `main`. GitHub created merge commit `ef8e86c`; remote verification proves that
+  the complete accepted branch through `bb5202b` is an ancestor of public
+  `origin/main`.
 - D-066 and its successors are parked for later on branch
   `codex/triple-buffer-pipeline` at `0594dba`. They are deliberately absent from
   this branch and must not be merged while ordinary feature work continues. Marcos

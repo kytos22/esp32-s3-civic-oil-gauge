@@ -1289,3 +1289,14 @@
 - Safety: no firmware flash or vehicle action occurred. The parked
   `codex/triple-buffer-pipeline` branch was not merged or published as part of
   this action. Merging PR #1 into `main` remains a separate explicit action.
+
+## D-076 — Merge the accepted project history into public main
+- Date / phase: 2026-08-18 / repository publication
+- Decision: On Marcos's explicit approval, mark PR #1 ready and merge it into
+  `main` with a merge commit, preserving the complete individual commit history.
+- Verification: GitHub reports PR #1 `MERGED` at
+  `ef8e86cf026586e476a0b6c73be1e85386104a82`. After fetching the remote,
+  `bb5202bb0bc5656dfb6b7c71de1b09e70f7ca426` is an ancestor of
+  `origin/main`, proving that the published accepted history is present.
+- Safety: no branch was deleted, no firmware was flashed and the isolated
+  triple-buffer branch was not included.
