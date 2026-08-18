@@ -45,11 +45,12 @@
 - States: stopped/cold, running/cold, low-pressure warning, warming, optimal, hot,
   very hot/high pressure and return-to-optimal loop, joined by smooth-step values.
 - Output: `assets/oil-gauge-demo.gif`, 736×700, infinite 4.1-second loop,
-  1,212,439 bytes, SHA-256
-  `1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
-- Timing: 205 rendered samples at 50 FPS. GIF optimization stores 142 unique
-  frames; 132 transition frames retain 20 ms timing and identical holds are merged
+  1,238,704 bytes, SHA-256
+  `0379ef71618ba94524497442d9f0fce812899563747b50e97588f4fcedb3cb80`.
+- Timing: 205 rendered samples at 50 FPS. GIF optimization stores 148 unique
+  frames; 136 transition frames retain 20 ms timing and identical holds are merged
   into longer durations without changing total playback time.
-- Inspection: five intermediate smooth-step captures and the animated output were
-  visually checked; values, bars, colours and semantic labels transition without
-  cross-fading.
+- Inspection: six representative smooth-step captures and the animated output
+  were visually checked; values, 21 px bars, current colours, semantic labels and
+  both supplied oil icons render without cross-fading. The generator now embeds
+  mask assets because Edge omits nested local `file://` masks inside `srcdoc`.

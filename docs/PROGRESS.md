@@ -553,9 +553,11 @@
   all three warning modes, including the always-visible full-screen pressure value;
   the deployed Pages copy remains unchanged until an authorized push.
 - Animated preview: both READMEs use the same 736×700 looping GIF generated from
-  205 smooth-step HTML samples at 50 FPS. Optimized storage retains 142 unique
-  frames (132 at 20 ms), a 4.1-second loop, 1,212,439 bytes and SHA-256
-  `1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
+  205 smooth-step HTML samples at 50 FPS. The refreshed current-UI asset retains
+  148 optimized frames (136 at 20 ms), a 4.1-second loop, 1,238,704 bytes and
+  SHA-256 `0379ef71618ba94524497442d9f0fce812899563747b50e97588f4fcedb3cb80`.
+  Six representative captures prove the current icons, 21 px bars, colours,
+  units and semantic states; icon masks are embedded for deterministic capture.
 - Repository license: project-authored content uses the byte-matched official
   PolyForm Noncommercial 1.0.0 text plus `Required Notice: Copyright 2026 Marcos
   Vidal`. Remote Git blob IDs for `LICENSE.md`, `NOTICE` and `README.md` match the

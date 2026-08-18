@@ -15,7 +15,9 @@ states and remains linked to the live simulator. Regenerate it after an approved
 simulator visual change; do not edit its pixels independently.
 
 The verified asset is 736×700 and loops indefinitely over 4.1 seconds. The
-generator renders 205 samples at 50 FPS; GIF optimization stores 142 unique
-frames, 132 of them at the exact 20 ms transition cadence, while combining only
-identical holds. The 1,212,439-byte file has SHA-256
-`1764a74750fcc07b492df7a9b1dbde7994e96181d40dfeab3faffad819e60f1c`.
+generator renders 205 samples at 50 FPS; GIF optimization stores 148 unique
+frames, 136 of them at the exact 20 ms transition cadence, while combining only
+identical holds. The 1,238,704-byte file has SHA-256
+`0379ef71618ba94524497442d9f0fce812899563747b50e97588f4fcedb3cb80`.
+The generator inlines the simulator's two current icon masks before headless
+capture so browser `file://` restrictions cannot silently omit them.
