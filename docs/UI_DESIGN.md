@@ -191,7 +191,7 @@ characterized and compared against the MTX-D.
 
 The PARTIAL v2 plus CivicAux base has run on the exact display and received real
 hub ambient-light frames. The sectioned-menu follow-up passes 69/69 native tests
-and produces a complete 1,079,520-byte ESP-IDF 6.0.2 image. Its home/subsection
+and produces a complete 1,079,488-byte ESP-IDF 6.0.2 image. Its home/subsection
 navigation, touch targets, panel errors and tearing still require the next
 exact-board acceptance run.
 
