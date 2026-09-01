@@ -82,10 +82,9 @@ Temperature colors are linearly interpolated between:
 | below range | <50 °C | `FRÍO`, `<50` | blue, empty bar | implemented/tested |
 | cold | 50–59 °C | `FRÍO` | interpolated | implemented/tested |
 | warming | 60–75 °C | `CALENTANDO` | interpolated | implemented/tested |
-| optimal | 76–95 °C | `ÓPTIMO` | interpolated | implemented/tested |
-| hot | 96–100 °C | `CALIENTE` | interpolated | implemented/tested |
-| very hot | 101–119 °C | `MUY CALIENTE` | orange to red | implemented/tested |
-| thermal warning | 120–140 °C | blinking `WARNING` | fixed red | implemented/tested |
+| optimal | 76–100 °C | `ÓPTIMO` | interpolated | implemented/tested |
+| very hot | 101 °C to (warning cut − 0.1) | `MUY CALIENTE` | orange to red | implemented/tested |
+| thermal warning | warning cut to 140 °C (default 120) | blinking `WARNING` | fixed red | implemented/tested |
 | fault | invalid temperature | explicit fault | non-color cue | implemented/tested |
 
 ## 4a. Accessibility
@@ -113,17 +112,28 @@ Temperature colors are linearly interpolated between:
 | RPM unavailable | do not arm pressure warning | explicit unknown state |
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
-| 700 ms stationary hold | open full-screen settings | gauge visible; no active warning |
-| `VOLVER` | save changed settings and return to gauge | settings visible |
+| 700 ms stationary hold | open full-screen settings | gauge visible; warning may be active |
+| settings section button | hide every other menu page and show only the selected 480×480 subsection | settings home visible |
+| `ATRÁS` | return to the non-scrolling settings home without saving or closing | subsection visible |
+| `CERRAR` | save changed settings and return to gauge | settings home visible |
 | pressure warning while menu open | keep settings visible; continue warning evaluation/audio without rendering the gauge behind it | warning active |
-| data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
+| data source `SENSORES` | persist selection; show provisional A1 temperature and neutral-gray `--` / `SIN DATOS` pressure | ADS1115 present; pressure calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | warning threshold changed | store 1–30 canonical PSI and re-evaluate the engine-gated warning | menu label follows selected PSI/BAR unit |
+| temperature warning changed | convert the selected menu unit back to 110–140 canonical °C and move the bar warning tick | default 120 °C; menu follows °C/°F |
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
+| brightness mode `AUTO` | hold manual backup until two usable CivicAux frames, then apply provisional log-lux mapping | UART1 RX GPIO44; main loop is sole panel requester |
+| AUTO brightness range changed | normalize and compress the complete curve into the new endpoints, recompute the current fresh target immediately, then slew the physical output | one range slider; default 20–100%; no new lux frame required |
+| AUTO curve adjustment changed | gamma-shape the normalized curve by −30…+30 before range scaling and recompute immediately | exact endpoints, effective intermediate adjustment, unchanged deadband and ramp timing |
+| AUTO target changes | reject 1% chatter, then slew accepted changes at 40 percentage points/s brighter and 25 dimmer | MANUAL remains immediate; fallback keeps its 1.5 s transition |
+| brightness mode `MANUAL` | ignore lux for output and apply the saved slider value | hub diagnostics may remain visible in settings |
+| CivicAux invalid/stale | return smoothly to saved manual backup in 1.5 s | 1 s continued invalid traffic or 2 s without usable ambient data |
+| CivicAux recovery | resume AUTO after two new consecutive usable ambient frames | also required after hub uptime restart |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
-| temperature below 50 | render `<50` in Celsius or `<122` in Fahrenheit, with an empty temperature bar | valid sample |
-| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 20 ms |
+| interface language changed | update every static and dynamic label immediately and persist on close | Spanish default; English changes no units or calculations |
+| temperature below 50 | render `<50` / `<122` in demo; render measured value in sensor bench mode; keep bar empty | valid sample |
+| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | 15 ms producer target, TE-paced presentation |
 
 ## 6. Asset map
 

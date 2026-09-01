@@ -7,7 +7,7 @@ namespace oilgauge {
 
 enum class FrameSlotState : std::uint8_t {
   free,
-  snapshot,
+  rendering,
   ready,
   inFlight,
 };
@@ -17,33 +17,34 @@ struct FrameSlotMetadata {
   std::uint64_t generation = 0;
 };
 
-// Rendering may reuse a free slot or replace an obsolete complete frame, but it
-// must never touch a snapshot being copied or a buffer owned by LCD DMA.
+// Keep exactly one coherent READY frame. A new render starts only after TE has
+// handed that frame to DMA, leaving a FREE canvas for the next generation.
 template <std::size_t SlotCount>
-[[nodiscard]] constexpr int selectSnapshotSlot(
+[[nodiscard]] constexpr int selectRenderSlot(
     const FrameSlotMetadata (&slots)[SlotCount]) {
-  for (std::size_t index = 0; index < SlotCount; ++index) {
-    if (slots[index].state == FrameSlotState::free) {
-      return static_cast<int>(index);
+  for (const FrameSlotMetadata& slot : slots) {
+    if (slot.state == FrameSlotState::ready ||
+        slot.state == FrameSlotState::rendering) {
+      return -1;
     }
   }
 
-  int oldestReady = -1;
+  int newestFree = -1;
   for (std::size_t index = 0; index < SlotCount; ++index) {
-    if (slots[index].state != FrameSlotState::ready) {
+    if (slots[index].state != FrameSlotState::free) {
       continue;
     }
-    if (oldestReady < 0 ||
-        slots[index].generation <
-            slots[static_cast<std::size_t>(oldestReady)].generation) {
-      oldestReady = static_cast<int>(index);
+    if (newestFree < 0 ||
+        slots[index].generation >
+            slots[static_cast<std::size_t>(newestFree)].generation) {
+      newestFree = static_cast<int>(index);
     }
   }
-  return oldestReady;
+  return newestFree;
 }
 
-// Presentation always consumes the newest coherent generation. Older READY
-// generations are stale and can be dropped before the transfer begins.
+// Presentation consumes the coherent READY generation. The selector remains
+// defensive if corrupted/test state ever contains more than one READY slot.
 template <std::size_t SlotCount>
 [[nodiscard]] constexpr int selectNewestReadySlot(
     const FrameSlotMetadata (&slots)[SlotCount]) {

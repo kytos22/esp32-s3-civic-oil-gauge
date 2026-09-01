@@ -25,7 +25,9 @@ Innovate MTX-D sensors.
 
 - CO5300 QSPI display: GPIO 4, 5, 6, 7; CLK 38; CS 12; RESET 39.
 - Shared exposed I²C: SDA GPIO15, SCL GPIO14.
-- Exposed UART: TX GPIO43, RX GPIO44.
+- GPIO43/P8 is dedicated to the measured CO5300 TE signal from panel TP3;
+  do not reuse it as UART TX while synchronized presentation is enabled.
+- GPIO44 remains reserved as receive-only UART for possible future telemetry.
 - Exposed power pads: VBUS, 3V3, and GND.
 - The board I²C bus already has 2.2 kΩ pull-ups to 3.3 V. Do not add other
   strong pull-ups on the final PCB.

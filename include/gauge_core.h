@@ -104,7 +104,6 @@ enum class TemperatureState : std::uint8_t {
   cold,
   warming,
   optimal,
-  hot,
   veryHot,
   warning,
 };
@@ -120,6 +119,8 @@ struct DisplayState {
   TemperatureState temperature = TemperatureState::fault;
   RgbColor pressureColor{};
   RgbColor temperatureColor{};
+  RgbColor pressureIconColor{};
+  RgbColor temperatureIconColor{};
   bool pressureAttentionVisible = false;
   bool temperatureAttentionVisible = true;
   bool showTemperatureBelowRange = false;
@@ -133,9 +134,12 @@ struct DisplayState {
     double warningThresholdPsi = 10.0);
 
 [[nodiscard]] TemperatureState evaluateTemperatureState(
-    const ConvertedValue& temperature);
+    const ConvertedValue& temperature,
+    double warningThresholdC = 120.0);
 
-[[nodiscard]] RgbColor temperatureColor(double temperatureC);
+[[nodiscard]] RgbColor temperatureColor(
+    double temperatureC,
+    double warningThresholdC = 120.0);
 
 [[nodiscard]] DisplayState evaluateDisplayState(
     const ConvertedValue& pressure,
@@ -143,7 +147,8 @@ struct DisplayState {
     const EngineState& engine,
     bool blinkPhaseOn,
     bool reducedMotion,
-    double warningThresholdPsi = 10.0);
+    double warningThresholdPsi = 10.0,
+    double temperatureWarningC = 120.0);
 
 const char* faultName(Fault fault);
 const char* pressureStateName(PressureState state);

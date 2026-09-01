@@ -5,7 +5,7 @@
 ## Project card
 - Name / one-line purpose: Civic ESP32 Oil Gauge — replace the Innovate MTX-D display while retaining and safely characterizing its installed oil pressure and temperature sensors.
 - Project type: embedded firmware / reusable measurement component
-- Stack & target platform(s): C++26 firmware on ESP-IDF 6.0.2, Waveshare ESP32-S3-Touch-AMOLED-2.16 BSP 2.0.1, LVGL 9.5.0; C++17 native measurement tests; ADS1115 planned
+- Stack & target platform(s): C++26 firmware on ESP-IDF 6.0.2, Waveshare ESP32-S3-Touch-AMOLED-2.16 BSP 2.0.1, LVGL 9.5.0; C++17 native measurement tests; ADS1115 at 0x48
 - License: PolyForm Noncommercial 1.0.0 for project-authored content; required
   notice names Marcos Vidal; commercial use requires separate permission
 - Docs language: English
@@ -27,8 +27,8 @@
 - Docs theme: n/a until Phase 6
 - Durability: git remote `origin` at `https://github.com/kytos22/esp32-s3-civic-oil-gauge.git`; accepted history published through merged PR #1; public `main` contains the project baseline
 - Branches: integration branch `develop`; current work branch
-  `codex/post-triple-tasks` starts at `pb5-good-base`. The parked display experiment
-  remains isolated on `codex/triple-buffer-pipeline` at `0594dba` and is not merged
+  `codex/partial-v2-integration` starts at `f071c03`. The hardware rollback remains
+  `pb5-good-base`; Hermes is reference material, not the runtime base
 - Chaining: off
 
 ## Phase status
@@ -65,13 +65,14 @@
   no-tearing firmware and accepted UI immediately before the triple-buffer display
   experiment. It remains the rollback point until a new exact-board candidate is
   separately authorized, flashed and physically accepted.
-- Next action: continue non-triple-buffer work from this restored accepted base;
-  await Marcos's next requested task. The display architecture is now current in
-  `docs/reference/display-pipeline.md`; if the isolated performance experiment is
-  reopened, its first slice is deletion/proof of the sole LVGL refresh scheduler,
-  before any compositor or buffer-count change. ADS1115 grounded/divider
-  validation remains the next separate electrical step; sensors and vehicle work
-  remain gated.
+- Current software candidate: generation-aware PARTIAL rendering into three full
+  PSRAM canvases, one READY generation, TE hand-off, immutable DMA ownership and
+  damage-history recovery. Native tests pass 36/36 and a clean ESP-IDF 6.0.2 build
+  succeeds. It is not yet flashed or physically accepted.
+- A1 temperature now supports the provisional 4.99 kΩ resistor-test curve from
+  10–140 °C. Pressure remains calibration-gated and vehicle cutover remains blocked.
+- Next action: separately authorize one exact-board candidate flash, then inspect
+  boot stability, menu scroll, full-screen warning, tearing and physical FPS logs.
 
 ## Open items
 - D-075/D-076 publish `codex/post-triple-tasks` and merge public PR #1 into
@@ -87,9 +88,10 @@
 - D-073 records the adapter audit and the transferable part of the RGB buffering
   sequence. The accepted branch uses `esp_lvgl_adapter` only for lifecycle,
   locking, timers and touch; display registration, GPIO43 TE, full-frame QSPI DMA
-  and buffer release remain project-owned. The future experiment must delete the
-  automatic display refresh timer because LVGL 9.5 re-arms a paused timer on
-  `LV_EVENT_REFR_REQUEST`. No firmware or hardware changed in D-073.
+  and buffer release remain project-owned. Later source inspection corrected one
+  detail: deleting the refresh timer also disables `lv_refr_now()` in LVGL 9.5.
+  PARTIAL v2 therefore retains it paused and neutralizes every built-in
+  `LV_EVENT_REFR_REQUEST` resume with a later synchronous event callback.
 - D-074 updates both embedded Keel copies and lock stamps to v5.15.1, installs
   and configures the post-commit stale-handoff guard, and adds the shared session
   identity helper. The v5.14/v5.15 `keel-close` and Stop-hook executables remain

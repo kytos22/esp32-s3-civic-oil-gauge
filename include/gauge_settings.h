@@ -25,16 +25,35 @@ enum class DataSource : std::uint8_t {
   sensors = 1,
 };
 
+enum class BrightnessMode : std::uint8_t {
+  automatic = 0,
+  manual = 1,
+};
+
+enum class UiLanguage : std::uint8_t {
+  spanish = 0,
+  english = 1,
+};
+
+inline constexpr std::int8_t kAutomaticBrightnessBiasMinimum = -30;
+inline constexpr std::int8_t kAutomaticBrightnessBiasMaximum = 30;
+
 struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
+  std::uint8_t automaticBrightnessMinimumPercent = 20;
+  std::uint8_t automaticBrightnessMaximumPercent = 100;
+  std::int8_t automaticBrightnessBiasPercent = 0;
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   std::uint8_t lowPressureWarningPsi = 10;
+  std::uint8_t highTemperatureWarningCelsius = 120;
   std::uint8_t startupLogoSeconds = 1;
   PressureUnit pressureUnit = PressureUnit::psi;
   TemperatureUnit temperatureUnit = TemperatureUnit::celsius;
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
   DataSource dataSource = DataSource::demo;
+  BrightnessMode brightnessMode = BrightnessMode::automatic;
+  UiLanguage language = UiLanguage::spanish;
 };
 
 struct WarningPresentation {
@@ -44,6 +63,10 @@ struct WarningPresentation {
 };
 
 [[nodiscard]] GaugeSettings sanitizeGaugeSettings(GaugeSettings settings);
+[[nodiscard]] BrightnessMode brightnessModeFromStoredValue(
+    bool keyPresent,
+    std::uint8_t storedValue);
+[[nodiscard]] std::uint8_t brightnessModeStoredValue(BrightnessMode mode);
 [[nodiscard]] double pressureForDisplay(double pressurePsi,
                                         PressureUnit unit);
 [[nodiscard]] double warningThresholdForDisplay(std::uint8_t pressurePsi,
@@ -52,6 +75,12 @@ struct WarningPresentation {
                                                           PressureUnit unit);
 [[nodiscard]] double temperatureForDisplay(double temperatureC,
                                            TemperatureUnit unit);
+[[nodiscard]] double temperatureWarningThresholdForDisplay(
+    std::uint8_t temperatureC,
+    TemperatureUnit unit);
+[[nodiscard]] std::uint8_t temperatureWarningThresholdCelsiusFromDisplay(
+    double value,
+    TemperatureUnit unit);
 [[nodiscard]] WarningPresentation evaluateWarningPresentation(
     WarningVisualMode mode,
     bool warningActive,

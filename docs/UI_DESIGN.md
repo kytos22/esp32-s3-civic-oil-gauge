@@ -42,7 +42,8 @@ The earlier hand-built thermometer geometry is superseded by D-061.
 
 ## Oil pressure
 
-Provisional visual scale: 0–150 PSI.
+Visual bar scale: 0–85 PSI. Values above 85 PSI remain readable while the bar
+clamps at full width.
 
 | Condition | State label | Color/behavior |
 |---|---|---|
@@ -52,8 +53,9 @@ Provisional visual scale: 0–150 PSI.
 | 15–80 PSI | `OK` | Yellow/amber |
 | >80 PSI | `PRESIÓN ALTA` | Provisional, validate |
 
-Normal icon/bar color: `rgb(255, 176, 32)`.
-Alarm color: `rgb(255, 57, 72)`.
+Normal bar/label color: `rgb(255, 176, 32)`; alarm color:
+`rgb(255, 57, 72)`. The icon has its own palette: red in warning, white in
+`OK`, and amber for the remaining valid states.
 
 During `WARNING`, icon, text, and bar alternate between fully visible and fully
 transparent every 250 ms; the numeric value remains fixed and readable. No dimmed
@@ -67,11 +69,12 @@ runtime changes only its hidden flag and never reorders or rebuilds it.
 
 ## Oil temperature
 
-The MTX-D display starts near 49 °C. Until a wider direct curve is validated:
+The demo retains the approved lower-floor presentation:
 
 - below 50 °C render `<50 °C`, or `<122 °F` when Fahrenheit is selected;
 - keep icon blue and bar empty below 50 °C;
-- never show a precise number below the validated range.
+- in `SENSORES`, show the provisional measured number below 50 °C so resistor
+  points down to 10 °C can be checked.
 
 Semantic states:
 
@@ -79,12 +82,11 @@ Semantic states:
 |---|---|
 | <60 °C | `FRÍO` (`<50` when below measurable range) |
 | 60–75 °C | `CALENTANDO` |
-| 76–95 °C | `ÓPTIMO` |
-| 96–100 °C | `CALIENTE` |
-| 101–119 °C | `MUY CALIENTE` |
-| 120–140 °C | blinking red `WARNING` |
+| 76–100 °C | `ÓPTIMO` |
+| 101 °C to (warning − 0.1) | `MUY CALIENTE` |
+| warning to 140 °C | blinking red `WARNING` |
 
-Bar, icon, and label use the same continuous interpolation:
+Bar and dynamic label use continuous interpolation:
 
 | Point | RGB | Meaning |
 |---:|---|---|
@@ -93,39 +95,80 @@ Bar, icon, and label use the same continuous interpolation:
 | 76 °C | `174, 205, 167` | Light desaturated green at optimal entry |
 | 90 °C | `234, 190, 82` | Light amber after gradual transition from 76 °C |
 | 100 °C | `255, 118, 28` | Orange |
-| 120 °C | `255, 45, 56` | Red warning entry |
+| selected warning | `255, 45, 56` | Red warning entry; 120 °C by default |
 | 140 °C | `255, 45, 56` | Fixed red at display limit |
 
-Interpolate linearly between stops. Normalize the bar from 50–140 °C. At
-120–140 °C only the dynamic `WARNING` label blinks at 2 Hz; number, icon and bar
-remain continuously visible in red.
+Interpolate linearly between stops, with the final orange-to-red segment ending
+at the selected 110–140 °C warning threshold. Normalize the bar from 50–140 °C.
+At and above that threshold the icon and dynamic `WARNING` label blink together
+at 2 Hz; number and bar remain continuously visible in red. The temperature
+icon palette is blue below 60 °C, white from 60 °C until warning, and red in
+warning.
 
 The pressure and temperature threshold marks remain embedded in their bars; only
 the explanatory fixed text beneath them is removed.
 
 ## Settings page
 
-A full-screen black menu opens after a stationary 700 ms hold and contains:
+A full-screen black settings shell opens after a stationary 700 ms hold. Its
+non-scrolling home page contains buttons for `BRILLO`, `DATOS`, `AVISOS`,
+`SONIDO`, `UNIDADES`, `ARRANQUE`, `IDIOMA`, and `SISTEMA`. Each button shows only
+its centered section name in the 24 px UI face for maximum readability. A button
+opens one independent 480×480 subsection; all
+other pages are hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 
-- brightness 5–100%, live preview;
-- warning sound enabled, volume 5–100%, and the real double-beep test;
-- selectable `DEMO` and `SENSORES`; the latter shows `--`, `SIN DATOS`, and
-  `CALIBRACIÓN PENDIENTE` in neutral gray without enabling acquisition;
-- separate PSI/bar pressure units and °C/°F temperature units;
-- low-pressure warning threshold, 1–30 PSI, displayed in PSI or BAR according to
-  the selected pressure unit while remaining canonical PSI internally;
-- warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
-- Honda/Civic startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
-- read-only diagnostics and a confirmation-protected settings reset;
-- `VOLVER`; there is no inactivity timeout.
+- `BRILLO`: full-width AUTO/MANUAL mode buttons, numeric 5–100% manual/fallback
+  value, two-handle AUTO limits, a persistent −30…+30 AUTO gamma adjustment,
+  and live hub lux/state/target/applied telemetry. Telemetry labels update only
+  while this subsection is visible.
+- `DATOS`: persistent `DEMO`/`SENSORES` source and the provisional A1/pending
+  pressure notices.
+- `AVISOS`: pressure and temperature thresholds plus `ELEMENTOS 2 HZ`,
+  `PANTALLA 0,5 HZ`, or `FIJO`. Pressure remains canonical PSI and temperature
+  canonical Celsius, while both controls follow the selected display units.
+- `SONIDO`: enable, numeric 5–100% volume, and the real double-beep test.
+- `UNIDADES`: separate PSI/BAR and °C/°F selectors.
+- `ARRANQUE`: Honda/Civic logo duration, 0–10 seconds; 0 disables it and 1 second
+  is the default.
+- `IDIOMA`: persistent Spanish/English selection applied immediately to the
+  gauge, warning overlay, dialog, home buttons, and every settings subsection.
+- `SISTEMA`: confirmation-protected settings reset.
+
+The 24 px UI and 36 px warning fonts contain the complete uppercase Spanish and
+English glyph set used by these surfaces. Both locales were measured against
+their fixed label widths; the tightest dynamic gauge state retains more than
+7 px of horizontal margin before the LVGL clip boundary.
+
+`ATRÁS` returns from a subsection to the home page without closing settings.
+`CERRAR` on the home page saves dirty preferences and returns to the gauge. There
+is no inactivity timeout and no long scrolling settings canvas.
 
 An active pressure warning does not close the menu. Warning evaluation and the
 configured repeating double beep continue, but the gauge and red overlay are not
-rendered behind settings; the gauge catches up after `VOLVER`. Safe preferences
+rendered behind settings; the gauge catches up after `CERRAR`. Safe preferences
 persist in NVS when the menu closes; missing/corrupt NVS falls back to compile-time
 defaults.
-The source choice persists, but `SENSORES` remains an explicit no-data calibration
-gate until a separately validated acquisition path exists.
+The source choice persists. `SENSORES` enables only the provisional A1 bench
+temperature conversion; A0 pressure remains behind its calibration gate.
+
+Automatic brightness affects only the panel request path; it adds nothing to the
+approved main gauge. AUTO starts and recovers only after two consecutive usable
+hub samples. MANUAL ignores lux for output. Stale or invalid reception returns
+smoothly to the saved slider value without automatic NVS writes. A brightness
+request wakes the serialized panel presenter even when the gauge has no visual
+damage, so static data cannot delay a physical brightness change.
+
+The provisional 5–100% lux curve is normalized, gamma-shaped by the curve
+adjustment, and scaled into the selected AUTO minimum/maximum. Raising the
+minimum therefore compresses the full curve upward instead of clipping its dark
+region. The endpoints remain exact; the curve control changes only intermediate
+light levels.
+
+AUTO ignores mapped target changes smaller than 2 percentage points and ramps
+the physical output at 40 percentage points/s upward and 25 downward. The
+default 20–100% span therefore takes about 2.0 s to brighten and 3.2 s to dim,
+without changing MANUAL slider response. Settings shows the stabilized AUTO
+target separately from the currently applied ramp value.
 
 Unit conversion is presentation-only. Temperature states, colors, bar position,
 and warnings always use canonical degrees Celsius. The large numeric font must
@@ -151,15 +194,26 @@ characterized and compared against the MTX-D.
 ## Firmware implementation
 
 - Fixed-coordinate LVGL renderer: `src/oil_gauge_ui.cpp`.
-- Board/display startup and 20 ms continuous demo sequence: `src/main.cpp` and
+- Board/display startup and 15 ms producer target: `src/main.cpp` and
   `src/demo_sequence.cpp`.
 - Embedded Montserrat subsets: `src/fonts/`.
 - Framework: ESP-IDF 6.0.2, official Waveshare BSP 2.0.1, LVGL 9.5.0.
 - Baseline software/hardware evidence: 14/14 native tests and a complete 676,224-byte
   ESP32-S3 image generated on 2026-08-04 from application version `3e0298a`,
   SHA-256 `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`.
-  Exact-board flash passes and eight consecutive completed-frame windows measure
-  65–67 FPS.
+  Exact-board flash passed; the historical 65–67 counter was an LVGL/software
+  metric and is not used as physical-presentation evidence for the current path.
+
+The PARTIAL v2 plus CivicAux base has run on the exact display and received real
+hub ambient-light frames. The current bilingual name-only settings home and
+compressed gamma AUTO-brightness follow-up passes 70/70 native tests and produces
+a complete 1,099,152-byte ESP-IDF 6.0.2 image, SHA-256
+`5e3ecafab7807fc163f40619e21085733fdec9d769c2100f5d16f74eb2e6ab58`.
+Its authorized 2026-09-02 exact-board run passed independent immutable-region
+verification, reported usable 59.6 Hz TE with zero display-pipeline errors or
+timeouts, and Marcos accepted its physical appearance as Physical Baseline 7.
+Daylight, night, glare, in-vehicle motion, and detailed control-by-control review
+remain separate hardware checks.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

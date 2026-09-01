@@ -26,11 +26,13 @@ Spanish originals are linked only through the archive index.
 - [Technical plan](03-technical-plan.md)
 - [Threat model](threat-model.md)
 - [Architecture](ARCHITECTURE.md)
+- [CivicAux ambient-light integration](CIVIC_AUX_INTEGRATION.md)
 - [Display pipeline](reference/display-pipeline.md)
 - [Bill of materials](BOM.md)
 - [Waveshare pinout](WAVESHARE_PINOUT.md)
 - [Arrival checklist](ARRIVAL_CHECKLIST.md)
 - [Calibration](CALIBRATION.md)
+- [Graphical sensor wiring](sensor-wiring.html)
 - [Research](RESEARCH.md)
 - [Test points](05-test-points.md)
 - [Playground](playground.md)
@@ -50,6 +52,9 @@ Spanish originals are linked only through the archive index.
 - [Project license](../LICENSE.md)
 - [API index](api/INDEX.md)
 - [Display-state API](api/display-state.md)
+- [Gauge-settings API](api/gauge-settings.md)
+- [CivicAux receiver API](api/civic-aux-receiver.md)
+- [Automatic-brightness API](api/automatic-brightness.md)
 
 ## Archive
 

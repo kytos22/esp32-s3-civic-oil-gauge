@@ -83,7 +83,7 @@ No personal data exists. The device persists only sanitized gauge preferences.
 | Calibration | kind, coefficients/table, valid flag, source dataset, validation error | explicit valid flag; finite values; evidence reference |
 | ConvertedSample | pressure PSI, temperature °C, engine state, faults, timestamp | range and fault state carried with values |
 | DisplayState | pressure state, temperature state, blink phase, reduced-motion flag | deterministic mapping from sample |
-| GaugeSettings | brightness, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
+| GaugeSettings | manual brightness, AUTO limits/curve adjustment, language, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
 
 Calibration values are compile-time constants today. Persistent calibration storage is out of v1
 unless introduced by a recorded scope change.
@@ -131,15 +131,15 @@ See `docs/03-technical-plan.md`.
 ## Acceptance criteria
 
 - **AC-01:** With demo mode enabled, the display labels all simulated data as demo and never implies sensor validity.
-- **AC-02:** With missing calibration, pressure and temperature conversion functions return `calibrationMissing`.
+- **AC-02:** Missing pressure calibration returns `calibrationMissing`. Temperature conversion is enabled only by the explicit provisional A1 bench profile and is never presented as vehicle-validated.
 - **AC-03:** Missing ADS1115 is visible and never yields a retained last-known or fabricated value.
 - **AC-04:** Invalid ADC/thermistor input returns an explicit fault and cannot become an engineering-unit value.
 - **AC-05:** Engine stopped/RPM zero never triggers low-pressure warning.
 - **AC-06:** At engine-running state and 0–10 PSI, the pressure warning text/icon/bar use a binary 2 Hz flash (250 ms fully visible, 250 ms fully transparent) while the numeric value remains stable; reduced motion uses fixed red.
 - **AC-07:** Pressure 15–80 PSI maps to the approved amber OK state; 11–14 and >80 remain explicitly provisional until threshold validation.
-- **AC-08:** Temperature below 50 °C renders `<50 °C`, starts at blue, and does not show a precise number.
-- **AC-09:** Temperature color interpolation follows the approved stops at 50/59 blue, 76 green, 90 light amber, 100 intense orange, and 120/140 red.
-- **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–95, hot at 96–100, very hot at 101–119, and blinking red `WARNING` from 120–140 °C; values below the measurable range still render `<50`.
+- **AC-08:** Demo temperature below 50 °C renders `<50 °C`, starts blue, and keeps the bar empty. Sensor bench mode shows the provisional measured value down to 10 °C so resistor points can be checked.
+- **AC-09:** Temperature color interpolation follows the approved stops at 50/59 blue, 76 green, 90 light amber, 100 intense orange, and reaches red at the selected 110–140 °C warning cut.
+- **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–100, very hot above 100 and below the selected warning cut, and blinking red `WARNING` from that cut through 140 °C.
 - **AC-11:** Both numbers are horizontally centered on the complete 480 px axis and the pressure/temperature regions are equal height.
 - **AC-12:** The display background is pure black and bars are 21 px thick in the 480×480 reference coordinate system.
 - **AC-13:** Direct pressure agrees with the MTX-D within 2 PSI in the normal range on held-out cold/hot points before cutover.
@@ -190,19 +190,23 @@ See `docs/03-technical-plan.md`.
   requests one isolated double beep. The codec is
   not muted/unmuted at individual tone edges; zero-filled settling segments and the
   waveform envelope prevent an abrupt output step.
-- **AC-33:** A stationary 700 ms hold opens a full-screen black settings page;
-  ordinary taps, dragging, and scrolling do not. The page remains open until
-  `VOLVER` is pressed, including while a pressure warning is active; `VOLVER` saves
-  changed safe preferences and returns to the gauge. While settings is visible, no
-  gauge widgets or warning overlay are rendered behind it.
-- **AC-34:** Brightness, warning-sound enable/volume, units, warning presentation,
-  and selected data source
+- **AC-33:** A stationary 700 ms hold opens a full-screen black settings home;
+  ordinary taps and dragging do not. The home exposes eight 24 px name-only
+  buttons for maximum readability, and each
+  opens one independent non-scrolling subsection while all other menu pages stay
+  hidden and unrendered. `ATRÁS` returns home; `CERRAR` saves changed safe
+  preferences and returns to the gauge. The menu remains open during a pressure
+  warning, and no gauge widgets or warning overlay are rendered behind it.
+- **AC-34:** Brightness mode/value/limits/curve adjustment, language,
+  warning-sound enable/volume, units, warning presentation, and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
   compile-time defaults. `SENSORES` is selectable and persistable while calibration
   is incomplete, but it displays `--` and `SIN DATOS`; it cannot start acquisition
   or create engineering-unit values.
-  Rapid brightness dragging coalesces to the newest value and sends the panel
-  command only after frame DMA completion; it must not block touch or rendering.
+  Rapid brightness dragging coalesces to the newest value. The sole panel
+  presenter sends it after an in-flight frame DMA or immediately while idle,
+  and a static screen cannot delay the command; it must not block touch or
+  rendering.
 - **AC-35:** PSI/bar changes only displayed pressure values, units, and reference
   labels from canonical PSI; it never changes calibration, bar fraction, thresholds,
   or alarm evaluation.
@@ -218,10 +222,11 @@ See `docs/03-technical-plan.md`.
   and the configured audio loop continue without background gauge rendering.
   Diagnostics are read-only, sound test uses one real double beep, and reset requires
   confirmation.
-- **AC-39:** Celsius/Fahrenheit changes only the displayed temperature value, unit,
-  and temperature reference labels from canonical degrees Celsius. It never changes
-  calibration, state boundaries, colors, bar fraction, thresholds, or alarms. The
-  below-range presentation is `<50 °C` or `<122 °F`.
+- **AC-39:** Celsius/Fahrenheit changes only presented temperature values, units,
+  reference labels, and the editable high-temperature threshold from canonical
+  degrees Celsius. It never changes calibration, state boundaries, colors, bar
+  fraction, the stored canonical threshold, or alarm evaluation. The below-range
+  presentation is `<50 °C` or `<122 °F`.
 - **AC-40:** Every character emitted by the large numeric renderer exists in its
   96 px font. In particular, one-decimal BAR values use a real U+002E decimal-point
   glyph and never LVGL's missing-glyph rectangle.
@@ -249,6 +254,40 @@ See `docs/03-technical-plan.md`.
   Settings exposes a persistent 0–10 s
   duration with a 1 s default; 0 disables the splash. The splash never alters the
   accepted display transport, touch mapping, demo sequence, or sensor gate.
+- **AC-45:** CivicAux uses UART1 RX-only on GPIO44 at 115200 8N1 while GPIO43
+  remains display TE. Its fixed-buffer parser accepts the hub's byte-exact v1
+  vectors, enforces CRC/version/length/source/oil-target/data-valid/state and both
+  communicated/local freshness, consumes unknown valid types, and resynchronizes
+  after noise, truncation, or corruption. The RX task publishes only one coherent
+  trivially-copyable snapshot and never calls LVGL, panel, brightness, or NVS code.
+- **AC-46:** Brightness defaults to AUTO for a new/migrated/reset installation;
+  MANUAL ignores lux and uses the saved slider. AUTO maps the nine provisional
+  points by linear interpolation over `log1p(lux)`, normalizes that curve,
+  applies a persistent −30…+30 gamma adjustment, and compresses the result into
+  a persistent two-handle range (20–100% default, 5–100% endpoint bounds). The
+  selected limits remain exact and the adjustment remains effective at
+  intermediate lux values. AUTO waits
+  for two consecutive
+  usable frames, falls back after 1 s of continued invalid traffic or 2 s without
+  usable ambient data, reaches the manual backup smoothly in 1.5 s, and requires
+  two new usable frames after fallback or hub restart. Automatic samples create
+  zero NVS writes, and only the main loop applies brightness through
+  `requestOilDisplayBrightness()`.
+  A 2-percentage-point target deadband rejects 1% chatter. Accepted AUTO targets
+  slew at 40 percentage points/s brighter and 25 percentage points/s dimmer;
+  MANUAL remains immediate.
+- **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, AUTO
+  minimum/maximum in one range slider, curve adjustment, received lux, sensor/range/freshness,
+  stabilized AUTO target brightness, and current ramped applied brightness.
+  The approved 480 x 480 main gauge is unchanged. Native software evidence must
+  pass before a separately authorized bench flash; real UART reception, panel
+  errors, tear-free behavior, and less than 5% display-cadence regression remain
+  explicitly unverified until measured on the exact oil display.
+- **AC-48:** The interface language defaults safely to Spanish and can be switched
+  persistently to English. The selection updates every menu page, dynamic gauge
+  state, source label, reset dialog, and full-screen warning without changing
+  measurement units or sensor/alarm calculations. Both locales fit their fixed
+  label bounds in the software typography audit.
 
 ## Estimate
 

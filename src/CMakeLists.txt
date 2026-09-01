@@ -3,6 +3,9 @@ idf_component_register(
         "main.cpp"
         "ads1115_diagnostics.cpp"
         "ads1115_protocol.cpp"
+        "automatic_brightness.cpp"
+        "civic_aux_receiver.cpp"
+        "civic_aux_uart.cpp"
         "demo_sequence.cpp"
         "display_runtime.cpp"
         "gauge_core.cpp"
@@ -24,6 +27,7 @@ idf_component_register(
         "../include"
     PRIV_REQUIRES
         esp_driver_i2c
+        esp_driver_uart
         esp_codec_dev
         esp_timer
         nvs_flash

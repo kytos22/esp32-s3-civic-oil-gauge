@@ -90,10 +90,10 @@ accuracy than the MTX-D without traceable calibration.
 
 ## Internationalization & output language
 
-- Built product: single-language, Spanish semantic state labels with selectable
-  numeric PSI/bar and °C/°F units.
+- Built product: persistent Spanish/English semantic labels with independently
+  selectable numeric PSI/bar and °C/°F units.
 - Source identifiers/comments and all maintained documentation: English.
-- A later public/multilingual release requires a recorded i18n mechanism; none is claimed now.
+- The embedded i18n mechanism covers every current fixed and dynamic UI label.
 
 ## Accessibility and glanceability
 

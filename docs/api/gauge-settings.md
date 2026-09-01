@@ -10,17 +10,45 @@ change calibration.
 
 ### `DataSource`
 
-`demo` selects the synthetic sequence. `sensors` selects the calibration gate: the
-renderer shows `--` and `SIN DATOS`, and no ADS1115 path or engineering-unit value is
-enabled.
+`demo` selects the synthetic sequence. `sensors` reads ADS1115 A1 through the
+provisional resistor-bench temperature curve; pressure remains behind its
+calibration gate and renders `--` / `SIN DATOS`.
+
+### `BrightnessMode`
+
+`automatic` receives CivicAux ambient lux and is the default for a new install,
+an absent or invalid NVS mode key, and factory reset. `manual` applies only the
+saved slider value. The slider always represents the persistent manual value and
+AUTO fallback; automatic samples do not change it.
+
+AUTO has a separate persistent minimum/maximum range. Its defaults are 20% and
+100%; both endpoints are constrained to 5–100% and reordered safely if stored
+data is corrupt. The normalized AUTO curve is compressed into these exact
+endpoints; these limits do not constrain MANUAL or the fallback target.
+The persistent AUTO curve adjustment is constrained to −30…+30; zero preserves
+the normalized curve, positive values brighten its middle and negative values
+darken it through bounded gamma shaping before range scaling.
+
+`brightnessModeFromStoredValue()` provides absent-key migration and rejects
+invalid enum bytes back to AUTO. `brightnessModeStoredValue()` provides the
+sanitized NVS representation.
+
+### `UiLanguage`
+
+`spanish` is the safe default and `english` selects the complete English UI.
+The choice is persistent and affects menu text, live states, the main gauge and
+the full-screen warning; it never changes units or sensor math.
 
 ### `GaugeSettings`
 
-Carries brightness, warning sound enable/volume, pressure unit, temperature unit,
-canonical low-pressure warning PSI, startup-logo seconds, warning visual mode, and
-data source. `sanitizeGaugeSettings()` clamps percentages to 5–100, warning pressure
-to 1–30 PSI, startup duration to 0–10 seconds, and replaces invalid enum
-representations with safe demo defaults.
+Carries manual/backup brightness, AUTO minimum/maximum and curve adjustment,
+brightness mode, UI language, warning sound enable/volume, pressure unit, temperature unit,
+canonical low-pressure warning PSI, canonical high-temperature warning Celsius,
+startup-logo seconds, warning visual mode, and data source.
+`sanitizeGaugeSettings()` clamps percentages to 5–100, orders the AUTO limits,
+clamps the AUTO curve adjustment and rejects invalid language values, warning pressure to
+1–30 PSI, temperature warning to 110–140 °C, startup duration to 0–10 seconds,
+and replaces invalid enum representations with safe demo defaults.
 
 ### `pressureForDisplay()`
 
@@ -39,7 +67,14 @@ Changing the unit alone never rewrites the canonical setting.
 `temperatureForDisplay(temperatureC, unit)` returns the canonical Celsius input
 unchanged or applies `°F = °C × 9/5 + 32`. Temperature states, colors, bar fractions,
 calibration, and alarms always consume the original Celsius value. The renderer maps
-the validated lower floor to `<50 °C` or `<122 °F`.
+the demo lower floor to `<50 °C` or `<122 °F`; sensor bench mode can show the
+provisional numeric value below that visual floor.
+
+`temperatureWarningThresholdForDisplay()` presents the canonical 110–140 °C
+warning threshold in the selected unit. The inverse
+`temperatureWarningThresholdCelsiusFromDisplay()` converts a Fahrenheit menu
+selection back to canonical Celsius and clamps it before persistence. Unit
+changes therefore update the menu label and slider without changing alarm math.
 
 ## Warning presentation
 

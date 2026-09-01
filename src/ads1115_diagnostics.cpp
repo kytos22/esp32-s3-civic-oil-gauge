@@ -6,6 +6,7 @@
 #include "ads1115_protocol.h"
 #include "board_pins.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -17,8 +18,11 @@ constexpr std::uint8_t kConversionRegister = 0x00;
 constexpr std::uint8_t kConfigRegister = 0x01;
 constexpr int kI2cTimeoutMs = 50;
 constexpr TickType_t kConversionDelay = pdMS_TO_TICKS(9);
-constexpr TickType_t kSamplePeriod = pdMS_TO_TICKS(1000);
+constexpr TickType_t kSamplePause = pdMS_TO_TICKS(60);
+constexpr std::int64_t kLogPeriodUs = 1'000'000;
 i2c_master_dev_handle_t gAds1115 = nullptr;
+portMUX_TYPE gSampleMux = portMUX_INITIALIZER_UNLOCKED;
+Ads1115Sample gLatestSample;
 
 bool readChannel(std::uint8_t channel, std::int16_t& raw) {
   const std::uint16_t config = ads1115SingleShotConfig(channel);
@@ -55,6 +59,7 @@ bool readChannel(std::uint8_t channel, std::int16_t& raw) {
 }
 
 void diagnosticTask(void*) {
+  std::int64_t lastLogUs = 0;
   while (true) {
     std::array<std::int16_t, 4> raw{};
     bool complete = true;
@@ -62,15 +67,25 @@ void diagnosticTask(void*) {
       complete = readChannel(channel, raw[channel]) && complete;
     }
     if (complete) {
-      ESP_LOGI(kTag,
-               "raw-only floating inputs: A0=%d %.6fV A1=%d %.6fV "
-               "A2=%d %.6fV A3=%d %.6fV",
-               raw[0], ads1115RawToVolts(raw[0]),
-               raw[1], ads1115RawToVolts(raw[1]),
-               raw[2], ads1115RawToVolts(raw[2]),
-               raw[3], ads1115RawToVolts(raw[3]));
+      const std::int64_t nowUs = esp_timer_get_time();
+      portENTER_CRITICAL(&gSampleMux);
+      gLatestSample.raw = raw;
+      gLatestSample.timestampUs = static_cast<std::uint64_t>(nowUs);
+      ++gLatestSample.sequence;
+      gLatestSample.valid = true;
+      portEXIT_CRITICAL(&gSampleMux);
+      if (nowUs - lastLogUs >= kLogPeriodUs) {
+        lastLogUs = nowUs;
+        ESP_LOGI(kTag,
+                 "ADC inputs: A0=%d %.6fV A1=%d %.6fV "
+                 "A2=%d %.6fV A3=%d %.6fV",
+                 raw[0], ads1115RawToVolts(raw[0]),
+                 raw[1], ads1115RawToVolts(raw[1]),
+                 raw[2], ads1115RawToVolts(raw[2]),
+                 raw[3], ads1115RawToVolts(raw[3]));
+      }
     }
-    vTaskDelay(kSamplePeriod);
+    vTaskDelay(kSamplePause);
   }
 }
 
@@ -116,6 +131,13 @@ bool startAds1115Diagnostics(i2c_master_bus_handle_t bus) {
     return false;
   }
   return true;
+}
+
+bool latestAds1115Sample(Ads1115Sample& sample) {
+  portENTER_CRITICAL(&gSampleMux);
+  sample = gLatestSample;
+  portEXIT_CRITICAL(&gSampleMux);
+  return sample.valid;
 }
 
 }  // namespace oilgauge

@@ -8,9 +8,9 @@ Innovate Motorsports MTX-D Oil Pressure/Temperature gauge while retaining the
 already-installed sensors and a reversible vehicle harness.
 
 > [!WARNING]
-> The sensor curves are not calibrated yet. The current firmware runs only with
-> clearly labelled synthetic `DEMO` values. Do not use it as an engine-protection
-> instrument or remove the MTX-D from the vehicle.
+> Oil pressure is still uncalibrated. A1 oil temperature uses only a provisional
+> resistor-bench curve; `DEMO` remains the default. Do not use this firmware as
+> an engine-protection instrument or remove the MTX-D from the vehicle.
 
 [![Animated 50/50 oil-gauge demo — open the interactive simulator](assets/oil-gauge-demo.gif)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
@@ -26,32 +26,49 @@ hosted by GitHub Pages.
 - Native ESP-IDF 6.0.2 firmware using the official Waveshare BSP 2.0.1 and
   LVGL 9.5.0.
 - Hardware-tested 480×480 display and touch initialization.
-- Continuous deterministic demo measured at eight consecutive 65–67 FPS
-  completed-frame windows on the target board.
+- Hardware-accepted tear-free FULL rollback path at about 30.5–32.7 physical
+  presentations/s on the exact board.
+- PARTIAL v2 is running on the exact display with a 480×32 LVGL draw buffer,
+  three coherent full canvases, generation-aware damage recovery and TE-paced
+  presentation.
 - Equal 50/50 pressure and temperature regions on a pure-black AMOLED
   background.
-- 24 px Spanish semantic states, centered main values, nine-pixel bars and a
+- Selectable 24 px Spanish or English semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Fifteen hardware-independent Unity tests pass.
-- Direct sensor calibration, the reversible Innovate adapter and vehicle
-  validation remain intentionally incomplete.
+- Seventy hardware-independent Unity tests pass, including buffer ownership,
+  the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
+  recovery, and automatic-brightness fallback/recovery.
+- ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
+  reversible Innovate adapter and vehicle validation remain incomplete.
+- CivicAux UART1 RX on GPIO44 has received real hub ambient-light frames on the
+  exact display. It adds AUTO/MANUAL brightness, configurable AUTO limits and
+  diagnostics in Settings; in-vehicle optical tuning remains pending.
 
 The detailed development position and remaining safety gates are maintained in
 [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ## Features
 
-- Oil pressure in PSI and oil temperature in degrees Celsius.
-- Explicit cold, warming, optimal, hot and very-hot temperature states.
+- Oil pressure in PSI/BAR and oil temperature in °C/°F.
+- Explicit cold, warming, optimal, very-hot and warning temperature states.
 - Engine-state-gated low-pressure warning; a stopped engine does not trigger a
   false alarm.
 - Persistent 1–30 PSI low-pressure warning threshold, shown in PSI or BAR to
   match the selected unit while remaining canonical PSI internally.
+- Persistent 110–140 °C high-temperature warning threshold, default 120 °C.
+- Bilingual sectioned settings home with large name-only buttons for Brightness,
+  Data, Warnings, Sound, Units, Startup, Language, and System; only the selected
+  page is rendered.
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
-- One non-blocking double beep through the integrated speaker when the demo
-  enters low-pressure warning; it does not repeat while warning remains active.
-- Temperature display shows `<50` below the sensor's useful lower range instead
-  of inventing precision.
+- Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
+  usable frames, compresses its normalized curve into one persistent two-handle
+  range (20–100% by default), supports a persistent −30…+30 gamma curve
+  adjustment, rejects one-percent sensor chatter, slews smoothly between targets,
+  and returns smoothly to the saved manual backup on loss.
+- A non-blocking repeating double-beep loop through the integrated speaker for
+  as long as the demo remains in low-pressure warning.
+- Demo shows `<50` below its visual floor; sensor mode shows the provisional
+  measured value so 10–50 °C resistor points can be checked.
 - Warning meaning never relies on colour alone.
 - Demo mode remains the build default until measured calibration exists.
 - Missing or invalid calibration fails visibly instead of producing engineering
@@ -61,7 +78,7 @@ The detailed development position and remaining safety gates are maintained in
 
 - Waveshare ESP32-S3-Touch-AMOLED-2.16, 480×480 AMOLED.
 - Existing Innovate MTX-D Oil Pressure/Temperature installation.
-- ADS1115-Q1-compatible 3.3 V external ADC planned for the direct-sensor route.
+- 3.3 V ADS1115 at I²C address `0x48`, used for the current A1 bench input.
 - Protected automotive 12 V to 5 V supply and reversible harness are required
   before vehicle use.
 
@@ -76,13 +93,21 @@ routes are described in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   temperature sensor is a 10 kΩ NTC.
 - Do not assign signal functions from wire colours.
 - Do not cut the Innovate harness.
-- Keep the MTX-D connected while collecting cold, hot and multi-RPM reference
-  pairs.
+- Keep the MTX-D connected for passive reference measurements. Disconnect its
+  temperature input before applying the independent 3.3 V/4.99 kΩ A1 pull-up.
 
 The exposed board I²C bus is SDA GPIO15 and SCL GPIO14. It already has 2.2 kΩ
 pull-ups to 3.3 V; the planned ADS1115 uses address `0x48`. These facts do not
 identify any Innovate sensor wire. Follow the staged procedure in
 [`docs/CALIBRATION.md`](docs/CALIBRATION.md) before connecting sensor signals.
+The current bench and future sensor paths are also shown in the
+[`graphical wiring diagram`](docs/sensor-wiring.html).
+
+The separate ambient-light link is RX-only: Auxiliary Hub GPIO17/TX passes
+through the measured approximately 326 Ω series resistance to oil-display
+GPIO44/UART1 RX, with common ground and separate power rails. GPIO43 remains
+display TE. See the
+[`CivicAux integration contract`](docs/CIVIC_AUX_INTEGRATION.md).
 
 ## Firmware downloads
 
@@ -108,12 +133,6 @@ Run the native measurement and demo tests:
 
 ```bash
 ./scripts/pio test -e native
-```
-
-Run the repository and safety checks:
-
-```bash
-./scripts/keel-verify
 ```
 
 Flashing is a separate hardware operation. Verify the exact target board and
@@ -145,7 +164,7 @@ the renderer, display timing, calibration gates, pin assignments, release
 packaging or hardware procedures. The full maintained documentation map is
 [`docs/INDEX.md`](docs/INDEX.md).
 
-The accepted tear-free CO5300 path and the isolated future triple-buffer design
+The accepted tear-free CO5300 rollback path and the current PARTIAL v2 candidate
 are documented in
 [`docs/reference/display-pipeline.md`](docs/reference/display-pipeline.md).
 

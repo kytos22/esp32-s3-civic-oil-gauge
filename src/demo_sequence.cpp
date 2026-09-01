@@ -13,13 +13,13 @@ constexpr std::uint64_t kWarningBlinkHalfPeriodUs = 250'000U;
 constexpr std::uint64_t kFullScreenWarningHalfPeriodUs = 1'000'000U;
 
 constexpr std::array<DemoFrame, 7> kDemoScenes{{
-    {0.0, 49.0, 0},
-    {7.0, 58.0, 1800},
-    {13.0, 72.0, 1800},
-    {61.0, 82.0, 2500},
-    {70.0, 92.0, 3200},
-    {95.0, 97.0, 3500},
-    {55.0, 110.0, 2800},
+    {0.0, 50.0, 0},
+    {7.0, 60.0, 1800},
+    {13.0, 80.0, 1800},
+    {61.0, 100.0, 2500},
+    {78.0, 120.0, 3200},
+    {85.0, 140.0, 3500},
+    {55.0, 120.0, 2800},
 }};
 
 double interpolate(double start, double end, double fraction) {
