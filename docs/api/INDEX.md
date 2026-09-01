@@ -36,8 +36,8 @@
 | `DataSource` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select demo or provisional A1 sensor bench source |
 | `TemperatureUnit` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select Celsius or Fahrenheit presentation |
 | `BrightnessMode` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select automatic CivicAux lux or saved manual brightness |
-| `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences |
-| `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences and reject invalid enum values |
+| `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences, including AUTO limits |
+| `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences, order AUTO limits, and reject invalid enum values |
 | `pressureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical PSI for display only |
 | `temperatureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical Celsius for display only |
 | `WarningPresentation` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Renderer-independent warning visibility decision |
@@ -47,7 +47,7 @@
 | `CivicAuxReceiver` | class | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Oil-target acceptance, freshness, continuity, and diagnostics |
 | `CivicAuxSnapshot` | struct | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Coherent trivially-copyable UART-to-main snapshot |
 | `civicAuxCrc16CcittFalse()` | function | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Protocol CRC-16/CCITT-FALSE implementation |
-| `AutomaticBrightnessController` | class | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | AUTO/MANUAL startup, fallback, and recovery state machine |
+| `AutomaticBrightnessController` | class | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | AUTO/MANUAL limits, startup, fallback, and recovery state machine |
 | `automaticBrightnessPercentForMillilux()` | function | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | Provisional log1p lux-to-percent mapping |
 
 Full per-surface documentation is created when a surface is next changed. Until then this index is the complete lookup layer.

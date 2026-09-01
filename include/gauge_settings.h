@@ -32,6 +32,8 @@ enum class BrightnessMode : std::uint8_t {
 
 struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
+  std::uint8_t automaticBrightnessMinimumPercent = 20;
+  std::uint8_t automaticBrightnessMaximumPercent = 100;
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   std::uint8_t lowPressureWarningPsi = 10;

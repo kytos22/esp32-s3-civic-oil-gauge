@@ -122,6 +122,7 @@ Temperature colors are linearly interpolated between:
 | temperature warning changed | store 110–140 canonical °C and move the bar warning tick | default 120 °C; °F is presentation only |
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
 | brightness mode `AUTO` | hold manual backup until two usable CivicAux frames, then apply provisional log-lux mapping | UART1 RX GPIO44; main loop is sole panel requester |
+| AUTO brightness range changed | clamp the current fresh mapping immediately to the selected 5–100% endpoints | one range slider; default 20–100%; no new lux frame required |
 | brightness mode `MANUAL` | ignore lux for output and apply the saved slider value | hub diagnostics may remain visible in settings |
 | CivicAux invalid/stale | return smoothly to saved manual backup in 1.5 s | 1 s continued invalid traffic or 2 s without usable ambient data |
 | CivicAux recovery | resume AUTO after two new consecutive usable ambient frames | also required after hub uptime restart |

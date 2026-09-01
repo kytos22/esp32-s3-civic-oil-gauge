@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <utility>
 
 namespace oilgauge {
 
@@ -27,6 +28,15 @@ constexpr std::array<BrightnessPoint, 9> kBrightnessCurve{{
 
 std::uint8_t clampBrightness(std::uint8_t percent) {
   return std::clamp<std::uint8_t>(percent, 5U, 100U);
+}
+
+void normalizeBrightnessRange(std::uint8_t& minimumPercent,
+                              std::uint8_t& maximumPercent) {
+  minimumPercent = clampBrightness(minimumPercent);
+  maximumPercent = clampBrightness(maximumPercent);
+  if (minimumPercent > maximumPercent) {
+    std::swap(minimumPercent, maximumPercent);
+  }
 }
 
 }  // namespace
@@ -66,14 +76,21 @@ std::uint8_t automaticBrightnessPercentForMillilux(
 
 void AutomaticBrightnessController::reset(BrightnessMode mode,
                                           std::uint8_t manualBackupPercent,
+                                          std::uint8_t automaticMinimumPercent,
+                                          std::uint8_t automaticMaximumPercent,
                                           std::uint64_t localNowMs) {
   mode_ = mode;
   manualBackupPercent_ = clampBrightness(manualBackupPercent);
+  normalizeBrightnessRange(
+      automaticMinimumPercent, automaticMaximumPercent);
+  automaticMinimumPercent_ = automaticMinimumPercent;
+  automaticMaximumPercent_ = automaticMaximumPercent;
   fallbackStartPercent_ = manualBackupPercent_;
   fallbackStartedAtMs_ = localNowMs;
   recoveryBaseGeneration_ = 0;
   lastObservedUsableGeneration_ = 0;
   lastObservedHubRestarts_ = 0;
+  automaticLimitsChanged_ = false;
   status_ = {};
   status_.state = mode_ == BrightnessMode::manual
                       ? AutomaticBrightnessState::manual
@@ -85,13 +102,35 @@ void AutomaticBrightnessController::reset(BrightnessMode mode,
 void AutomaticBrightnessController::setPreferences(
     BrightnessMode mode,
     std::uint8_t manualBackupPercent,
+    std::uint8_t automaticMinimumPercent,
+    std::uint8_t automaticMaximumPercent,
     std::uint64_t localNowMs) {
   if (!initialized_) {
-    reset(mode, manualBackupPercent, localNowMs);
+    reset(mode,
+          manualBackupPercent,
+          automaticMinimumPercent,
+          automaticMaximumPercent,
+          localNowMs);
     return;
   }
 
+  normalizeBrightnessRange(
+      automaticMinimumPercent, automaticMaximumPercent);
+  const bool automaticLimitsChanged =
+      automaticMinimumPercent != automaticMinimumPercent_ ||
+      automaticMaximumPercent != automaticMaximumPercent_;
   manualBackupPercent_ = clampBrightness(manualBackupPercent);
+  automaticMinimumPercent_ = automaticMinimumPercent;
+  automaticMaximumPercent_ = automaticMaximumPercent;
+  if (automaticLimitsChanged) {
+    automaticLimitsChanged_ = true;
+    if (status_.automaticPercentAvailable) {
+      status_.automaticPercent = std::clamp<std::uint8_t>(
+          status_.automaticPercent,
+          automaticMinimumPercent_,
+          automaticMaximumPercent_);
+    }
+  }
   if (mode == mode_) {
     if (mode_ == BrightnessMode::manual) {
       status_.appliedPercent = manualBackupPercent_;
@@ -153,11 +192,23 @@ bool AutomaticBrightnessController::recoveryReady(
          samplesSinceRecoveryStarted >= 2U;
 }
 
+std::uint8_t AutomaticBrightnessController::constrainedAutomaticPercent(
+    std::uint32_t millilux) const {
+  return std::clamp<std::uint8_t>(
+      automaticBrightnessPercentForMillilux(millilux),
+      automaticMinimumPercent_,
+      automaticMaximumPercent_);
+}
+
 AutomaticBrightnessStatus AutomaticBrightnessController::update(
     const CivicAuxSnapshot& snapshot,
     std::uint64_t localNowMs) {
   if (!initialized_) {
-    reset(mode_, manualBackupPercent_, localNowMs);
+    reset(mode_,
+          manualBackupPercent_,
+          automaticMinimumPercent_,
+          automaticMaximumPercent_,
+          localNowMs);
   }
 
   if (mode_ == BrightnessMode::manual) {
@@ -174,13 +225,18 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
   const bool fresh = snapshot.hasUsableLux &&
                      localNowMs < snapshot.lastUsableUntilMs;
   status_.luxFresh = fresh;
-  if (snapshot.usableGeneration != lastObservedUsableGeneration_) {
+  const bool newUsableGeneration =
+      snapshot.usableGeneration != lastObservedUsableGeneration_;
+  if (newUsableGeneration) {
     lastObservedUsableGeneration_ = snapshot.usableGeneration;
-    if (fresh) {
-      status_.automaticPercent = automaticBrightnessPercentForMillilux(
-          snapshot.lastUsableMillilux);
-      status_.automaticPercentAvailable = true;
-    }
+  }
+  if (fresh &&
+      (newUsableGeneration ||
+       (automaticLimitsChanged_ && status_.automaticPercentAvailable))) {
+    status_.automaticPercent = constrainedAutomaticPercent(
+        snapshot.lastUsableMillilux);
+    status_.automaticPercentAvailable = true;
+    automaticLimitsChanged_ = false;
   }
 
   const bool hubRestarted =

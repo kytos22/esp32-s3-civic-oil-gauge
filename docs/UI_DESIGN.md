@@ -115,6 +115,8 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 - AUTO/MANUAL brightness mode, default AUTO;
 - brightness 5–100% as the persistent manual value and AUTO fallback, with
   manual live preview;
+- one two-handle AUTO range slider, default 20–100%, that limits the automatic
+  curve without changing MANUAL or its fallback value;
 - read-only hub lux, sensor/range/freshness state, current mapped AUTO
   percentage, and currently applied percentage;
 - warning sound enabled, volume 5–100%, and the real double-beep test;
@@ -141,7 +143,9 @@ temperature conversion; A0 pressure remains behind its calibration gate.
 Automatic brightness affects only the panel request path; it adds nothing to the
 approved main gauge. AUTO starts and recovers only after two consecutive usable
 hub samples. MANUAL ignores lux for output. Stale or invalid reception returns
-smoothly to the saved slider value without automatic NVS writes.
+smoothly to the saved slider value without automatic NVS writes. A brightness
+request wakes the serialized panel presenter even when the gauge has no visual
+damage, so static data cannot delay a physical brightness change.
 
 Unit conversion is presentation-only. Temperature states, colors, bar position,
 and warnings always use canonical degrees Celsius. The large numeric font must
@@ -177,11 +181,11 @@ characterized and compared against the MTX-D.
   Exact-board flash passed; the historical 65–67 counter was an LVGL/software
   metric and is not used as physical-presentation evidence for the current path.
 
-The current unflashed PARTIAL v2 plus CivicAux candidate passes 64/64 native
-tests and a complete 1,074,688-byte ESP-IDF 6.0.2 build, SHA-256
-`403c4e5cc431d547fc4a99f71b61deca81b9fc71be91a62ef1810883ff27e590`.
-Physical UART reception, FPS regression, menu motion, panel errors, and tearing
-remain exact-board acceptance steps.
+The PARTIAL v2 plus CivicAux base has run on the exact display and received real
+hub ambient-light frames. This follow-up passes 66/66 native tests and produces
+a complete 1,076,416-byte ESP-IDF 6.0.2 image. Its static-screen brightness wake,
+two-handle AUTO range, persistence, panel errors and tearing still require the
+next exact-board acceptance run.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

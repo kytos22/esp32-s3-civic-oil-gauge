@@ -201,8 +201,10 @@ See `docs/03-technical-plan.md`.
   compile-time defaults. `SENSORES` is selectable and persistable while calibration
   is incomplete, but it displays `--` and `SIN DATOS`; it cannot start acquisition
   or create engineering-unit values.
-  Rapid brightness dragging coalesces to the newest value and sends the panel
-  command only after frame DMA completion; it must not block touch or rendering.
+  Rapid brightness dragging coalesces to the newest value. The sole panel
+  presenter sends it after an in-flight frame DMA or immediately while idle,
+  and a static screen cannot delay the command; it must not block touch or
+  rendering.
 - **AC-35:** PSI/bar changes only displayed pressure values, units, and reference
   labels from canonical PSI; it never changes calibration, bar fraction, thresholds,
   or alarm evaluation.
@@ -257,14 +259,17 @@ See `docs/03-technical-plan.md`.
   trivially-copyable snapshot and never calls LVGL, panel, brightness, or NVS code.
 - **AC-46:** Brightness defaults to AUTO for a new/migrated/reset installation;
   MANUAL ignores lux and uses the saved slider. AUTO maps the nine provisional
-  points by linear interpolation over `log1p(lux)`, waits for two consecutive
+  points by linear interpolation over `log1p(lux)`, clamps the result to a
+  persistent two-handle range (20–100% default, 5–100% endpoint bounds), waits
+  for two consecutive
   usable frames, falls back after 1 s of continued invalid traffic or 2 s without
   usable ambient data, reaches the manual backup smoothly in 1.5 s, and requires
   two new usable frames after fallback or hub restart. Automatic samples create
   zero NVS writes, and only the main loop applies brightness through
   `requestOilDisplayBrightness()`.
-- **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, received
-  lux, sensor/range/freshness, mapped AUTO brightness, and applied brightness.
+- **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, AUTO
+  minimum/maximum in one range slider, received lux, sensor/range/freshness,
+  constrained AUTO brightness, and applied brightness.
   The approved 480 x 480 main gauge is unchanged. Native software evidence must
   pass before a separately authorized bench flash; real UART reception, panel
   errors, tear-free behavior, and less than 5% display-cadence regression remain

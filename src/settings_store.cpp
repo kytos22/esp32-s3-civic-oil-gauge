@@ -42,6 +42,12 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "brightness", value)) {
     settings.brightnessPercent = value;
   }
+  if (readU8(handle, "auto_min", value)) {
+    settings.automaticBrightnessMinimumPercent = value;
+  }
+  if (readU8(handle, "auto_max", value)) {
+    settings.automaticBrightnessMaximumPercent = value;
+  }
   const bool brightnessModePresent = readU8(handle, "bright_mode", value);
   settings.brightnessMode =
       brightnessModeFromStoredValue(brightnessModePresent, value);
@@ -86,6 +92,14 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   }
 
   result = nvs_set_u8(handle, "brightness", settings.brightnessPercent);
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "auto_min", settings.automaticBrightnessMinimumPercent);
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "auto_max", settings.automaticBrightnessMaximumPercent);
+  }
   if (result == ESP_OK) {
     result = nvs_set_u8(
         handle,

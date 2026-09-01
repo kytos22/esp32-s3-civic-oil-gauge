@@ -391,6 +391,8 @@ void applyPendingBrightness(DisplayPipeline& pipeline) {
     ESP_LOGW(kTag,
              "Unable to apply coalesced display brightness: %s",
              esp_err_to_name(result));
+  } else {
+    ESP_LOGI(kTag, "CO5300 brightness applied: %d%%", brightnessPercent);
   }
 }
 
@@ -487,7 +489,14 @@ void displayPresenterTask(void* argument) {
   auto& pipeline = *static_cast<DisplayPipeline*>(argument);
 
   while (true) {
-    xSemaphoreTake(pipeline.frameReady, portMAX_DELAY);
+    (void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    if (xSemaphoreTake(pipeline.frameReady, 0) != pdTRUE) {
+      // Brightness commands share the panel IO but do not require a visual
+      // frame. Apply them immediately while the presenter exclusively owns
+      // that IO, including when LVGL has no damage to render.
+      applyPendingBrightness(pipeline);
+      continue;
+    }
     while (xSemaphoreTake(pipeline.teEdge, 0) == pdTRUE) {
     }
     while (xSemaphoreTake(pipeline.teEdge, kTeWaitTicks) != pdTRUE) {
@@ -982,6 +991,9 @@ void finishOilDisplayBlockFrameAttempt() {
     ++pipeline.stats.renderCompleted;
     portEXIT_CRITICAL(&pipeline.statsMux);
     xSemaphoreGive(pipeline.frameReady);
+    if (pipeline.presenterTask != nullptr) {
+      xTaskNotifyGive(pipeline.presenterTask);
+    }
     return;
   }
 
@@ -1017,6 +1029,9 @@ void requestOilDisplayBrightness(std::uint8_t brightnessPercent) {
   gPipeline.pendingBrightness.store(
       std::clamp<int>(brightnessPercent, 5, 100),
       std::memory_order_release);
+  if (gPipeline.presenterTask != nullptr) {
+    xTaskNotifyGive(gPipeline.presenterTask);
+  }
 }
 
 }  // namespace oilgauge

@@ -436,6 +436,8 @@ void test_ac32_warning_tone_gate_starts_and_stops_loop() {
 void test_settings_are_sanitized_to_safe_ranges() {
   GaugeSettings settings;
   settings.brightnessPercent = 0;
+  settings.automaticBrightnessMinimumPercent = 255;
+  settings.automaticBrightnessMaximumPercent = 0;
   settings.warningVolumePercent = 255;
   settings.lowPressureWarningPsi = 0;
   settings.highTemperatureWarningCelsius = 255;
@@ -447,6 +449,10 @@ void test_settings_are_sanitized_to_safe_ranges() {
 
   const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
   TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
+  TEST_ASSERT_EQUAL_UINT8(5,
+                          sanitized.automaticBrightnessMinimumPercent);
+  TEST_ASSERT_EQUAL_UINT8(100,
+                          sanitized.automaticBrightnessMaximumPercent);
   TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
   TEST_ASSERT_EQUAL_UINT8(1, sanitized.lowPressureWarningPsi);
   TEST_ASSERT_EQUAL_UINT8(140, sanitized.highTemperatureWarningCelsius);

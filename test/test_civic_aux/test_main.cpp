@@ -12,6 +12,9 @@ namespace {
 
 using namespace oilgauge;
 
+constexpr std::uint8_t kFullAutomaticMinimumPercent = 5;
+constexpr std::uint8_t kFullAutomaticMaximumPercent = 100;
+
 // Byte-exact copies from ESP32 Civic Auxiliary Hub at
 // test_vectors/civic_aux_v1_vectors.json, SHA-256
 // 37A25643C9247650FDF557E4099A7F627F4D148FEB49B4CE274D19FE358E16FF.
@@ -444,11 +447,19 @@ void test_brightness_mode_defaults_migrates_and_round_trips() {
       static_cast<std::uint8_t>(brightnessModeFromStoredValue(true, 99)));
   TEST_ASSERT_EQUAL_UINT8(
       1, brightnessModeStoredValue(BrightnessMode::manual));
+  TEST_ASSERT_EQUAL_UINT8(20,
+                          defaults.automaticBrightnessMinimumPercent);
+  TEST_ASSERT_EQUAL_UINT8(100,
+                          defaults.automaticBrightnessMaximumPercent);
 }
 
 void test_auto_starts_on_backup_and_requires_two_new_samples() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 0);
+  controller.reset(BrightnessMode::automatic,
+                   55,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   CivicAuxSnapshot empty{};
   auto status = controller.update(empty, 0);
   TEST_ASSERT_EQUAL_UINT8(55, status.appliedPercent);
@@ -469,12 +480,12 @@ void test_auto_starts_on_backup_and_requires_two_new_samples() {
 
 void test_manual_mode_ignores_all_lux_and_uses_backup_slider() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::manual, 40, 0);
+  controller.reset(BrightnessMode::manual, 40, 20, 30, 0);
   CivicAuxSnapshot bright = usableSnapshot(2, 2, 30'000'000, 100, 5000);
   auto status = controller.update(bright, 100);
   TEST_ASSERT_EQUAL_UINT8(40, status.appliedPercent);
   TEST_ASSERT_FALSE(status.automaticPercentAvailable);
-  controller.setPreferences(BrightnessMode::manual, 72, 200);
+  controller.setPreferences(BrightnessMode::manual, 72, 20, 30, 200);
   status = controller.update(bright, 200);
   TEST_ASSERT_EQUAL_UINT8(72, status.appliedPercent);
   TEST_ASSERT_FALSE(status.persistenceRequested);
@@ -482,7 +493,11 @@ void test_manual_mode_ignores_all_lux_and_uses_backup_slider() {
 
 void test_invalid_traffic_falls_back_smoothly_over_1500_ms() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 20, 0);
+  controller.reset(BrightnessMode::automatic,
+                   20,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   CivicAuxSnapshot first = usableSnapshot(1, 1, 30'000'000, 100, 5000);
   (void)controller.update(first, 100);
   CivicAuxSnapshot active = usableSnapshot(2, 2, 30'000'000, 300, 5000);
@@ -501,7 +516,11 @@ void test_invalid_traffic_falls_back_smoothly_over_1500_ms() {
 
 void test_two_second_timeout_falls_back_and_two_samples_recover() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 35, 0);
+  controller.reset(BrightnessMode::automatic,
+                   35,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   CivicAuxSnapshot first = usableSnapshot(1, 1, 10'000'000, 100, 2100);
   (void)controller.update(first, 100);
   CivicAuxSnapshot active = usableSnapshot(2, 2, 10'000'000, 200, 2200);
@@ -529,7 +548,11 @@ void test_two_second_timeout_falls_back_and_two_samples_recover() {
 
 void test_hub_restart_requires_two_post_restart_samples() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 0);
+  controller.reset(BrightnessMode::automatic,
+                   55,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   CivicAuxSnapshot first = usableSnapshot(1, 1, 2'000'000, 100, 5000);
   (void)controller.update(first, 100);
   CivicAuxSnapshot active = usableSnapshot(2, 2, 2'000'000, 300, 5000);
@@ -552,7 +575,11 @@ void test_hub_restart_requires_two_post_restart_samples() {
 
 void test_automatic_samples_never_request_settings_persistence() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 0);
+  controller.reset(BrightnessMode::automatic,
+                   55,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   for (std::uint32_t generation = 1; generation <= 20; ++generation) {
     const CivicAuxSnapshot snapshot = usableSnapshot(
         generation,
@@ -569,7 +596,11 @@ void test_automatic_samples_never_request_settings_persistence() {
 void test_communicated_age_shortens_the_local_freshness_window() {
   CivicAuxReceiver receiver;
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 0);
+  controller.reset(BrightnessMode::automatic,
+                   55,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
 
   feedReceiver(receiver,
                makeAmbient(1, 100, CivicAuxSensorState::valid,
@@ -597,12 +628,20 @@ void test_communicated_age_shortens_the_local_freshness_window() {
 
 void test_manual_to_auto_requires_two_samples_received_after_selection() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::manual, 42, 0);
+  controller.reset(BrightnessMode::manual,
+                   42,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
   CivicAuxSnapshot existing =
       usableSnapshot(10, 10, 30'000'000, 100, 5000);
   (void)controller.update(existing, 100);
 
-  controller.setPreferences(BrightnessMode::automatic, 42, 200);
+  controller.setPreferences(BrightnessMode::automatic,
+                            42,
+                            kFullAutomaticMinimumPercent,
+                            kFullAutomaticMaximumPercent,
+                            200);
   auto status = controller.update(existing, 200);
   TEST_ASSERT_EQUAL_UINT8(42, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
@@ -626,7 +665,11 @@ void test_manual_to_auto_requires_two_samples_received_after_selection() {
 void test_invalid_frame_breaks_end_to_end_fallback_recovery() {
   CivicAuxReceiver receiver;
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 20, 0);
+  controller.reset(BrightnessMode::automatic,
+                   20,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
 
   feedReceiver(receiver,
                makeAmbient(1, 100, CivicAuxSensorState::valid,
@@ -689,7 +732,11 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
   settings.brightnessPercent = 35;
   AutomaticBrightnessController controller;
   controller.reset(
-      settings.brightnessMode, settings.brightnessPercent, 0);
+      settings.brightnessMode,
+      settings.brightnessPercent,
+      settings.automaticBrightnessMinimumPercent,
+      settings.automaticBrightnessMaximumPercent,
+      0);
 
   (void)controller.update(
       usableSnapshot(1, 1, 10'000'000, 100, 5000), 100);
@@ -707,7 +754,11 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
   settings.temperatureUnit = TemperatureUnit::fahrenheit;
   settings.dataSource = DataSource::sensors;
   controller.setPreferences(
-      settings.brightnessMode, settings.brightnessPercent, 400);
+      settings.brightnessMode,
+      settings.brightnessPercent,
+      settings.automaticBrightnessMinimumPercent,
+      settings.automaticBrightnessMaximumPercent,
+      400);
   status = controller.update(active, 400);
 
   TEST_ASSERT_EQUAL_UINT8(85, status.appliedPercent);
@@ -715,6 +766,42 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
       static_cast<std::uint8_t>(status.state));
   TEST_ASSERT_FALSE(status.persistenceRequested);
+}
+
+void test_automatic_limits_clamp_both_ends_of_the_curve() {
+  AutomaticBrightnessController controller;
+  controller.reset(BrightnessMode::automatic, 55, 20, 75, 0);
+
+  (void)controller.update(usableSnapshot(1, 1, 0, 100, 5000), 100);
+  auto status =
+      controller.update(usableSnapshot(2, 2, 0, 300, 5000), 300);
+  TEST_ASSERT_EQUAL_UINT8(20, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(20, status.appliedPercent);
+
+  status = controller.update(
+      usableSnapshot(3, 3, 30'000'000, 500, 5000), 500);
+  TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(75, status.appliedPercent);
+}
+
+void test_automatic_limits_reapply_without_a_new_lux_frame() {
+  AutomaticBrightnessController controller;
+  controller.reset(BrightnessMode::automatic,
+                   55,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
+  (void)controller.update(
+      usableSnapshot(1, 1, 30'000'000, 100, 5000), 100);
+  const CivicAuxSnapshot active =
+      usableSnapshot(2, 2, 30'000'000, 300, 5000);
+  auto status = controller.update(active, 300);
+  TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
+
+  controller.setPreferences(BrightnessMode::automatic, 55, 20, 70, 400);
+  status = controller.update(active, 400);
+  TEST_ASSERT_EQUAL_UINT8(70, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(70, status.appliedPercent);
 }
 
 }  // namespace
@@ -753,5 +840,7 @@ int main(int, char**) {
   RUN_TEST(test_invalid_frame_breaks_end_to_end_fallback_recovery);
   RUN_TEST(
       test_menu_and_warning_preferences_do_not_change_automatic_brightness);
+  RUN_TEST(test_automatic_limits_clamp_both_ends_of_the_curve);
+  RUN_TEST(test_automatic_limits_reapply_without_a_new_lux_frame);
   return UNITY_END();
 }

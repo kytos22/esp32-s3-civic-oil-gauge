@@ -71,7 +71,11 @@ UART1 RX task (CPU0)
 
 The receive path allocates no dynamic memory after startup. The UART task never
 calls LVGL, the panel driver, or a brightness function. Only the main loop can
-request a brightness change, preserving display-transfer serialization.
+request a brightness change. The display presenter is the only task that writes
+the panel command: it applies the newest coalesced request after an in-flight DMA,
+or immediately when no frame transfer exists. A brightness-only request wakes it
+even when LVGL has no damage, preserving serialization without depending on new
+gauge data.
 
 If UART1 already has an installed driver, startup refuses the CivicAux receiver
 and leaves the display on its saved manual backup; it does not choose another
@@ -84,6 +88,10 @@ value, and factory reset. `MANUAL` ignores lux for applied brightness. The
 existing slider always edits the persistent manual value, which is also AUTO's
 fallback value.
 
+One persistent two-handle slider constrains AUTO independently. The safe default
+is 20–100%; both endpoints permit 5–100%. MANUAL and AUTO fallback still use the
+separate manual/backup value.
+
 Automatic lux samples never write NVS. Mode and slider changes are saved only
 through the existing explicit settings workflow.
 
@@ -94,6 +102,7 @@ The provisional mapping linearly interpolates over `log1p(lux)`:
 | Brightness | 5% | 7% | 12% | 20% | 35% | 50% | 65% | 85% | 100% |
 
 This curve is a software starting point, not an in-vehicle optical calibration.
+The table is the raw curve; the configured AUTO range clamps its result.
 
 ## State and recovery rules
 
@@ -109,9 +118,9 @@ This curve is a software starting point, not an in-vehicle optical calibration.
 | Hub uptime restart | Invalidate continuity and require two post-restart samples |
 | 16-bit sequence wrap | Treat as continuous when the next sequence is zero |
 
-The settings page exposes AUTO/MANUAL, the manual/backup slider, received lux,
-sensor/range/freshness, mapped AUTO percentage, and applied percentage. The
-approved main gauge screen is unchanged.
+The settings page exposes AUTO/MANUAL, the manual/backup slider, the two-handle
+AUTO range, received lux, sensor/range/freshness, constrained AUTO percentage,
+and applied percentage. The approved main gauge screen is unchanged.
 
 ## Physical validation still required
 

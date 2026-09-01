@@ -28,20 +28,21 @@ hosted by GitHub Pages.
 - Hardware-tested 480×480 display and touch initialization.
 - Hardware-accepted tear-free FULL rollback path at about 30.5–32.7 physical
   presentations/s on the exact board.
-- Unflashed PARTIAL v2 candidate with a 480×32 LVGL draw buffer, three coherent
-  full canvases, generation-aware damage recovery and TE-paced presentation.
+- PARTIAL v2 is running on the exact display with a 480×32 LVGL draw buffer,
+  three coherent full canvases, generation-aware damage recovery and TE-paced
+  presentation.
 - Equal 50/50 pressure and temperature regions on a pure-black AMOLED
   background.
 - 24 px Spanish semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Sixty-four hardware-independent Unity tests pass, including buffer ownership,
+- Sixty-six hardware-independent Unity tests pass, including buffer ownership,
   the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
   recovery, and automatic-brightness fallback/recovery.
 - ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
   reversible Innovate adapter and vehicle validation remain incomplete.
-- A software-only CivicAux UART1 RX candidate receives ambient lux on GPIO44 and
-  adds AUTO/MANUAL brightness plus diagnostics in Settings. It remains unflashed;
-  physical UART, display-error, and cadence validation are pending.
+- CivicAux UART1 RX on GPIO44 has received real hub ambient-light frames on the
+  exact display. It adds AUTO/MANUAL brightness, configurable AUTO limits and
+  diagnostics in Settings; in-vehicle optical tuning remains pending.
 
 The detailed development position and remaining safety gates are maintained in
 [`docs/PROGRESS.md`](docs/PROGRESS.md).
@@ -57,7 +58,8 @@ The detailed development position and remaining safety gates are maintained in
 - Persistent 110–140 °C high-temperature warning threshold, default 120 °C.
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
 - Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
-  usable frames, and returns smoothly to the saved manual backup on loss.
+  usable frames, is constrained by one persistent two-handle range (20–100% by
+  default), and returns smoothly to the saved manual backup on loss.
 - A non-blocking repeating double-beep loop through the integrated speaker for
   as long as the demo remains in low-pressure warning.
 - Demo shows `<50` below its visual floor; sensor mode shows the provisional

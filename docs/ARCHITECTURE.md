@@ -106,10 +106,12 @@ for TE synchronization, and the oil display configures no UART TX pin.
 The UART task parses into fixed storage and publishes a coherent snapshot only.
 It never touches LVGL, the panel, NVS, or brightness. The main application loop
 owns the automatic-brightness state machine and routes every physical change
-through `requestOilDisplayBrightness()`, preserving the existing TE/transfer
-serialization. AUTO defaults to the saved manual value, requires two usable
-ambient frames, and falls back smoothly after invalid/stale input. The manual
-slider remains the persistent backup; automatic samples never write NVS.
+through `requestOilDisplayBrightness()`. That request wakes the existing
+display presenter, which remains the sole panel-IO owner and applies brightness
+after an in-flight transfer or immediately when idle. AUTO defaults to a
+20–100% configurable range, requires two usable ambient frames, and falls back
+smoothly after invalid/stale input. The manual slider remains the persistent
+backup; automatic samples never write NVS.
 
 The complete protocol, state machine, verified bench wiring, and still-pending
 physical gates are documented in
@@ -176,7 +178,9 @@ Direct PSRAM DMA remains disabled because the exact board proved that path can
 underflow at 80 MHz QSPI. ESP LCD instead stages bounded 8-row chunks through at
 most 23,040 bytes of internal DMA memory. The exact panel measures about 59.5 TE
 edges/s and 13–15 ms per complete transfer. The new PARTIAL candidate compiles
-and passes native invariants, but remains **unflashed and not hardware-accepted**.
+and passes native invariants. Its base has run without tearing on the exact
+display; the current brightness-only wake change remains unflashed until a
+separately authorized hardware check.
 
 The detailed accepted path, rejected adapter mode and current candidate are maintained in
 [`reference/display-pipeline.md`](reference/display-pipeline.md).

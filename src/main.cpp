@@ -183,7 +183,11 @@ void updateAutomaticBrightness(std::uint64_t nowUs) {
   gCivicAuxSnapshot = latestSnapshot;
 
   gBrightnessController.setPreferences(
-      gSettings.brightnessMode, gSettings.brightnessPercent, nowMs);
+      gSettings.brightnessMode,
+      gSettings.brightnessPercent,
+      gSettings.automaticBrightnessMinimumPercent,
+      gSettings.automaticBrightnessMaximumPercent,
+      nowMs);
   gAutomaticBrightnessStatus =
       gBrightnessController.update(gCivicAuxSnapshot, nowMs);
   if (gLastRequestedBrightness !=
@@ -227,11 +231,16 @@ extern "C" void app_main(void) {
   gSettings = settingsStoreAvailable ? loadGaugeSettings(defaults) : defaults;
   ESP_LOGI(kTag,
            "Settings loaded: brightness=%u%% brightness_mode=%u "
+           "auto_range=%u-%u%% "
            "pressure_unit=%u temperature_unit=%u source=%u "
            "warning_mode=%u sound=%u volume=%u pressure_warning=%upsi "
            "temperature_warning=%uC boot_logo=%us",
            static_cast<unsigned>(gSettings.brightnessPercent),
            static_cast<unsigned>(gSettings.brightnessMode),
+           static_cast<unsigned>(
+               gSettings.automaticBrightnessMinimumPercent),
+           static_cast<unsigned>(
+               gSettings.automaticBrightnessMaximumPercent),
            static_cast<unsigned>(gSettings.pressureUnit),
            static_cast<unsigned>(gSettings.temperatureUnit),
            static_cast<unsigned>(gSettings.dataSource),
@@ -251,7 +260,11 @@ extern "C" void app_main(void) {
   const std::uint64_t brightnessStartedMs =
       static_cast<std::uint64_t>(esp_timer_get_time()) / 1000U;
   gBrightnessController.reset(
-      gSettings.brightnessMode, gSettings.brightnessPercent, brightnessStartedMs);
+      gSettings.brightnessMode,
+      gSettings.brightnessPercent,
+      gSettings.automaticBrightnessMinimumPercent,
+      gSettings.automaticBrightnessMaximumPercent,
+      brightnessStartedMs);
   gLastRequestedBrightness = gSettings.brightnessPercent;
   requestOilDisplayBrightness(gSettings.brightnessPercent);
 

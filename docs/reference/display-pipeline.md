@@ -3,10 +3,9 @@
 ## Scope
 
 This document records the hardware-accepted rollback path, the rejected
-experiments, and the current software candidate on
-`codex/partial-v2-integration`. The rollback remains `pb5-good-base`; the new
-candidate is built and unit-tested but has not yet been flashed or accepted on
-the exact display.
+experiments, and the current PARTIAL implementation. The rollback remains
+`pb5-good-base`; PARTIAL v2 has run on the exact display, while each subsequent
+change still requires its own exact-board validation.
 
 ## Hardware boundary
 
@@ -103,7 +102,7 @@ resumes it on `LV_EVENT_REFR_REQUEST`. The adapter worker could then call
 `lv_timer_handler()` and flush outside the application-owned render, producing
 callbacks without an owned destination, freezes and a latched fatal state.
 
-## Current PARTIAL v2 candidate
+## Current PARTIAL v2 implementation
 
 The candidate has been reconstructed on a dedicated branch from the accepted
 rollback base. Its scheduling chain is:
@@ -153,13 +152,18 @@ Implemented invariants:
 11. Record physical completed FPS, TE edges, render time, producer wake latency,
     READY wait, DMA time, damage tiles, partial bytes, timeouts and ownership
     faults. LVGL render FPS alone is not presentation evidence.
+12. Keep the presenter as the sole panel-IO owner for both frame DMA and CO5300
+    brightness commands. A frame completion or a brightness-only request wakes
+    it through the task notification; it consumes `frameReady` only when a
+    complete frame exists. Brightness is therefore applied after any in-flight
+    DMA or immediately while idle, even when LVGL has no new damage.
 
 Native tests cover ownership selection, stale-canvas reconstruction and the
-terminal-flush rule. The complete ESP-IDF 6.0.2 / LVGL 9.5.0 build succeeds.
-Flashing and exact-board validation still require separate authorization; the
-first run must check boot stability, menu scroll, full-screen warning, tearing,
-transport faults and measured presentation FPS before this can replace the
-rollback base.
+terminal-flush rule, plus AUTO limit behavior. The complete ESP-IDF 6.0.2 /
+LVGL 9.5.0 build succeeds. The current static-screen brightness wake and AUTO
+range change still require a separately authorized exact-board flash. That run
+must check live brightness with a static gauge, both range-slider handles,
+persistence, menu scroll, warnings, tearing and transport faults.
 
 ## Primary references
 

@@ -13,14 +13,17 @@ percentage. It performs no I/O, NVS access, LVGL work, or panel calls.
 Maps millilux to 5–100% by linearly interpolating over `log1p(lux)` between the
 nine provisional control points documented in
 [`CIVIC_AUX_INTEGRATION.md`](../CIVIC_AUX_INTEGRATION.md). It is monotonic and
-saturates at both ends.
+saturates at both ends. The controller then clamps that raw curve to the saved
+AUTO minimum and maximum.
 
 ### `AutomaticBrightnessController`
 
-`reset()` establishes AUTO or MANUAL with the saved manual backup.
-`setPreferences()` handles explicit mode/backup changes. `update()` consumes a
-coherent receiver snapshot and local monotonic milliseconds, returning an
-`AutomaticBrightnessStatus`.
+`reset()` establishes AUTO or MANUAL with the saved manual backup and AUTO
+limits. `setPreferences()` handles explicit mode, backup, and limit changes.
+`update()` consumes a coherent receiver snapshot and local monotonic
+milliseconds, returning an `AutomaticBrightnessStatus`. Changing either AUTO
+limit recomputes the constrained output from the current fresh sample even when
+its receive generation has not changed.
 
 The states are:
 

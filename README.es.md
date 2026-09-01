@@ -29,19 +29,20 @@ GIF y este enlace abren el simulador publicado con GitHub Pages.
 - Inicialización de pantalla y panel táctil comprobada en el hardware real.
 - Ruta FULL de retorno comprobada sin tearing en la placa exacta, con unas
   30,5–32,7 presentaciones físicas por segundo.
-- Candidato PARTIAL v2 todavía sin flashear: buffer LVGL de 480×32, tres lienzos
-  completos coherentes, daños por generación y presentación gobernada por TE.
+- PARTIAL v2 está funcionando en la pantalla exacta: buffer LVGL de 480×32, tres
+  lienzos completos coherentes, daños por generación y presentación gobernada
+  por TE.
 - Zonas iguales 50/50 para presión y temperatura sobre fondo AMOLED negro puro.
 - Estados semánticos en español de 24 px, valores principales centrados, barras
   de 21 píxeles y aviso parpadeante de presión baja.
-- Sesenta y cuatro pruebas Unity independientes del hardware superadas, incluidas
+- Sesenta y seis pruebas Unity independientes del hardware superadas, incluidas
   las reglas de buffers, la tabla provisional de resistencias de 10–140 °C, los
   vectores CivicAux, la resincronización y el fallback/retorno de brillo automático.
 - La temperatura de banco por ADS1115 A1 está implementada; la calibración de
   presión, el adaptador reversible y la validación en coche siguen pendientes.
-- Hay un candidato CivicAux solo validado en software: recibe lux por UART1 RX en
-  GPIO44 y añade brillo AUTO/MANUAL con diagnóstico en Ajustes. No se ha flasheado;
-  faltan la UART real, los errores de panel y la cadencia física.
+- CivicAux UART1 RX en GPIO44 ya ha recibido tramas reales de luz ambiente del hub
+  en la pantalla exacta. Añade brillo AUTO/MANUAL, límites AUTO configurables y
+  diagnóstico en Ajustes; falta ajustar ópticamente el rango dentro del coche.
 
 La situación detallada y las barreras de seguridad pendientes se mantienen en
 [`docs/PROGRESS.md`](docs/PROGRESS.md).
@@ -57,7 +58,8 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Umbral persistente de temperatura entre 110 y 140 °C, 120 °C por defecto.
 - Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
 - Brillo AUTO/MANUAL persistente. AUTO usa la luz ambiente del hub, exige dos
-  tramas utilizables y vuelve suavemente al respaldo manual si se pierde.
+  tramas utilizables, se limita con un único selector doble persistente (20–100%
+  por defecto) y vuelve suavemente al respaldo manual si se pierde.
 - Bucle no bloqueante de dobles pitidos por el altavoz integrado mientras la
   demo permanezca en aviso de presión baja.
 - La demo muestra `<50` bajo su escala visual; el modo sensores muestra el valor

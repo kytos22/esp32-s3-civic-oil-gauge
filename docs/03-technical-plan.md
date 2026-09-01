@@ -80,7 +80,8 @@ flowchart LR
 | `src/icons/startup_honda.c` | [E] | Reused 320×215 Honda RGB565A8 startup artwork |
 | `src/icons/startup_civic.c` | [E] | Reused 310×42 Civic RGB565A8 startup artwork |
 | `src/fonts/` | [E] | Embedded Montserrat subsets for UI and centered numeric values |
-| `test/test_gauge_core/test_main.cpp` | [E] | Thirty-one Unity native tests, including ADS1115 protocol, configurable warning threshold and display ownership |
+| `test/test_gauge_core/test_main.cpp` | [E] | Thirty-six Unity native tests, including ADS1115 protocol, configurable warning threshold and display ownership |
+| `test/test_civic_aux/test_main.cpp` | [E] | Thirty Unity native tests for protocol, recovery and constrained automatic brightness |
 | `README.md` | [E] | Project entry point |
 | `README.es.md` | [E] | Spanish public entry point linked to the English base |
 | `LICENSE.md` / `NOTICE` | [E] | PolyForm Noncommercial 1.0.0 terms and required copyright notice |

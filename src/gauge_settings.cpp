@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace oilgauge {
 
@@ -37,6 +38,15 @@ bool validBrightnessMode(BrightnessMode mode) {
 GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
   settings.brightnessPercent = std::clamp<std::uint8_t>(
       settings.brightnessPercent, 5, 100);
+  settings.automaticBrightnessMinimumPercent = std::clamp<std::uint8_t>(
+      settings.automaticBrightnessMinimumPercent, 5, 100);
+  settings.automaticBrightnessMaximumPercent = std::clamp<std::uint8_t>(
+      settings.automaticBrightnessMaximumPercent, 5, 100);
+  if (settings.automaticBrightnessMinimumPercent >
+      settings.automaticBrightnessMaximumPercent) {
+    std::swap(settings.automaticBrightnessMinimumPercent,
+              settings.automaticBrightnessMaximumPercent);
+  }
   settings.warningVolumePercent = std::clamp<std::uint8_t>(
       settings.warningVolumePercent, 5, 100);
   settings.lowPressureWarningPsi = std::clamp<std::uint8_t>(
