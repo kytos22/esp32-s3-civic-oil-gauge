@@ -60,6 +60,12 @@ calibration, and alarms always consume the original Celsius value. The renderer 
 the demo lower floor to `<50 °C` or `<122 °F`; sensor bench mode can show the
 provisional numeric value below that visual floor.
 
+`temperatureWarningThresholdForDisplay()` presents the canonical 110–140 °C
+warning threshold in the selected unit. The inverse
+`temperatureWarningThresholdCelsiusFromDisplay()` converts a Fahrenheit menu
+selection back to canonical Celsius and clamps it before persistence. Unit
+changes therefore update the menu label and slider without changing alarm math.
+
 ## Warning presentation
 
 `evaluateWarningPresentation()` receives separate element and full-screen phases.

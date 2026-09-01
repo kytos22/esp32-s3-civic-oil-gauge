@@ -40,6 +40,8 @@
 | `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences, order AUTO limits, and reject invalid enum values |
 | `pressureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical PSI for display only |
 | `temperatureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical Celsius for display only |
+| `temperatureWarningThresholdForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Present the canonical warning threshold in °C or °F |
+| `temperatureWarningThresholdCelsiusFromDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert the menu threshold back to canonical Celsius |
 | `WarningPresentation` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Renderer-independent warning visibility decision |
 | `evaluateWarningPresentation()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Apply separate element/full-screen warning phases |
 | `CivicAuxFrameV1` | struct | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Fixed-storage decoded protocol-v1 frame |

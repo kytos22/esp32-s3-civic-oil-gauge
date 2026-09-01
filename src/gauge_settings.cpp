@@ -108,6 +108,23 @@ double temperatureForDisplay(double temperatureC, TemperatureUnit unit) {
              : temperatureC;
 }
 
+double temperatureWarningThresholdForDisplay(
+    std::uint8_t temperatureC,
+    TemperatureUnit unit) {
+  return temperatureForDisplay(
+      std::clamp<std::uint8_t>(temperatureC, 110, 140), unit);
+}
+
+std::uint8_t temperatureWarningThresholdCelsiusFromDisplay(
+    double value,
+    TemperatureUnit unit) {
+  const double celsius = unit == TemperatureUnit::fahrenheit
+                             ? (value - 32.0) * 5.0 / 9.0
+                             : value;
+  return static_cast<std::uint8_t>(
+      std::clamp<long>(std::lround(celsius), 110L, 140L));
+}
+
 WarningPresentation evaluateWarningPresentation(WarningVisualMode mode,
                                                 bool warningActive,
                                                 bool elementsBlinkPhaseOn,

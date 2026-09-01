@@ -190,11 +190,12 @@ See `docs/03-technical-plan.md`.
   requests one isolated double beep. The codec is
   not muted/unmuted at individual tone edges; zero-filled settling segments and the
   waveform envelope prevent an abrupt output step.
-- **AC-33:** A stationary 700 ms hold opens a full-screen black settings page;
-  ordinary taps, dragging, and scrolling do not. The page remains open until
-  `VOLVER` is pressed, including while a pressure warning is active; `VOLVER` saves
-  changed safe preferences and returns to the gauge. While settings is visible, no
-  gauge widgets or warning overlay are rendered behind it.
+- **AC-33:** A stationary 700 ms hold opens a full-screen black settings home;
+  ordinary taps and dragging do not. The home exposes seven buttons, and each
+  opens one independent non-scrolling subsection while all other menu pages stay
+  hidden and unrendered. `ATRÁS` returns home; `CERRAR` saves changed safe
+  preferences and returns to the gauge. The menu remains open during a pressure
+  warning, and no gauge widgets or warning overlay are rendered behind it.
 - **AC-34:** Brightness, warning-sound enable/volume, units, warning presentation,
   and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
@@ -220,10 +221,11 @@ See `docs/03-technical-plan.md`.
   and the configured audio loop continue without background gauge rendering.
   Diagnostics are read-only, sound test uses one real double beep, and reset requires
   confirmation.
-- **AC-39:** Celsius/Fahrenheit changes only the displayed temperature value, unit,
-  and temperature reference labels from canonical degrees Celsius. It never changes
-  calibration, state boundaries, colors, bar fraction, thresholds, or alarms. The
-  below-range presentation is `<50 °C` or `<122 °F`.
+- **AC-39:** Celsius/Fahrenheit changes only presented temperature values, units,
+  reference labels, and the editable high-temperature threshold from canonical
+  degrees Celsius. It never changes calibration, state boundaries, colors, bar
+  fraction, the stored canonical threshold, or alarm evaluation. The below-range
+  presentation is `<50 °C` or `<122 °F`.
 - **AC-40:** Every character emitted by the large numeric renderer exists in its
   96 px font. In particular, one-decimal BAR values use a real U+002E decimal-point
   glyph and never LVGL's missing-glyph rectangle.

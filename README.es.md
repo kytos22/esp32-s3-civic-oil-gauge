@@ -35,7 +35,7 @@ GIF y este enlace abren el simulador publicado con GitHub Pages.
 - Zonas iguales 50/50 para presión y temperatura sobre fondo AMOLED negro puro.
 - Estados semánticos en español de 24 px, valores principales centrados, barras
   de 21 píxeles y aviso parpadeante de presión baja.
-- Sesenta y ocho pruebas Unity independientes del hardware superadas, incluidas
+- Sesenta y nueve pruebas Unity independientes del hardware superadas, incluidas
   las reglas de buffers, la tabla provisional de resistencias de 10–140 °C, los
   vectores CivicAux, la resincronización y el fallback/retorno de brillo automático.
 - La temperatura de banco por ADS1115 A1 está implementada; la calibración de
@@ -56,6 +56,8 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
   unidad seleccionada y conservado internamente en PSI.
 - Umbral persistente de temperatura entre 110 y 140 °C, 120 °C por defecto.
+- Menú por secciones con una portada de accesos a Brillo, Datos, Avisos, Sonido,
+  Unidades, Arranque y Sistema; solo se renderiza la página visible.
 - Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
 - Brillo AUTO/MANUAL persistente. AUTO usa la luz ambiente del hub, exige dos
   tramas utilizables, se limita con un único selector doble persistente (20–100%

@@ -65,6 +65,12 @@ struct WarningPresentation {
                                                           PressureUnit unit);
 [[nodiscard]] double temperatureForDisplay(double temperatureC,
                                            TemperatureUnit unit);
+[[nodiscard]] double temperatureWarningThresholdForDisplay(
+    std::uint8_t temperatureC,
+    TemperatureUnit unit);
+[[nodiscard]] std::uint8_t temperatureWarningThresholdCelsiusFromDisplay(
+    double value,
+    TemperatureUnit unit);
 [[nodiscard]] WarningPresentation evaluateWarningPresentation(
     WarningVisualMode mode,
     bool warningActive,

@@ -35,7 +35,7 @@ hosted by GitHub Pages.
   background.
 - 24 px Spanish semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Sixty-eight hardware-independent Unity tests pass, including buffer ownership,
+- Sixty-nine hardware-independent Unity tests pass, including buffer ownership,
   the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
   recovery, and automatic-brightness fallback/recovery.
 - ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
@@ -56,6 +56,8 @@ The detailed development position and remaining safety gates are maintained in
 - Persistent 1–30 PSI low-pressure warning threshold, shown in PSI or BAR to
   match the selected unit while remaining canonical PSI internally.
 - Persistent 110–140 °C high-temperature warning threshold, default 120 °C.
+- Sectioned settings home with Brightness, Data, Warnings, Sound, Units, Startup,
+  and System pages; only the selected page is rendered.
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
 - Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
   usable frames, is constrained by one persistent two-handle range (20–100% by

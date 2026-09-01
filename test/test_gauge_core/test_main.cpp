@@ -560,6 +560,29 @@ void test_temperature_units_convert_only_the_display_value() {
       1e-9, 212.0, temperatureForDisplay(100.0, TemperatureUnit::fahrenheit));
 }
 
+void test_temperature_warning_threshold_uses_selected_display_unit() {
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9,
+      120.0,
+      temperatureWarningThresholdForDisplay(120, TemperatureUnit::celsius));
+  TEST_ASSERT_DOUBLE_WITHIN(
+      1e-9,
+      248.0,
+      temperatureWarningThresholdForDisplay(120, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_EQUAL_UINT8(
+      120,
+      temperatureWarningThresholdCelsiusFromDisplay(
+          248.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_EQUAL_UINT8(
+      110,
+      temperatureWarningThresholdCelsiusFromDisplay(
+          230.0, TemperatureUnit::fahrenheit));
+  TEST_ASSERT_EQUAL_UINT8(
+      140,
+      temperatureWarningThresholdCelsiusFromDisplay(
+          284.0, TemperatureUnit::fahrenheit));
+}
+
 void test_full_screen_warning_never_hides_pressure_number() {
   for (const bool phaseOn : {false, true}) {
     const WarningPresentation presentation = evaluateWarningPresentation(
@@ -622,6 +645,7 @@ int main(int, char**) {
   RUN_TEST(test_full_screen_warning_uses_an_independent_half_hertz_cycle);
   RUN_TEST(test_pressure_units_convert_only_the_display_value);
   RUN_TEST(test_temperature_units_convert_only_the_display_value);
+  RUN_TEST(test_temperature_warning_threshold_uses_selected_display_unit);
   RUN_TEST(test_full_screen_warning_never_hides_pressure_number);
   return UNITY_END();
 }

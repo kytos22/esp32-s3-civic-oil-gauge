@@ -1,6 +1,7 @@
 #include "oil_gauge_ui.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstdint>
@@ -38,6 +39,18 @@ struct BarWidgets {
   bool hidden = false;
 };
 
+enum class MenuPage : std::size_t {
+  home = 0,
+  brightness,
+  data,
+  warnings,
+  sound,
+  units,
+  startup,
+  system,
+  count,
+};
+
 struct UiWidgets {
   lv_obj_t* screen = nullptr;
   lv_obj_t* gaugeRoot = nullptr;
@@ -46,6 +59,13 @@ struct UiWidgets {
   lv_obj_t* fullScreenWarning = nullptr;
   lv_obj_t* fullScreenPressureValue = nullptr;
   lv_obj_t* bootSplash = nullptr;
+  std::array<lv_obj_t*, static_cast<std::size_t>(MenuPage::count)> menuPages{};
+  lv_obj_t* homeBrightnessSummary = nullptr;
+  lv_obj_t* homeDataSummary = nullptr;
+  lv_obj_t* homeWarningsSummary = nullptr;
+  lv_obj_t* homeSoundSummary = nullptr;
+  lv_obj_t* homeUnitsSummary = nullptr;
+  lv_obj_t* homeStartupSummary = nullptr;
   lv_obj_t* pressureState = nullptr;
   lv_obj_t* sourceBadge = nullptr;
   lv_obj_t* pressureValue = nullptr;
@@ -61,6 +81,7 @@ struct UiWidgets {
   RgbColor temperatureIconColor{};
   bool temperatureIconColorSet = false;
   lv_obj_t* brightnessSlider = nullptr;
+  lv_obj_t* brightnessValue = nullptr;
   lv_obj_t* automaticBrightnessRangeSlider = nullptr;
   lv_obj_t* automaticBrightnessRangeValue = nullptr;
   lv_obj_t* brightnessAutoButton = nullptr;
@@ -70,6 +91,7 @@ struct UiWidgets {
   lv_obj_t* automaticBrightnessLabel = nullptr;
   lv_obj_t* soundSwitch = nullptr;
   lv_obj_t* volumeSlider = nullptr;
+  lv_obj_t* volumeValue = nullptr;
   lv_obj_t* pressureWarningSlider = nullptr;
   lv_obj_t* pressureWarningValue = nullptr;
   lv_obj_t* temperatureWarningSlider = nullptr;
@@ -85,6 +107,7 @@ struct UiWidgets {
   lv_obj_t* warningElementsButton = nullptr;
   lv_obj_t* warningScreenButton = nullptr;
   lv_obj_t* warningFixedButton = nullptr;
+  lv_obj_t* warningModeDescription = nullptr;
   BarWidgets temperatureBar{};
   char pressureValueText[8]{};
   char sourceBadgeText[16]{};
@@ -96,6 +119,15 @@ struct UiWidgets {
   char pressureWarningText[24]{};
   char temperatureWarningText[24]{};
   char startupLogoText[24]{};
+  char brightnessValueText[40]{};
+  char volumeValueText[24]{};
+  char warningModeDescriptionText[48]{};
+  char homeBrightnessSummaryText[40]{};
+  char homeDataSummaryText[24]{};
+  char homeWarningsSummaryText[48]{};
+  char homeSoundSummaryText[32]{};
+  char homeUnitsSummaryText[24]{};
+  char homeStartupSummaryText[32]{};
   char automaticBrightnessRangeText[40]{};
   char ambientLuxText[40]{};
   char ambientStateText[56]{};
@@ -120,6 +152,7 @@ struct UiWidgets {
   bool temperatureUnitRendered = false;
   bool actionsPending = false;
   bool created = false;
+  MenuPage activeMenuPage = MenuPage::home;
 };
 
 UiWidgets gUi;
@@ -348,12 +381,143 @@ void refreshAutomaticBrightnessRangeLabel() {
                         rangeText);
 }
 
+void refreshWarningModeDescription() {
+  const char* description = "ELEMENTOS · 2 HZ";
+  if (gUi.settings.warningVisualMode == WarningVisualMode::fullScreenBlink) {
+    description = "PANTALLA ROJA · 0,5 HZ";
+  } else if (gUi.settings.warningVisualMode == WarningVisualMode::fixed) {
+    description = "AVISO FIJO · SIN PARPADEO";
+  }
+  setLabelTextIfChanged(gUi.warningModeDescription,
+                        gUi.warningModeDescriptionText,
+                        description);
+}
+
+void refreshMenuSummaries() {
+  if (gUi.homeBrightnessSummary == nullptr) {
+    return;
+  }
+
+  char brightnessText[40];
+  if (gUi.settings.brightnessMode == BrightnessMode::automatic) {
+    std::snprintf(
+        brightnessText,
+        sizeof(brightnessText),
+        "AUTO · %u–%u%%",
+        static_cast<unsigned>(gUi.settings.automaticBrightnessMinimumPercent),
+        static_cast<unsigned>(gUi.settings.automaticBrightnessMaximumPercent));
+  } else {
+    std::snprintf(brightnessText,
+                  sizeof(brightnessText),
+                  "MANUAL · %u%%",
+                  static_cast<unsigned>(gUi.settings.brightnessPercent));
+  }
+  setLabelTextIfChanged(gUi.homeBrightnessSummary,
+                        gUi.homeBrightnessSummaryText,
+                        brightnessText);
+
+  setLabelTextIfChanged(
+      gUi.homeDataSummary,
+      gUi.homeDataSummaryText,
+      gUi.settings.dataSource == DataSource::demo ? "DEMO" : "SENSORES");
+
+  const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
+  const double pressureThreshold = warningThresholdForDisplay(
+      gUi.settings.lowPressureWarningPsi, gUi.settings.pressureUnit);
+  const double temperatureThreshold = temperatureWarningThresholdForDisplay(
+      gUi.settings.highTemperatureWarningCelsius,
+      gUi.settings.temperatureUnit);
+  char warningsText[48];
+  if (bar) {
+    std::snprintf(warningsText,
+                  sizeof(warningsText),
+                  "%.1f BAR · %.0f °%c",
+                  pressureThreshold,
+                  temperatureThreshold,
+                  gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit
+                      ? 'F'
+                      : 'C');
+  } else {
+    std::snprintf(warningsText,
+                  sizeof(warningsText),
+                  "%u PSI · %.0f °%c",
+                  static_cast<unsigned>(gUi.settings.lowPressureWarningPsi),
+                  temperatureThreshold,
+                  gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit
+                      ? 'F'
+                      : 'C');
+  }
+  setLabelTextIfChanged(gUi.homeWarningsSummary,
+                        gUi.homeWarningsSummaryText,
+                        warningsText);
+
+  char soundText[32];
+  if (gUi.settings.warningSoundEnabled) {
+    std::snprintf(soundText,
+                  sizeof(soundText),
+                  "ACTIVO · %u%%",
+                  static_cast<unsigned>(gUi.settings.warningVolumePercent));
+  } else {
+    std::snprintf(soundText, sizeof(soundText), "DESACTIVADO");
+  }
+  setLabelTextIfChanged(
+      gUi.homeSoundSummary, gUi.homeSoundSummaryText, soundText);
+
+  char unitsText[24];
+  std::snprintf(
+      unitsText,
+      sizeof(unitsText),
+      "%s · °%c",
+      bar ? "BAR" : "PSI",
+      gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit ? 'F' : 'C');
+  setLabelTextIfChanged(
+      gUi.homeUnitsSummary, gUi.homeUnitsSummaryText, unitsText);
+
+  char startupText[32];
+  if (gUi.settings.startupLogoSeconds == 0) {
+    std::snprintf(startupText, sizeof(startupText), "DESACTIVADO");
+  } else {
+    std::snprintf(startupText,
+                  sizeof(startupText),
+                  "LOGO · %u S",
+                  static_cast<unsigned>(gUi.settings.startupLogoSeconds));
+  }
+  setLabelTextIfChanged(gUi.homeStartupSummary,
+                        gUi.homeStartupSummaryText,
+                        startupText);
+}
+
+void refreshBrightnessValueLabel() {
+  char brightnessValueText[40];
+  std::snprintf(
+      brightnessValueText,
+      sizeof(brightnessValueText),
+      gUi.settings.brightnessMode == BrightnessMode::automatic
+          ? "RESPALDO MANUAL: %u%%"
+          : "BRILLO MANUAL: %u%%",
+      static_cast<unsigned>(gUi.settings.brightnessPercent));
+  setLabelTextIfChanged(gUi.brightnessValue,
+                        gUi.brightnessValueText,
+                        brightnessValueText);
+}
+
+void refreshVolumeValueLabel() {
+  char volumeText[24];
+  std::snprintf(volumeText,
+                sizeof(volumeText),
+                "VOLUMEN: %u%%",
+                static_cast<unsigned>(gUi.settings.warningVolumePercent));
+  setLabelTextIfChanged(
+      gUi.volumeValue, gUi.volumeValueText, volumeText);
+}
+
 void refreshMenuControls() {
   if (gUi.brightnessSlider == nullptr) {
     return;
   }
   lv_slider_set_value(
       gUi.brightnessSlider, gUi.settings.brightnessPercent, LV_ANIM_OFF);
+  refreshBrightnessValueLabel();
   lv_slider_set_left_value(
       gUi.automaticBrightnessRangeSlider,
       gUi.settings.automaticBrightnessMinimumPercent,
@@ -365,6 +529,7 @@ void refreshMenuControls() {
   refreshAutomaticBrightnessRangeLabel();
   lv_slider_set_value(
       gUi.volumeSlider, gUi.settings.warningVolumePercent, LV_ANIM_OFF);
+  refreshVolumeValueLabel();
   const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
   lv_slider_set_range(gUi.pressureWarningSlider, 1, bar ? 21 : 30);
   const double threshold = warningThresholdForDisplay(
@@ -402,16 +567,25 @@ void refreshMenuControls() {
                         static_cast<double>(kContentWidth)));
     lv_obj_set_x(gUi.temperatureBar.firstTick, warningTickX);
   }
-  lv_slider_set_range(gUi.temperatureWarningSlider, 110, 140);
+  const bool fahrenheit =
+      gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit;
+  const double temperatureThreshold = temperatureWarningThresholdForDisplay(
+      gUi.settings.highTemperatureWarningCelsius,
+      gUi.settings.temperatureUnit);
+  lv_slider_set_range(gUi.temperatureWarningSlider,
+                      fahrenheit ? 230 : 110,
+                      fahrenheit ? 284 : 140);
   lv_slider_set_value(gUi.temperatureWarningSlider,
-                      gUi.settings.highTemperatureWarningCelsius,
+                      static_cast<std::int32_t>(
+                          std::lround(temperatureThreshold)),
                       LV_ANIM_OFF);
   char temperatureThresholdText[24];
   std::snprintf(
       temperatureThresholdText,
       sizeof(temperatureThresholdText),
-      "UMBRAL: %u °C",
-      static_cast<unsigned>(gUi.settings.highTemperatureWarningCelsius));
+      "UMBRAL: %.0f °%c",
+      temperatureThreshold,
+      fahrenheit ? 'F' : 'C');
   setLabelTextIfChanged(gUi.temperatureWarningValue,
                         gUi.temperatureWarningText,
                         temperatureThresholdText);
@@ -419,10 +593,14 @@ void refreshMenuControls() {
                       gUi.settings.startupLogoSeconds,
                       LV_ANIM_OFF);
   char startupText[24];
-  std::snprintf(startupText,
-                sizeof(startupText),
-                "DURACIÓN: %u S",
-                static_cast<unsigned>(gUi.settings.startupLogoSeconds));
+  if (gUi.settings.startupLogoSeconds == 0) {
+    std::snprintf(startupText, sizeof(startupText), "LOGOTIPO DESACTIVADO");
+  } else {
+    std::snprintf(startupText,
+                  sizeof(startupText),
+                  "DURACIÓN: %u S",
+                  static_cast<unsigned>(gUi.settings.startupLogoSeconds));
+  }
   setLabelTextIfChanged(
       gUi.startupLogoValue, gUi.startupLogoText, startupText);
   if (gUi.settings.warningSoundEnabled) {
@@ -458,6 +636,8 @@ void refreshMenuControls() {
   setChoiceSelected(
       gUi.warningFixedButton,
       gUi.settings.warningVisualMode == WarningVisualMode::fixed);
+  refreshWarningModeDescription();
+  refreshMenuSummaries();
 }
 
 void queueSettingsApply() {
@@ -483,6 +663,25 @@ void closeMenu(bool save) {
   }
 }
 
+void showMenuPage(MenuPage page) {
+  for (lv_obj_t* menuPage : gUi.menuPages) {
+    if (menuPage != nullptr) {
+      lv_obj_add_flag(menuPage, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+  lv_obj_t* selected =
+      gUi.menuPages[static_cast<std::size_t>(page)];
+  if (selected == nullptr) {
+    return;
+  }
+  lv_obj_clear_flag(selected, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_move_foreground(selected);
+  gUi.activeMenuPage = page;
+  if (page == MenuPage::brightness) {
+    refreshBrightnessTelemetry();
+  }
+}
+
 void openMenu() {
   if (gUi.menuVisible) {
     return;
@@ -490,6 +689,7 @@ void openMenu() {
   setFullScreenWarningVisible(false);
   refreshMenuControls();
   refreshBrightnessTelemetry();
+  showMenuPage(MenuPage::home);
   lv_obj_clear_flag(gUi.menu, LV_OBJ_FLAG_HIDDEN);
   lv_obj_move_foreground(gUi.menu);
   gUi.menuVisible = true;
@@ -501,8 +701,40 @@ void gaugeLongPressEvent(lv_event_t* event) {
   }
 }
 
-void backEvent(lv_event_t*) {
+void closeMenuEvent(lv_event_t*) {
   closeMenu(true);
+}
+
+void sectionBackEvent(lv_event_t*) {
+  showMenuPage(MenuPage::home);
+}
+
+void brightnessPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::brightness);
+}
+
+void dataPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::data);
+}
+
+void warningsPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::warnings);
+}
+
+void soundPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::sound);
+}
+
+void unitsPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::units);
+}
+
+void startupPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::startup);
+}
+
+void systemPageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::system);
 }
 
 void sliderEvent(lv_event_t* event) {
@@ -510,6 +742,8 @@ void sliderEvent(lv_event_t* event) {
   if (target == gUi.brightnessSlider) {
     gUi.settings.brightnessPercent = static_cast<std::uint8_t>(
         lv_slider_get_value(gUi.brightnessSlider));
+    refreshBrightnessValueLabel();
+    refreshMenuSummaries();
   } else if (target == gUi.automaticBrightnessRangeSlider) {
     gUi.settings.automaticBrightnessMinimumPercent =
         static_cast<std::uint8_t>(
@@ -518,9 +752,12 @@ void sliderEvent(lv_event_t* event) {
         static_cast<std::uint8_t>(
             lv_slider_get_value(gUi.automaticBrightnessRangeSlider));
     refreshAutomaticBrightnessRangeLabel();
+    refreshMenuSummaries();
   } else if (target == gUi.volumeSlider) {
     gUi.settings.warningVolumePercent = static_cast<std::uint8_t>(
         lv_slider_get_value(gUi.volumeSlider));
+    refreshVolumeValueLabel();
+    refreshMenuSummaries();
   } else if (target == gUi.pressureWarningSlider) {
     const std::int32_t value = lv_slider_get_value(gUi.pressureWarningSlider);
     gUi.settings.lowPressureWarningPsi = warningThresholdPsiFromDisplay(
@@ -529,8 +766,9 @@ void sliderEvent(lv_event_t* event) {
     refreshMenuControls();
   } else if (target == gUi.temperatureWarningSlider) {
     gUi.settings.highTemperatureWarningCelsius =
-        static_cast<std::uint8_t>(
-            lv_slider_get_value(gUi.temperatureWarningSlider));
+        temperatureWarningThresholdCelsiusFromDisplay(
+            lv_slider_get_value(gUi.temperatureWarningSlider),
+            gUi.settings.temperatureUnit);
     refreshMenuControls();
   } else if (target == gUi.startupLogoSlider) {
     gUi.settings.startupLogoSeconds = static_cast<std::uint8_t>(
@@ -543,6 +781,7 @@ void sliderEvent(lv_event_t* event) {
 void soundSwitchEvent(lv_event_t*) {
   gUi.settings.warningSoundEnabled =
       lv_obj_has_state(gUi.soundSwitch, LV_STATE_CHECKED);
+  refreshMenuSummaries();
   queueSettingsApply();
 }
 
@@ -647,6 +886,74 @@ lv_obj_t* createMenuButton(lv_obj_t* parent,
   return button;
 }
 
+lv_obj_t* createSectionButton(lv_obj_t* parent,
+                              const char* title,
+                              std::int32_t x,
+                              std::int32_t y,
+                              std::int32_t width,
+                              std::int32_t height,
+                              lv_event_cb_t callback,
+                              lv_obj_t*& summaryLabel) {
+  lv_obj_t* button = lv_button_create(parent);
+  lv_obj_remove_style_all(button);
+  lv_obj_set_pos(button, x, y);
+  lv_obj_set_size(button, width, height);
+  lv_obj_set_style_radius(button, 16, 0);
+  lv_obj_set_style_bg_color(button, color(kPanel), 0);
+  lv_obj_set_style_bg_opa(button, LV_OPA_COVER, 0);
+  lv_obj_set_style_border_width(button, 1, 0);
+  lv_obj_set_style_border_color(button, color(kLine), 0);
+  lv_obj_add_event_cb(button, callback, LV_EVENT_CLICKED, nullptr);
+  createLabel(button,
+              title,
+              14,
+              15,
+              width - 28,
+              22,
+              &oil_font_ui_16,
+              color(kPrimary),
+              LV_TEXT_ALIGN_LEFT);
+  summaryLabel = createLabel(button,
+                             "--",
+                             14,
+                             47,
+                             width - 28,
+                             18,
+                             &oil_font_ui_12,
+                             color(kSecondary),
+                             LV_TEXT_ALIGN_LEFT);
+  return button;
+}
+
+lv_obj_t* createSettingsPage(MenuPage page,
+                             const char* title,
+                             bool homePage) {
+  lv_obj_t* pageObject =
+      createSolid(gUi.menu, 0, 0, kCanvasWidth, kCanvasWidth, 0);
+  lv_obj_set_style_bg_color(pageObject, color(kBlack), 0);
+  gUi.menuPages[static_cast<std::size_t>(page)] = pageObject;
+  createLabel(pageObject,
+              title,
+              28,
+              22,
+              280,
+              34,
+              &lv_font_montserrat_24,
+              color(kPrimary),
+              LV_TEXT_ALIGN_LEFT);
+  createMenuButton(pageObject,
+                   homePage ? "CERRAR" : "ATRÁS",
+                   340,
+                   12,
+                   112,
+                   48,
+                   homePage ? closeMenuEvent : sectionBackEvent);
+  if (!homePage) {
+    lv_obj_add_flag(pageObject, LV_OBJ_FLAG_HIDDEN);
+  }
+  return pageObject;
+}
+
 void styleSlider(lv_obj_t* slider) {
   lv_obj_set_style_bg_color(slider, color(kLine), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_MAIN);
@@ -677,57 +984,109 @@ lv_obj_t* createTemperatureIcon(lv_obj_t* parent) {
 void createSettingsMenu(lv_obj_t* screen) {
   gUi.menu = createSolid(screen, 0, 0, kCanvasWidth, kCanvasWidth, 0);
   lv_obj_set_style_bg_color(gUi.menu, color(kBlack), 0);
-  lv_obj_add_flag(gUi.menu, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_scroll_dir(gUi.menu, LV_DIR_VER);
-  lv_obj_set_scrollbar_mode(gUi.menu, LV_SCROLLBAR_MODE_AUTO);
 
-  lv_obj_t* content = lv_obj_create(gUi.menu);
-  lv_obj_remove_style_all(content);
-  lv_obj_set_pos(content, 0, 0);
-  lv_obj_set_size(content, kCanvasWidth, 1648);
-  lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t* home = createSettingsPage(MenuPage::home, "AJUSTES", true);
+  createSectionButton(home,
+                      "BRILLO",
+                      28,
+                      82,
+                      206,
+                      80,
+                      brightnessPageEvent,
+                      gUi.homeBrightnessSummary);
+  createSectionButton(home,
+                      "DATOS",
+                      246,
+                      82,
+                      206,
+                      80,
+                      dataPageEvent,
+                      gUi.homeDataSummary);
+  createSectionButton(home,
+                      "AVISOS",
+                      28,
+                      173,
+                      206,
+                      80,
+                      warningsPageEvent,
+                      gUi.homeWarningsSummary);
+  createSectionButton(home,
+                      "SONIDO",
+                      246,
+                      173,
+                      206,
+                      80,
+                      soundPageEvent,
+                      gUi.homeSoundSummary);
+  createSectionButton(home,
+                      "UNIDADES",
+                      28,
+                      264,
+                      206,
+                      80,
+                      unitsPageEvent,
+                      gUi.homeUnitsSummary);
+  createSectionButton(home,
+                      "ARRANQUE",
+                      246,
+                      264,
+                      206,
+                      80,
+                      startupPageEvent,
+                      gUi.homeStartupSummary);
+  lv_obj_t* systemSummary = nullptr;
+  createSectionButton(home,
+                      "SISTEMA",
+                      28,
+                      356,
+                      424,
+                      92,
+                      systemPageEvent,
+                      systemSummary);
+  lv_label_set_text(systemSummary, "RESTABLECER AJUSTES");
 
-  createLabel(content,
-              "AJUSTES",
+  lv_obj_t* brightness =
+      createSettingsPage(MenuPage::brightness, "BRILLO", false);
+  createLabel(brightness,
+              "MODO DE BRILLO",
               28,
-              22,
-              260,
-              34,
-              &lv_font_montserrat_24,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
-  createMenuButton(content, "VOLVER", 340, 12, 112, 48, backEvent);
-
-  createLabel(content, "PANTALLA", 28, 84, 220, 24, &oil_font_ui_16,
-              color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  createLabel(content, "BRILLO MANUAL / RESPALDO", 28, 119, 300, 24,
+              82,
+              220,
+              24,
               &oil_font_ui_16,
-              color(kPrimary), LV_TEXT_ALIGN_LEFT);
-  gUi.brightnessSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.brightnessSlider, 28, 154);
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.brightnessAutoButton = createMenuButton(
+      brightness, "AUTO", 28, 112, 150, 48, brightnessModeEvent);
+  gUi.brightnessManualButton = createMenuButton(
+      brightness, "MANUAL", 194, 112, 150, 48, brightnessModeEvent);
+  gUi.brightnessValue = createLabel(brightness,
+                                    "RESPALDO MANUAL: 55%",
+                                    28,
+                                    178,
+                                    360,
+                                    24,
+                                    &oil_font_ui_16,
+                                    color(kPrimary),
+                                    LV_TEXT_ALIGN_LEFT);
+  gUi.brightnessSlider = lv_slider_create(brightness);
+  lv_obj_set_pos(gUi.brightnessSlider, 28, 214);
   lv_obj_set_size(gUi.brightnessSlider, 424, 16);
   lv_slider_set_range(gUi.brightnessSlider, 5, 100);
   styleSlider(gUi.brightnessSlider);
   lv_obj_add_event_cb(
       gUi.brightnessSlider, sliderEvent, LV_EVENT_VALUE_CHANGED, nullptr);
-
-  createLabel(content, "MODO DE BRILLO", 28, 190, 220, 24,
-              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  gUi.brightnessAutoButton = createMenuButton(
-      content, "AUTO", 28, 220, 150, 50, brightnessModeEvent);
-  gUi.brightnessManualButton = createMenuButton(
-      content, "MANUAL", 194, 220, 150, 50, brightnessModeEvent);
-  gUi.automaticBrightnessRangeValue = createLabel(content,
+  gUi.automaticBrightnessRangeValue = createLabel(brightness,
                                                    "LÍMITES AUTO: 20–100%",
                                                    28,
-                                                   282,
+                                                   254,
                                                    424,
                                                    24,
                                                    &oil_font_ui_16,
                                                    color(kPrimary),
                                                    LV_TEXT_ALIGN_LEFT);
-  gUi.automaticBrightnessRangeSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.automaticBrightnessRangeSlider, 28, 317);
+  gUi.automaticBrightnessRangeSlider = lv_slider_create(brightness);
+  lv_obj_set_pos(gUi.automaticBrightnessRangeSlider, 28, 290);
   lv_obj_set_size(gUi.automaticBrightnessRangeSlider, 424, 16);
   lv_slider_set_mode(
       gUi.automaticBrightnessRangeSlider, LV_SLIDER_MODE_RANGE);
@@ -737,119 +1096,124 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-  gUi.ambientLuxLabel = createLabel(content,
+  gUi.ambientLuxLabel = createLabel(brightness,
                                      "LUZ HUB: --",
                                      28,
-                                     349,
+                                     326,
                                     424,
                                     20,
                                     &oil_font_ui_12,
                                     color(kPrimary),
                                     LV_TEXT_ALIGN_LEFT);
-  gUi.ambientStateLabel = createLabel(content,
+  gUi.ambientStateLabel = createLabel(brightness,
                                        "UART: ESPERANDO LUZ",
                                        28,
-                                       373,
+                                       350,
                                       424,
                                       20,
                                       &oil_font_ui_12,
                                       color(kSecondary),
                                       LV_TEXT_ALIGN_LEFT);
-  gUi.automaticBrightnessLabel = createLabel(content,
+  gUi.automaticBrightnessLabel = createLabel(brightness,
                                                "AUTO ESPERANDO · APLICADO: 55%",
                                                28,
-                                               397,
+                                               374,
                                               424,
                                               20,
                                               &oil_font_ui_12,
                                               color(kSecondary),
                                               LV_TEXT_ALIGN_LEFT);
 
-  createLabel(content, "SONIDO WARNING", 28, 449, 260, 24, &oil_font_ui_16,
-              color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  createLabel(content, "ACTIVADO", 28, 486, 190, 24, &oil_font_ui_16,
-              color(kPrimary), LV_TEXT_ALIGN_LEFT);
-  gUi.soundSwitch = lv_switch_create(content);
-  lv_obj_set_pos(gUi.soundSwitch, 370, 477);
-  lv_obj_set_size(gUi.soundSwitch, 82, 42);
-  lv_obj_add_event_cb(
-      gUi.soundSwitch, soundSwitchEvent, LV_EVENT_VALUE_CHANGED, nullptr);
-  createLabel(content, "VOLUMEN 5–100%", 28, 540, 220, 24, &oil_font_ui_16,
-              color(kPrimary), LV_TEXT_ALIGN_LEFT);
-  gUi.volumeSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.volumeSlider, 28, 575);
-  lv_obj_set_size(gUi.volumeSlider, 250, 16);
-  lv_slider_set_range(gUi.volumeSlider, 5, 100);
-  styleSlider(gUi.volumeSlider);
-  lv_obj_add_event_cb(
-      gUi.volumeSlider, sliderEvent, LV_EVENT_VALUE_CHANGED, nullptr);
-  createMenuButton(content, "PROBAR", 302, 553, 150, 50, testSoundEvent);
-
-  createLabel(content, "FUENTE DE DATOS", 28, 638, 260, 24, &oil_font_ui_16,
-              color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  gUi.demoButton = createMenuButton(
-      content, "DEMO", 28, 676, 130, 50, dataSourceEvent);
-  gUi.sensorsButton = createMenuButton(
-      content, "SENSORES", 174, 676, 140, 50, dataSourceEvent);
-  createLabel(content,
-              "TEMP A1 PROVISIONAL · PRESIÓN PENDIENTE",
+  lv_obj_t* data = createSettingsPage(MenuPage::data, "DATOS", false);
+  createLabel(data,
+              "FUENTE DE DATOS",
               28,
-              735,
+              92,
+              260,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.demoButton =
+      createMenuButton(data, "DEMO", 28, 126, 150, 50, dataSourceEvent);
+  gUi.sensorsButton = createMenuButton(
+      data, "SENSORES", 194, 126, 150, 50, dataSourceEvent);
+  createLabel(data,
+              "DEMO GENERA LA SECUENCIA DE PRUEBA",
+              28,
+              210,
               424,
               20,
-              &oil_font_ui_16,
+              &oil_font_ui_12,
+              color(kPrimary),
+              LV_TEXT_ALIGN_LEFT);
+  createLabel(data,
+              "TEMPERATURA A1: CALIBRACIÓN PROVISIONAL",
+              28,
+              246,
+              424,
+              20,
+              &oil_font_ui_12,
+              color(kWarningRed),
+              LV_TEXT_ALIGN_LEFT);
+  createLabel(data,
+              "PRESIÓN: CALIBRACIÓN PENDIENTE",
+              28,
+              276,
+              424,
+              20,
+              &oil_font_ui_12,
               color(kWarningRed),
               LV_TEXT_ALIGN_LEFT);
 
-  createLabel(content, "UNIDADES", 28, 790, 220, 24, &oil_font_ui_16,
-              color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  createLabel(content, "PRESIÓN", 28, 822, 150, 20, &oil_font_ui_12,
-              color(kPrimary), LV_TEXT_ALIGN_LEFT);
-  gUi.unitPsiButton = createMenuButton(
-      content, "PSI", 28, 848, 150, 50, unitEvent);
-  gUi.unitBarButton = createMenuButton(
-      content, "BAR", 194, 848, 150, 50, unitEvent);
-
-  createLabel(content, "TEMPERATURA", 28, 914, 180, 20, &oil_font_ui_12,
-              color(kPrimary), LV_TEXT_ALIGN_LEFT);
-  gUi.unitCelsiusButton = createMenuButton(
-      content, "°C", 28, 940, 150, 50, temperatureUnitEvent);
-  gUi.unitFahrenheitButton = createMenuButton(
-      content, "°F", 194, 940, 150, 50, temperatureUnitEvent);
-
-  createLabel(content, "AVISO DE PRESIÓN", 28, 1024, 300, 24,
-              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  gUi.pressureWarningValue = createLabel(content,
+  lv_obj_t* warnings =
+      createSettingsPage(MenuPage::warnings, "AVISOS", false);
+  createLabel(warnings,
+              "PRESIÓN BAJA",
+              28,
+              82,
+              240,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.pressureWarningValue = createLabel(warnings,
                                          "UMBRAL: 10 PSI",
                                          28,
-                                         1058,
+                                         112,
                                          260,
                                          24,
                                          &oil_font_ui_16,
                                          color(kPrimary),
                                          LV_TEXT_ALIGN_LEFT);
-  gUi.pressureWarningSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.pressureWarningSlider, 28, 1096);
+  gUi.pressureWarningSlider = lv_slider_create(warnings);
+  lv_obj_set_pos(gUi.pressureWarningSlider, 28, 148);
   lv_obj_set_size(gUi.pressureWarningSlider, 424, 16);
   styleSlider(gUi.pressureWarningSlider);
   lv_obj_add_event_cb(gUi.pressureWarningSlider,
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-
-  createLabel(content, "AVISO DE TEMPERATURA", 28, 1156, 300, 24,
-              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  gUi.temperatureWarningValue = createLabel(content,
+  createLabel(warnings,
+              "TEMPERATURA ALTA",
+              28,
+              190,
+              260,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.temperatureWarningValue = createLabel(warnings,
                                             "UMBRAL: 120 °C",
                                             28,
-                                            1190,
+                                            220,
                                             260,
                                             24,
                                             &oil_font_ui_16,
                                             color(kPrimary),
                                             LV_TEXT_ALIGN_LEFT);
-  gUi.temperatureWarningSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.temperatureWarningSlider, 28, 1228);
+  gUi.temperatureWarningSlider = lv_slider_create(warnings);
+  lv_obj_set_pos(gUi.temperatureWarningSlider, 28, 256);
   lv_obj_set_size(gUi.temperatureWarningSlider, 424, 16);
   lv_slider_set_range(gUi.temperatureWarningSlider, 110, 140);
   styleSlider(gUi.temperatureWarningSlider);
@@ -857,29 +1221,123 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-
-  createLabel(content, "PARPADEO WARNING", 28, 1258, 300, 24,
-              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
+  createLabel(warnings,
+              "AVISO VISUAL",
+              28,
+              298,
+              240,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
   gUi.warningElementsButton = createMenuButton(
-      content, "ELEMENTOS", 28, 1296, 136, 50, warningModeEvent);
+      warnings, "ELEMENTOS", 28, 330, 136, 50, warningModeEvent);
   gUi.warningScreenButton = createMenuButton(
-      content, "PANTALLA", 172, 1296, 136, 50, warningModeEvent);
+      warnings, "PANTALLA", 172, 330, 136, 50, warningModeEvent);
   gUi.warningFixedButton = createMenuButton(
-      content, "FIJO", 316, 1296, 136, 50, warningModeEvent);
+      warnings, "FIJO", 316, 330, 136, 50, warningModeEvent);
+  gUi.warningModeDescription = createLabel(warnings,
+                                           "ELEMENTOS · 2 HZ",
+                                           28,
+                                           398,
+                                           424,
+                                           20,
+                                           &oil_font_ui_12,
+                                           color(kSecondary),
+                                           LV_TEXT_ALIGN_LEFT);
 
-  createLabel(content, "LOGOTIPO DE ARRANQUE", 28, 1374, 300, 24,
-              &oil_font_ui_16, color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  gUi.startupLogoValue = createLabel(content,
+  lv_obj_t* sound = createSettingsPage(MenuPage::sound, "SONIDO", false);
+  createLabel(sound,
+              "SONIDO DE AVISO",
+              28,
+              96,
+              240,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  createLabel(sound,
+              "ACTIVADO",
+              28,
+              132,
+              190,
+              24,
+              &oil_font_ui_16,
+              color(kPrimary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.soundSwitch = lv_switch_create(sound);
+  lv_obj_set_pos(gUi.soundSwitch, 370, 123);
+  lv_obj_set_size(gUi.soundSwitch, 82, 42);
+  lv_obj_add_event_cb(
+      gUi.soundSwitch, soundSwitchEvent, LV_EVENT_VALUE_CHANGED, nullptr);
+  gUi.volumeValue = createLabel(sound,
+                                "VOLUMEN: 35%",
+                                28,
+                                190,
+                                220,
+                                24,
+                                &oil_font_ui_16,
+                                color(kPrimary),
+                                LV_TEXT_ALIGN_LEFT);
+  gUi.volumeSlider = lv_slider_create(sound);
+  lv_obj_set_pos(gUi.volumeSlider, 28, 228);
+  lv_obj_set_size(gUi.volumeSlider, 424, 16);
+  lv_slider_set_range(gUi.volumeSlider, 5, 100);
+  styleSlider(gUi.volumeSlider);
+  lv_obj_add_event_cb(
+      gUi.volumeSlider, sliderEvent, LV_EVENT_VALUE_CHANGED, nullptr);
+  createMenuButton(sound, "PROBAR SONIDO", 28, 286, 200, 52, testSoundEvent);
+
+  lv_obj_t* units = createSettingsPage(MenuPage::units, "UNIDADES", false);
+  createLabel(units,
+              "PRESIÓN",
+              28,
+              96,
+              180,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.unitPsiButton =
+      createMenuButton(units, "PSI", 28, 130, 150, 50, unitEvent);
+  gUi.unitBarButton =
+      createMenuButton(units, "BAR", 194, 130, 150, 50, unitEvent);
+  createLabel(units,
+              "TEMPERATURA",
+              28,
+              218,
+              220,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.unitCelsiusButton = createMenuButton(
+      units, "°C", 28, 252, 150, 50, temperatureUnitEvent);
+  gUi.unitFahrenheitButton = createMenuButton(
+      units, "°F", 194, 252, 150, 50, temperatureUnitEvent);
+
+  lv_obj_t* startup =
+      createSettingsPage(MenuPage::startup, "ARRANQUE", false);
+  createLabel(startup,
+              "LOGOTIPO HONDA / CIVIC",
+              28,
+              96,
+              300,
+              24,
+              &oil_font_ui_16,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+  gUi.startupLogoValue = createLabel(startup,
                                      "DURACIÓN: 1 S",
                                      28,
-                                     1408,
-                                     260,
+                                     134,
+                                     300,
                                      24,
                                      &oil_font_ui_16,
                                      color(kPrimary),
                                      LV_TEXT_ALIGN_LEFT);
-  gUi.startupLogoSlider = lv_slider_create(content);
-  lv_obj_set_pos(gUi.startupLogoSlider, 28, 1446);
+  gUi.startupLogoSlider = lv_slider_create(startup);
+  lv_obj_set_pos(gUi.startupLogoSlider, 28, 172);
   lv_obj_set_size(gUi.startupLogoSlider, 424, 16);
   lv_slider_set_range(gUi.startupLogoSlider, 0, 10);
   styleSlider(gUi.startupLogoSlider);
@@ -887,20 +1345,38 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-
-  createLabel(content, "SISTEMA", 28, 1502, 220, 24, &oil_font_ui_16,
-              color(kSecondary), LV_TEXT_ALIGN_LEFT);
-  createLabel(content,
-              "DEMO · DISPLAY OK · TOUCH OK · AUDIO",
+  createLabel(startup,
+              "0 SEGUNDOS DESACTIVA EL LOGOTIPO",
               28,
-              1538,
+              216,
               424,
               20,
               &oil_font_ui_12,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
+
+  lv_obj_t* system =
+      createSettingsPage(MenuPage::system, "SISTEMA", false);
+  createLabel(system,
+              "LOS CAMBIOS SE GUARDAN AL CERRAR",
+              28,
+              100,
+              424,
+              24,
+              &oil_font_ui_16,
               color(kPrimary),
               LV_TEXT_ALIGN_LEFT);
+  createLabel(system,
+              "RECUPERA TODOS LOS VALORES PREDETERMINADOS",
+              28,
+              146,
+              424,
+              20,
+              &oil_font_ui_12,
+              color(kSecondary),
+              LV_TEXT_ALIGN_LEFT);
   createMenuButton(
-      content, "RESTABLECER", 28, 1570, 190, 48, resetRequestEvent);
+      system, "RESTABLECER", 28, 206, 190, 52, resetRequestEvent);
 
   gUi.resetConfirm = createSolid(screen, 30, 125, 420, 230, 18);
   lv_obj_set_style_bg_color(gUi.resetConfirm, color(kPanel), 0);
@@ -1409,7 +1885,8 @@ void updateOilGaugeBrightnessStatus(const OilGaugeBrightnessStatus& status) {
     return;
   }
   gUi.brightnessStatus = status;
-  if (gUi.created && gUi.menuVisible) {
+  if (gUi.created && gUi.menuVisible &&
+      gUi.activeMenuPage == MenuPage::brightness) {
     refreshBrightnessTelemetry();
   }
 }

@@ -110,31 +110,33 @@ the explanatory fixed text beneath them is removed.
 
 ## Settings page
 
-A full-screen black menu opens after a stationary 700 ms hold and contains:
+A full-screen black settings shell opens after a stationary 700 ms hold. Its
+non-scrolling home page contains buttons for `BRILLO`, `DATOS`, `AVISOS`,
+`SONIDO`, `UNIDADES`, `ARRANQUE`, and `SISTEMA`, each with a compact current-value
+summary. A button opens one independent 480×480 subsection; all other pages are
+hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 
-- AUTO/MANUAL brightness mode, default AUTO;
-- brightness 5–100% as the persistent manual value and AUTO fallback, with
-  manual live preview;
-- one two-handle AUTO range slider, default 20–100%, that limits the automatic
-  curve without changing MANUAL or its fallback value;
-- read-only hub lux, sensor/range/freshness state, current mapped AUTO
-  percentage, and currently applied percentage;
-- warning sound enabled, volume 5–100%, and the real double-beep test;
-- selectable `DEMO` and `SENSORES`; A1 shows provisional bench temperature while
-  pressure remains `--` / `SIN DATOS` in neutral gray;
-- separate PSI/bar pressure units and °C/°F temperature units;
-- low-pressure warning threshold, 1–30 PSI, displayed in PSI or BAR according to
-  the selected pressure unit while remaining canonical PSI internally;
-- high-temperature warning threshold, 110–140 °C, default 120 °C, canonical
-  Celsius internally;
-- warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
-- Honda/Civic startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
-- read-only diagnostics and a confirmation-protected settings reset;
-- `VOLVER`; there is no inactivity timeout.
+- `BRILLO`: AUTO/MANUAL mode, numeric 5–100% manual/fallback value, two-handle
+  AUTO limits, and live hub lux/state/target/applied telemetry. Telemetry labels
+  update only while this subsection is visible.
+- `DATOS`: persistent `DEMO`/`SENSORES` source and the provisional A1/pending
+  pressure notices.
+- `AVISOS`: pressure and temperature thresholds plus `ELEMENTOS 2 HZ`,
+  `PANTALLA 0,5 HZ`, or `FIJO`. Pressure remains canonical PSI and temperature
+  canonical Celsius, while both controls follow the selected display units.
+- `SONIDO`: enable, numeric 5–100% volume, and the real double-beep test.
+- `UNIDADES`: separate PSI/BAR and °C/°F selectors.
+- `ARRANQUE`: Honda/Civic logo duration, 0–10 seconds; 0 disables it and 1 second
+  is the default.
+- `SISTEMA`: confirmation-protected settings reset.
+
+`ATRÁS` returns from a subsection to the home page without closing settings.
+`CERRAR` on the home page saves dirty preferences and returns to the gauge. There
+is no inactivity timeout and no long scrolling settings canvas.
 
 An active pressure warning does not close the menu. Warning evaluation and the
 configured repeating double beep continue, but the gauge and red overlay are not
-rendered behind settings; the gauge catches up after `VOLVER`. Safe preferences
+rendered behind settings; the gauge catches up after `CERRAR`. Safe preferences
 persist in NVS when the menu closes; missing/corrupt NVS falls back to compile-time
 defaults.
 The source choice persists. `SENSORES` enables only the provisional A1 bench
@@ -188,10 +190,10 @@ characterized and compared against the MTX-D.
   metric and is not used as physical-presentation evidence for the current path.
 
 The PARTIAL v2 plus CivicAux base has run on the exact display and received real
-hub ambient-light frames. This follow-up passes 68/68 native tests and produces
-a complete 1,076,416-byte ESP-IDF 6.0.2 image. Its static-screen brightness wake,
-two-handle AUTO range, persistence, panel errors and tearing still require the
-next exact-board acceptance run.
+hub ambient-light frames. The sectioned-menu follow-up passes 69/69 native tests
+and produces a complete 1,079,520-byte ESP-IDF 6.0.2 image. Its home/subsection
+navigation, touch targets, panel errors and tearing still require the next
+exact-board acceptance run.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

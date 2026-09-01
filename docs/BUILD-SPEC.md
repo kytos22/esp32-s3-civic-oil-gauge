@@ -113,13 +113,15 @@ Temperature colors are linearly interpolated between:
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
 | 700 ms stationary hold | open full-screen settings | gauge visible; warning may be active |
-| `VOLVER` | save changed settings and return to gauge | settings visible |
+| settings section button | hide every other menu page and show only the selected 480×480 subsection | settings home visible |
+| `ATRÁS` | return to the non-scrolling settings home without saving or closing | subsection visible |
+| `CERRAR` | save changed settings and return to gauge | settings home visible |
 | pressure warning while menu open | keep settings visible; continue warning evaluation/audio without rendering the gauge behind it | warning active |
 | data source `SENSORES` | persist selection; show provisional A1 temperature and neutral-gray `--` / `SIN DATOS` pressure | ADS1115 present; pressure calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | warning threshold changed | store 1–30 canonical PSI and re-evaluate the engine-gated warning | menu label follows selected PSI/BAR unit |
-| temperature warning changed | store 110–140 canonical °C and move the bar warning tick | default 120 °C; °F is presentation only |
+| temperature warning changed | convert the selected menu unit back to 110–140 canonical °C and move the bar warning tick | default 120 °C; menu follows °C/°F |
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
 | brightness mode `AUTO` | hold manual backup until two usable CivicAux frames, then apply provisional log-lux mapping | UART1 RX GPIO44; main loop is sole panel requester |
 | AUTO brightness range changed | recompute the current fresh target immediately, then slew the physical output | one range slider; default 20–100%; no new lux frame required |
