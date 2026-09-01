@@ -12,10 +12,12 @@
 #include <cmath>
 #include <cstdint>
 
-#include "demo_sequence.h"
 #include "ads1115_diagnostics.h"
 #include "ads1115_protocol.h"
+#include "automatic_brightness.h"
 #include "calibration_config.h"
+#include "civic_aux_uart.h"
+#include "demo_sequence.h"
 #include "display_runtime.h"
 #include "gauge_core.h"
 #include "oil_gauge_ui.h"
@@ -37,6 +39,11 @@ constexpr double kTemperatureMinimumBenchC = 10.0;
 constexpr double kTemperatureMaximumBenchC = 140.0;
 WarningToneGate gWarningToneGate;
 GaugeSettings gSettings;
+AutomaticBrightnessController gBrightnessController;
+CivicAuxSnapshot gCivicAuxSnapshot;
+AutomaticBrightnessStatus gAutomaticBrightnessStatus;
+OilGaugeBrightnessStatus gBrightnessUiStatus;
+int gLastRequestedBrightness = -1;
 std::uint32_t gFilteredTemperatureSequence = 0;
 bool gFilteredTemperatureValid = false;
 double gFilteredTemperatureC = 0.0;
@@ -154,7 +161,6 @@ void applyUiActions(const OilGaugeUiActions& actions,
                     bool settingsStoreAvailable) {
   if (actions.applySettings) {
     gSettings = sanitizeGaugeSettings(actions.settings);
-    requestOilDisplayBrightness(gSettings.brightnessPercent);
     setWarningAudioEnabled(gSettings.warningSoundEnabled);
     if (warningAudioAvailable() &&
         !setWarningAudioVolume(gSettings.warningVolumePercent)) {
@@ -170,6 +176,44 @@ void applyUiActions(const OilGaugeUiActions& actions,
   }
 }
 
+void updateAutomaticBrightness(std::uint64_t nowUs) {
+  const std::uint64_t nowMs = nowUs / 1000U;
+  CivicAuxSnapshot latestSnapshot{};
+  (void)latestCivicAuxSnapshot(latestSnapshot);
+  gCivicAuxSnapshot = latestSnapshot;
+
+  gBrightnessController.setPreferences(
+      gSettings.brightnessMode, gSettings.brightnessPercent, nowMs);
+  gAutomaticBrightnessStatus =
+      gBrightnessController.update(gCivicAuxSnapshot, nowMs);
+  if (gLastRequestedBrightness !=
+      gAutomaticBrightnessStatus.appliedPercent) {
+    gLastRequestedBrightness = gAutomaticBrightnessStatus.appliedPercent;
+    requestOilDisplayBrightness(
+        gAutomaticBrightnessStatus.appliedPercent);
+  }
+
+  gBrightnessUiStatus.receiverRunning =
+      gCivicAuxSnapshot.receiverRunning;
+  gBrightnessUiStatus.hasAmbientFrame =
+      gCivicAuxSnapshot.hasAmbientFrame;
+  gBrightnessUiStatus.latestAmbientUsable =
+      gCivicAuxSnapshot.latestAmbientUsable;
+  gBrightnessUiStatus.luxFresh = gAutomaticBrightnessStatus.luxFresh;
+  gBrightnessUiStatus.sensorState = gCivicAuxSnapshot.sensorState;
+  gBrightnessUiStatus.rangeProfile = gCivicAuxSnapshot.rangeProfile;
+  gBrightnessUiStatus.filteredMillilux =
+      gCivicAuxSnapshot.filteredMillilux;
+  gBrightnessUiStatus.automaticState =
+      gAutomaticBrightnessStatus.state;
+  gBrightnessUiStatus.automaticPercent =
+      gAutomaticBrightnessStatus.automaticPercent;
+  gBrightnessUiStatus.appliedPercent =
+      gAutomaticBrightnessStatus.appliedPercent;
+  gBrightnessUiStatus.automaticPercentAvailable =
+      gAutomaticBrightnessStatus.automaticPercentAvailable;
+}
+
 }  // namespace
 
 extern "C" void app_main(void) {
@@ -182,9 +226,12 @@ extern "C" void app_main(void) {
   const bool settingsStoreAvailable = initSettingsStore();
   gSettings = settingsStoreAvailable ? loadGaugeSettings(defaults) : defaults;
   ESP_LOGI(kTag,
-           "Settings loaded: pressure_unit=%u temperature_unit=%u source=%u "
+           "Settings loaded: brightness=%u%% brightness_mode=%u "
+           "pressure_unit=%u temperature_unit=%u source=%u "
            "warning_mode=%u sound=%u volume=%u pressure_warning=%upsi "
            "temperature_warning=%uC boot_logo=%us",
+           static_cast<unsigned>(gSettings.brightnessPercent),
+           static_cast<unsigned>(gSettings.brightnessMode),
            static_cast<unsigned>(gSettings.pressureUnit),
            static_cast<unsigned>(gSettings.temperatureUnit),
            static_cast<unsigned>(gSettings.dataSource),
@@ -201,8 +248,17 @@ extern "C" void app_main(void) {
     return;
   }
 
-  ESP_ERROR_CHECK(
-      bsp_display_brightness_set(gSettings.brightnessPercent));
+  const std::uint64_t brightnessStartedMs =
+      static_cast<std::uint64_t>(esp_timer_get_time()) / 1000U;
+  gBrightnessController.reset(
+      gSettings.brightnessMode, gSettings.brightnessPercent, brightnessStartedMs);
+  gLastRequestedBrightness = gSettings.brightnessPercent;
+  requestOilDisplayBrightness(gSettings.brightnessPercent);
+
+  if (!startCivicAuxUartReceiver()) {
+    ESP_LOGW(kTag,
+             "CivicAux UART unavailable; brightness remains on manual backup");
+  }
 
   if (CONFIG_OIL_GAUGE_DEMO_MODE &&
       CONFIG_OIL_GAUGE_DEMO_WARNING_AUDIO) {
@@ -249,6 +305,7 @@ extern "C" void app_main(void) {
   while (true) {
     const std::uint64_t nowUs =
         static_cast<std::uint64_t>(esp_timer_get_time());
+    updateAutomaticBrightness(nowUs);
     const bool uiUpdateDue = nowUs - lastFrameUs >= kUiFramePeriodUs;
     const bool blockFramePending = oilDisplayBlockFramePending();
     if (uiUpdateDue || blockFramePending) {
@@ -258,6 +315,7 @@ extern "C" void app_main(void) {
         lastFrameUs = nowUs;
       }
       if (esp_lv_adapter_lock(-1) == ESP_OK) {
+        updateOilGaugeBrightnessStatus(gBrightnessUiStatus);
         setOilGaugeBootSplashVisible(
             gSettings.startupLogoSeconds > 0 && nowUs < bootSplashDeadlineUs);
         OilGaugeUiActions beforeRender;

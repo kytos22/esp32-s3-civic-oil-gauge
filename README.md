@@ -34,10 +34,14 @@ hosted by GitHub Pages.
   background.
 - 24 px Spanish semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Thirty-six hardware-independent Unity tests pass, including buffer ownership
-  and the provisional 10–140 °C resistor table.
+- Sixty-four hardware-independent Unity tests pass, including buffer ownership,
+  the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
+  recovery, and automatic-brightness fallback/recovery.
 - ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
   reversible Innovate adapter and vehicle validation remain incomplete.
+- A software-only CivicAux UART1 RX candidate receives ambient lux on GPIO44 and
+  adds AUTO/MANUAL brightness plus diagnostics in Settings. It remains unflashed;
+  physical UART, display-error, and cadence validation are pending.
 
 The detailed development position and remaining safety gates are maintained in
 [`docs/PROGRESS.md`](docs/PROGRESS.md).
@@ -52,6 +56,8 @@ The detailed development position and remaining safety gates are maintained in
   match the selected unit while remaining canonical PSI internally.
 - Persistent 110–140 °C high-temperature warning threshold, default 120 °C.
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
+- Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
+  usable frames, and returns smoothly to the saved manual backup on loss.
 - A non-blocking repeating double-beep loop through the integrated speaker for
   as long as the demo remains in low-pressure warning.
 - Demo shows `<50` below its visual floor; sensor mode shows the provisional
@@ -89,6 +95,12 @@ identify any Innovate sensor wire. Follow the staged procedure in
 [`docs/CALIBRATION.md`](docs/CALIBRATION.md) before connecting sensor signals.
 The current bench and future sensor paths are also shown in the
 [`graphical wiring diagram`](docs/sensor-wiring.html).
+
+The separate ambient-light link is RX-only: Auxiliary Hub GPIO17/TX passes
+through the measured approximately 326 Ω series resistance to oil-display
+GPIO44/UART1 RX, with common ground and separate power rails. GPIO43 remains
+display TE. See the
+[`CivicAux integration contract`](docs/CIVIC_AUX_INTEGRATION.md).
 
 ## Firmware downloads
 

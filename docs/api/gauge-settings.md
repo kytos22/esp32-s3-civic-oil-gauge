@@ -14,9 +14,21 @@ change calibration.
 provisional resistor-bench temperature curve; pressure remains behind its
 calibration gate and renders `--` / `SIN DATOS`.
 
+### `BrightnessMode`
+
+`automatic` receives CivicAux ambient lux and is the default for a new install,
+an absent or invalid NVS mode key, and factory reset. `manual` applies only the
+saved slider value. The slider always represents the persistent manual value and
+AUTO fallback; automatic samples do not change it.
+
+`brightnessModeFromStoredValue()` provides absent-key migration and rejects
+invalid enum bytes back to AUTO. `brightnessModeStoredValue()` provides the
+sanitized NVS representation.
+
 ### `GaugeSettings`
 
-Carries brightness, warning sound enable/volume, pressure unit, temperature unit,
+Carries manual/backup brightness, brightness mode, warning sound enable/volume,
+pressure unit, temperature unit,
 canonical low-pressure warning PSI, canonical high-temperature warning Celsius,
 startup-logo seconds, warning visual mode, and data source.
 `sanitizeGaugeSettings()` clamps percentages to 5–100, warning pressure to

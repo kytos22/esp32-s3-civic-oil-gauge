@@ -94,18 +94,28 @@ curve currently spans about 5458 Ω/10 °C to 80 Ω/140 °C with a 4.99 kΩ pull
 Measure sensor resistance only while unpowered and disconnected. Never parallel
 the 3.3 V A1 pull-up with the powered MTX-D temperature input.
 
-### Deferred automatic brightness
+### CivicAux ambient brightness
 
-The Waveshare has no onboard ambient-light sensor. If true automatic brightness is
-added later, the preferred final candidate is an automotive-qualified `OPT4001-Q1`
-on the existing 3.3 V I²C bus. It can coexist with ADS1115 address `0x48` by selecting
-and verifying a free address. Do not add another strong SDA/SCL pull-up pair on the
-final PCB.
+The Waveshare has no onboard ambient-light sensor. The selected software route
+receives filtered millilux from the separate Civic Auxiliary Hub over a one-way
+115200 8N1 link: hub GPIO17/TX passes through the measured approximately 326 ohm
+series resistance to oil-display GPIO44/UART1 RX. Grounds are common; neither the
+3.3 V nor 5 V rails are joined. GPIO43 remains exclusively connected to panel TP3
+for TE synchronization, and the oil display configures no UART TX pin.
 
-The protected A3 lighting input remains useful as an optional headlight/illumination
-signal, but it is binary vehicle state rather than ambient lux. A true optical sensor
-also requires a characterized enclosure window and a filtered, hysteretic brightness
-mapping. Both routes are deferred; the v1 settings menu keeps manual brightness.
+The UART task parses into fixed storage and publishes a coherent snapshot only.
+It never touches LVGL, the panel, NVS, or brightness. The main application loop
+owns the automatic-brightness state machine and routes every physical change
+through `requestOilDisplayBrightness()`, preserving the existing TE/transfer
+serialization. AUTO defaults to the saved manual value, requires two usable
+ambient frames, and falls back smoothly after invalid/stale input. The manual
+slider remains the persistent backup; automatic samples never write NVS.
+
+The complete protocol, state machine, verified bench wiring, and still-pending
+physical gates are documented in
+[`CIVIC_AUX_INTEGRATION.md`](CIVIC_AUX_INTEGRATION.md). A future direct optical
+sensor on I2C is no longer part of this integration and would require a separate
+electrical and enclosure review.
 
 ### Grounding
 

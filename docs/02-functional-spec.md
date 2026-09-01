@@ -249,6 +249,26 @@ See `docs/03-technical-plan.md`.
   Settings exposes a persistent 0–10 s
   duration with a 1 s default; 0 disables the splash. The splash never alters the
   accepted display transport, touch mapping, demo sequence, or sensor gate.
+- **AC-45:** CivicAux uses UART1 RX-only on GPIO44 at 115200 8N1 while GPIO43
+  remains display TE. Its fixed-buffer parser accepts the hub's byte-exact v1
+  vectors, enforces CRC/version/length/source/oil-target/data-valid/state and both
+  communicated/local freshness, consumes unknown valid types, and resynchronizes
+  after noise, truncation, or corruption. The RX task publishes only one coherent
+  trivially-copyable snapshot and never calls LVGL, panel, brightness, or NVS code.
+- **AC-46:** Brightness defaults to AUTO for a new/migrated/reset installation;
+  MANUAL ignores lux and uses the saved slider. AUTO maps the nine provisional
+  points by linear interpolation over `log1p(lux)`, waits for two consecutive
+  usable frames, falls back after 1 s of continued invalid traffic or 2 s without
+  usable ambient data, reaches the manual backup smoothly in 1.5 s, and requires
+  two new usable frames after fallback or hub restart. Automatic samples create
+  zero NVS writes, and only the main loop applies brightness through
+  `requestOilDisplayBrightness()`.
+- **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, received
+  lux, sensor/range/freshness, mapped AUTO brightness, and applied brightness.
+  The approved 480 x 480 main gauge is unchanged. Native software evidence must
+  pass before a separately authorized bench flash; real UART reception, panel
+  errors, tear-free behavior, and less than 5% display-cadence regression remain
+  explicitly unverified until measured on the exact oil display.
 
 ## Estimate
 

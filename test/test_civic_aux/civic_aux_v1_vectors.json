@@ -1,0 +1,42 @@
+{
+  "protocol": "CivicAuxFrameV1",
+  "byte_order": "little-endian",
+  "crc": "CRC-16/CCITT-FALSE over version through payload",
+  "vectors": [
+    {
+      "name": "hub_status",
+      "fields": {
+        "version": 1,
+        "type": 1,
+        "source": 1,
+        "target_mask": 7,
+        "flags": 0,
+        "sequence": 4660,
+        "uptime_ms": 16909060,
+        "ready_mask": 1,
+        "fault_mask": 0,
+        "transport_error_count": 2
+      },
+      "hex": "A5 5A 01 01 01 07 0C 00 34 12 04 03 02 01 01 00 00 00 00 00 00 00 02 00 00 00 A6 44"
+    },
+    {
+      "name": "ambient_light",
+      "fields": {
+        "version": 1,
+        "type": 16,
+        "source": 16,
+        "target_mask": 7,
+        "flags": 1,
+        "sequence": 171,
+        "uptime_ms": 1000,
+        "sensor_state": 1,
+        "range_profile": 1,
+        "als_raw": 4660,
+        "white_raw": 22136,
+        "sample_age_ms": 25,
+        "filtered_millilux": 123456
+      },
+      "hex": "A5 5A 01 10 10 07 0C 01 AB 00 E8 03 00 00 01 01 34 12 78 56 19 00 40 E2 01 00 96 50"
+    }
+  ]
+}

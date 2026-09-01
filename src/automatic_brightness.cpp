@@ -1,0 +1,215 @@
+#include "automatic_brightness.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+
+namespace oilgauge {
+
+namespace {
+
+struct BrightnessPoint {
+  std::uint32_t millilux;
+  std::uint8_t percent;
+};
+
+constexpr std::array<BrightnessPoint, 9> kBrightnessCurve{{
+    {0U, 5U},
+    {1'000U, 7U},
+    {5'000U, 12U},
+    {20'000U, 20U},
+    {100'000U, 35U},
+    {500'000U, 50U},
+    {2'000'000U, 65U},
+    {10'000'000U, 85U},
+    {30'000'000U, 100U},
+}};
+
+std::uint8_t clampBrightness(std::uint8_t percent) {
+  return std::clamp<std::uint8_t>(percent, 5U, 100U);
+}
+
+}  // namespace
+
+std::uint8_t automaticBrightnessPercentForMillilux(
+    std::uint32_t millilux) {
+  if (millilux <= kBrightnessCurve.front().millilux) {
+    return kBrightnessCurve.front().percent;
+  }
+  if (millilux >= kBrightnessCurve.back().millilux) {
+    return kBrightnessCurve.back().percent;
+  }
+
+  for (std::size_t index = 1; index < kBrightnessCurve.size(); ++index) {
+    const BrightnessPoint& upper = kBrightnessCurve[index];
+    if (millilux > upper.millilux) {
+      continue;
+    }
+    const BrightnessPoint& lower = kBrightnessCurve[index - 1U];
+    const double lux = static_cast<double>(millilux) / 1000.0;
+    const double lowerLux = static_cast<double>(lower.millilux) / 1000.0;
+    const double upperLux = static_cast<double>(upper.millilux) / 1000.0;
+    const double denominator = std::log1p(upperLux) - std::log1p(lowerLux);
+    const double fraction =
+        denominator > 0.0
+            ? (std::log1p(lux) - std::log1p(lowerLux)) / denominator
+            : 0.0;
+    const double interpolated =
+        static_cast<double>(lower.percent) +
+        std::clamp(fraction, 0.0, 1.0) *
+            static_cast<double>(upper.percent - lower.percent);
+    return clampBrightness(
+        static_cast<std::uint8_t>(std::lround(interpolated)));
+  }
+  return kBrightnessCurve.back().percent;
+}
+
+void AutomaticBrightnessController::reset(BrightnessMode mode,
+                                          std::uint8_t manualBackupPercent,
+                                          std::uint64_t localNowMs) {
+  mode_ = mode;
+  manualBackupPercent_ = clampBrightness(manualBackupPercent);
+  fallbackStartPercent_ = manualBackupPercent_;
+  fallbackStartedAtMs_ = localNowMs;
+  recoveryBaseGeneration_ = 0;
+  lastObservedUsableGeneration_ = 0;
+  lastObservedHubRestarts_ = 0;
+  status_ = {};
+  status_.state = mode_ == BrightnessMode::manual
+                      ? AutomaticBrightnessState::manual
+                      : AutomaticBrightnessState::waitingForSamples;
+  status_.appliedPercent = manualBackupPercent_;
+  initialized_ = true;
+}
+
+void AutomaticBrightnessController::setPreferences(
+    BrightnessMode mode,
+    std::uint8_t manualBackupPercent,
+    std::uint64_t localNowMs) {
+  if (!initialized_) {
+    reset(mode, manualBackupPercent, localNowMs);
+    return;
+  }
+
+  manualBackupPercent_ = clampBrightness(manualBackupPercent);
+  if (mode == mode_) {
+    if (mode_ == BrightnessMode::manual) {
+      status_.appliedPercent = manualBackupPercent_;
+    }
+    return;
+  }
+
+  mode_ = mode;
+  status_.automaticPercentAvailable = false;
+  status_.luxFresh = false;
+  if (mode_ == BrightnessMode::manual) {
+    status_.state = AutomaticBrightnessState::manual;
+    status_.appliedPercent = manualBackupPercent_;
+  } else {
+    status_.state = AutomaticBrightnessState::waitingForSamples;
+    status_.appliedPercent = manualBackupPercent_;
+    recoveryBaseGeneration_ = lastObservedUsableGeneration_;
+    fallbackStartedAtMs_ = localNowMs;
+  }
+}
+
+void AutomaticBrightnessController::beginFallback(
+    std::uint64_t localNowMs,
+    std::uint32_t usableGeneration) {
+  if (status_.state != AutomaticBrightnessState::fallback) {
+    fallbackStartPercent_ = status_.appliedPercent;
+    fallbackStartedAtMs_ = localNowMs;
+  }
+  recoveryBaseGeneration_ = usableGeneration;
+  status_.state = AutomaticBrightnessState::fallback;
+}
+
+void AutomaticBrightnessController::updateFallback(
+    std::uint64_t localNowMs) {
+  const std::uint64_t elapsed = localNowMs >= fallbackStartedAtMs_
+                                    ? localNowMs - fallbackStartedAtMs_
+                                    : 0;
+  if (elapsed >= kAutomaticBrightnessFallbackDurationMs) {
+    status_.appliedPercent = manualBackupPercent_;
+    return;
+  }
+  const double fraction =
+      static_cast<double>(elapsed) /
+      static_cast<double>(kAutomaticBrightnessFallbackDurationMs);
+  const double value =
+      static_cast<double>(fallbackStartPercent_) +
+      (static_cast<double>(manualBackupPercent_) -
+       static_cast<double>(fallbackStartPercent_)) *
+          fraction;
+  status_.appliedPercent = clampBrightness(
+      static_cast<std::uint8_t>(std::lround(value)));
+}
+
+bool AutomaticBrightnessController::recoveryReady(
+    const CivicAuxSnapshot& snapshot) const {
+  const std::uint32_t samplesSinceRecoveryStarted =
+      snapshot.usableGeneration - recoveryBaseGeneration_;
+  return snapshot.consecutiveUsableAmbientFrames >= 2U &&
+         samplesSinceRecoveryStarted >= 2U;
+}
+
+AutomaticBrightnessStatus AutomaticBrightnessController::update(
+    const CivicAuxSnapshot& snapshot,
+    std::uint64_t localNowMs) {
+  if (!initialized_) {
+    reset(mode_, manualBackupPercent_, localNowMs);
+  }
+
+  if (mode_ == BrightnessMode::manual) {
+    lastObservedUsableGeneration_ = snapshot.usableGeneration;
+    lastObservedHubRestarts_ = snapshot.diagnostics.hubRestarts;
+    status_.state = AutomaticBrightnessState::manual;
+    status_.appliedPercent = manualBackupPercent_;
+    status_.automaticPercentAvailable = false;
+    status_.luxFresh = false;
+    status_.persistenceRequested = false;
+    return status_;
+  }
+
+  const bool fresh = snapshot.hasUsableLux &&
+                     localNowMs < snapshot.lastUsableUntilMs;
+  status_.luxFresh = fresh;
+  if (snapshot.usableGeneration != lastObservedUsableGeneration_) {
+    lastObservedUsableGeneration_ = snapshot.usableGeneration;
+    if (fresh) {
+      status_.automaticPercent = automaticBrightnessPercentForMillilux(
+          snapshot.lastUsableMillilux);
+      status_.automaticPercentAvailable = true;
+    }
+  }
+
+  const bool hubRestarted =
+      snapshot.diagnostics.hubRestarts != lastObservedHubRestarts_;
+  lastObservedHubRestarts_ = snapshot.diagnostics.hubRestarts;
+  if (hubRestarted &&
+      status_.state == AutomaticBrightnessState::automatic) {
+    beginFallback(
+        localNowMs,
+        snapshot.usableGeneration -
+            snapshot.consecutiveUsableAmbientFrames);
+  }
+
+  if ((snapshot.invalidTrafficFallback || !fresh) &&
+      status_.state == AutomaticBrightnessState::automatic) {
+    beginFallback(localNowMs, snapshot.usableGeneration);
+  }
+
+  if (fresh && recoveryReady(snapshot)) {
+    status_.state = AutomaticBrightnessState::automatic;
+    status_.appliedPercent = status_.automaticPercent;
+  } else if (status_.state == AutomaticBrightnessState::fallback) {
+    updateFallback(localNowMs);
+  } else if (status_.state == AutomaticBrightnessState::waitingForSamples) {
+    status_.appliedPercent = manualBackupPercent_;
+  }
+
+  status_.persistenceRequested = false;
+  return status_;
+}
+
+}  // namespace oilgauge

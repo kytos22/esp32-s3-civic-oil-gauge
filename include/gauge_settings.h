@@ -25,6 +25,11 @@ enum class DataSource : std::uint8_t {
   sensors = 1,
 };
 
+enum class BrightnessMode : std::uint8_t {
+  automatic = 0,
+  manual = 1,
+};
+
 struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
   bool warningSoundEnabled = true;
@@ -36,6 +41,7 @@ struct GaugeSettings {
   TemperatureUnit temperatureUnit = TemperatureUnit::celsius;
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
   DataSource dataSource = DataSource::demo;
+  BrightnessMode brightnessMode = BrightnessMode::automatic;
 };
 
 struct WarningPresentation {
@@ -45,6 +51,10 @@ struct WarningPresentation {
 };
 
 [[nodiscard]] GaugeSettings sanitizeGaugeSettings(GaugeSettings settings);
+[[nodiscard]] BrightnessMode brightnessModeFromStoredValue(
+    bool keyPresent,
+    std::uint8_t storedValue);
+[[nodiscard]] std::uint8_t brightnessModeStoredValue(BrightnessMode mode);
 [[nodiscard]] double pressureForDisplay(double pressurePsi,
                                         PressureUnit unit);
 [[nodiscard]] double warningThresholdForDisplay(std::uint8_t pressurePsi,

@@ -121,6 +121,10 @@ Temperature colors are linearly interpolated between:
 | warning threshold changed | store 1–30 canonical PSI and re-evaluate the engine-gated warning | menu label follows selected PSI/BAR unit |
 | temperature warning changed | store 110–140 canonical °C and move the bar warning tick | default 120 °C; °F is presentation only |
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
+| brightness mode `AUTO` | hold manual backup until two usable CivicAux frames, then apply provisional log-lux mapping | UART1 RX GPIO44; main loop is sole panel requester |
+| brightness mode `MANUAL` | ignore lux for output and apply the saved slider value | hub diagnostics may remain visible in settings |
+| CivicAux invalid/stale | return smoothly to saved manual backup in 1.5 s | 1 s continued invalid traffic or 2 s without usable ambient data |
+| CivicAux recovery | resume AUTO after two new consecutive usable ambient frames | also required after hub uptime restart |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
 | temperature below 50 | render `<50` / `<122` in demo; render measured value in sensor bench mode; keep bar empty | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | 15 ms producer target, TE-paced presentation |

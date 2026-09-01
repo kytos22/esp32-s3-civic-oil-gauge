@@ -112,7 +112,11 @@ the explanatory fixed text beneath them is removed.
 
 A full-screen black menu opens after a stationary 700 ms hold and contains:
 
-- brightness 5–100%, live preview;
+- AUTO/MANUAL brightness mode, default AUTO;
+- brightness 5–100% as the persistent manual value and AUTO fallback, with
+  manual live preview;
+- read-only hub lux, sensor/range/freshness state, current mapped AUTO
+  percentage, and currently applied percentage;
 - warning sound enabled, volume 5–100%, and the real double-beep test;
 - selectable `DEMO` and `SENSORES`; A1 shows provisional bench temperature while
   pressure remains `--` / `SIN DATOS` in neutral gray;
@@ -133,6 +137,11 @@ persist in NVS when the menu closes; missing/corrupt NVS falls back to compile-t
 defaults.
 The source choice persists. `SENSORES` enables only the provisional A1 bench
 temperature conversion; A0 pressure remains behind its calibration gate.
+
+Automatic brightness affects only the panel request path; it adds nothing to the
+approved main gauge. AUTO starts and recovers only after two consecutive usable
+hub samples. MANUAL ignores lux for output. Stale or invalid reception returns
+smoothly to the saved slider value without automatic NVS writes.
 
 Unit conversion is presentation-only. Temperature states, colors, bar position,
 and warnings always use canonical degrees Celsius. The large numeric font must
@@ -168,9 +177,11 @@ characterized and compared against the MTX-D.
   Exact-board flash passed; the historical 65–67 counter was an LVGL/software
   metric and is not used as physical-presentation evidence for the current path.
 
-The current unflashed PARTIAL v2 candidate passes 36/36 native tests and a
-complete ESP-IDF 6.0.2 build. Physical FPS, menu motion and tearing remain an
-exact-board acceptance step.
+The current unflashed PARTIAL v2 plus CivicAux candidate passes 64/64 native
+tests and a complete 1,074,688-byte ESP-IDF 6.0.2 build, SHA-256
+`403c4e5cc431d547fc4a99f71b61deca81b9fc71be91a62ef1810883ff27e590`.
+Physical UART reception, FPS regression, menu motion, panel errors, and tearing
+remain exact-board acceptance steps.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

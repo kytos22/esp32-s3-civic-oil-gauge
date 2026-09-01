@@ -28,6 +28,10 @@ bool validDataSource(DataSource source) {
   return source == DataSource::demo || source == DataSource::sensors;
 }
 
+bool validBrightnessMode(BrightnessMode mode) {
+  return mode == BrightnessMode::automatic || mode == BrightnessMode::manual;
+}
+
 }  // namespace
 
 GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
@@ -53,7 +57,24 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
   if (!validDataSource(settings.dataSource)) {
     settings.dataSource = DataSource::demo;
   }
+  if (!validBrightnessMode(settings.brightnessMode)) {
+    settings.brightnessMode = BrightnessMode::automatic;
+  }
   return settings;
+}
+
+BrightnessMode brightnessModeFromStoredValue(bool keyPresent,
+                                             std::uint8_t storedValue) {
+  if (!keyPresent) {
+    return BrightnessMode::automatic;
+  }
+  const auto mode = static_cast<BrightnessMode>(storedValue);
+  return validBrightnessMode(mode) ? mode : BrightnessMode::automatic;
+}
+
+std::uint8_t brightnessModeStoredValue(BrightnessMode mode) {
+  return static_cast<std::uint8_t>(
+      validBrightnessMode(mode) ? mode : BrightnessMode::automatic);
 }
 
 double pressureForDisplay(double pressurePsi, PressureUnit unit) {

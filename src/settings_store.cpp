@@ -42,6 +42,9 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "brightness", value)) {
     settings.brightnessPercent = value;
   }
+  const bool brightnessModePresent = readU8(handle, "bright_mode", value);
+  settings.brightnessMode =
+      brightnessModeFromStoredValue(brightnessModePresent, value);
   if (readU8(handle, "sound", value)) {
     settings.warningSoundEnabled = value != 0;
   }
@@ -83,6 +86,12 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   }
 
   result = nvs_set_u8(handle, "brightness", settings.brightnessPercent);
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle,
+        "bright_mode",
+        brightnessModeStoredValue(settings.brightnessMode));
+  }
   if (result == ESP_OK) {
     result = nvs_set_u8(handle, "sound", settings.warningSoundEnabled ? 1 : 0);
   }
