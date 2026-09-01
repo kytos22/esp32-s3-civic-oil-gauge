@@ -47,7 +47,7 @@
 | `CivicAuxReceiver` | class | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Oil-target acceptance, freshness, continuity, and diagnostics |
 | `CivicAuxSnapshot` | struct | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Coherent trivially-copyable UART-to-main snapshot |
 | `civicAuxCrc16CcittFalse()` | function | `include/civic_aux_receiver.h` | [CivicAux receiver](civic-aux-receiver.md) | Protocol CRC-16/CCITT-FALSE implementation |
-| `AutomaticBrightnessController` | class | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | AUTO/MANUAL limits, startup, fallback, and recovery state machine |
+| `AutomaticBrightnessController` | class | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | AUTO/MANUAL limits, target deadband, output ramp, fallback, and recovery state machine |
 | `automaticBrightnessPercentForMillilux()` | function | `include/automatic_brightness.h` | [automatic brightness](automatic-brightness.md) | Provisional log1p lux-to-percent mapping |
 
 Full per-surface documentation is created when a surface is next changed. Until then this index is the complete lookup layer.

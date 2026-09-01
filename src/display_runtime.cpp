@@ -392,7 +392,7 @@ void applyPendingBrightness(DisplayPipeline& pipeline) {
              "Unable to apply coalesced display brightness: %s",
              esp_err_to_name(result));
   } else {
-    ESP_LOGI(kTag, "CO5300 brightness applied: %d%%", brightnessPercent);
+    ESP_LOGD(kTag, "CO5300 brightness applied: %d%%", brightnessPercent);
   }
 }
 

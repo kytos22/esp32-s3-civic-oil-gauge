@@ -110,8 +110,10 @@ through `requestOilDisplayBrightness()`. That request wakes the existing
 display presenter, which remains the sole panel-IO owner and applies brightness
 after an in-flight transfer or immediately when idle. AUTO defaults to a
 20–100% configurable range, requires two usable ambient frames, and falls back
-smoothly after invalid/stale input. The manual slider remains the persistent
-backup; automatic samples never write NVS.
+smoothly after invalid/stale input. A 2% target deadband removes 1% lux chatter;
+accepted targets slew at 40 percentage points/s brighter and 25 points/s
+dimmer. The manual slider remains immediate and is the persistent backup;
+automatic samples never write NVS.
 
 The complete protocol, state machine, verified bench wiring, and still-pending
 physical gates are documented in

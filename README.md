@@ -35,7 +35,7 @@ hosted by GitHub Pages.
   background.
 - 24 px Spanish semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Sixty-six hardware-independent Unity tests pass, including buffer ownership,
+- Sixty-eight hardware-independent Unity tests pass, including buffer ownership,
   the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
   recovery, and automatic-brightness fallback/recovery.
 - ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
@@ -59,7 +59,8 @@ The detailed development position and remaining safety gates are maintained in
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
 - Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
   usable frames, is constrained by one persistent two-handle range (20–100% by
-  default), and returns smoothly to the saved manual backup on loss.
+  default), rejects one-percent sensor chatter, slews smoothly between targets,
+  and returns smoothly to the saved manual backup on loss.
 - A non-blocking repeating double-beep loop through the integrated speaker for
   as long as the demo remains in low-pressure warning.
 - Demo shows `<50` below its visual floor; sensor mode shows the provisional

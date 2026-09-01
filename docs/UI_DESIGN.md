@@ -147,6 +147,12 @@ smoothly to the saved slider value without automatic NVS writes. A brightness
 request wakes the serialized panel presenter even when the gauge has no visual
 damage, so static data cannot delay a physical brightness change.
 
+AUTO ignores mapped target changes smaller than 2 percentage points and ramps
+the physical output at 40 percentage points/s upward and 25 downward. The
+default 20–100% span therefore takes about 2.0 s to brighten and 3.2 s to dim,
+without changing MANUAL slider response. Settings shows the stabilized AUTO
+target separately from the currently applied ramp value.
+
 Unit conversion is presentation-only. Temperature states, colors, bar position,
 and warnings always use canonical degrees Celsius. The large numeric font must
 contain `-`, `.`, digits, and `<`; BAR's decimal point uses the same 96 px face and
@@ -182,7 +188,7 @@ characterized and compared against the MTX-D.
   metric and is not used as physical-presentation evidence for the current path.
 
 The PARTIAL v2 plus CivicAux base has run on the exact display and received real
-hub ambient-light frames. This follow-up passes 66/66 native tests and produces
+hub ambient-light frames. This follow-up passes 68/68 native tests and produces
 a complete 1,076,416-byte ESP-IDF 6.0.2 image. Its static-screen brightness wake,
 two-handle AUTO range, persistence, panel errors and tearing still require the
 next exact-board acceptance run.

@@ -87,6 +87,8 @@ void AutomaticBrightnessController::reset(BrightnessMode mode,
   automaticMaximumPercent_ = automaticMaximumPercent;
   fallbackStartPercent_ = manualBackupPercent_;
   fallbackStartedAtMs_ = localNowMs;
+  automaticRampUpdatedAtMs_ = localNowMs;
+  automaticAppliedPercent_ = manualBackupPercent_;
   recoveryBaseGeneration_ = 0;
   lastObservedUsableGeneration_ = 0;
   lastObservedHubRestarts_ = 0;
@@ -134,6 +136,7 @@ void AutomaticBrightnessController::setPreferences(
   if (mode == mode_) {
     if (mode_ == BrightnessMode::manual) {
       status_.appliedPercent = manualBackupPercent_;
+      synchronizeAutomaticRamp(localNowMs);
     }
     return;
   }
@@ -150,6 +153,7 @@ void AutomaticBrightnessController::setPreferences(
     recoveryBaseGeneration_ = lastObservedUsableGeneration_;
     fallbackStartedAtMs_ = localNowMs;
   }
+  synchronizeAutomaticRamp(localNowMs);
 }
 
 void AutomaticBrightnessController::beginFallback(
@@ -182,6 +186,42 @@ void AutomaticBrightnessController::updateFallback(
           fraction;
   status_.appliedPercent = clampBrightness(
       static_cast<std::uint8_t>(std::lround(value)));
+}
+
+void AutomaticBrightnessController::synchronizeAutomaticRamp(
+    std::uint64_t localNowMs) {
+  automaticAppliedPercent_ = status_.appliedPercent;
+  automaticRampUpdatedAtMs_ = localNowMs;
+}
+
+void AutomaticBrightnessController::updateAutomaticRamp(
+    std::uint64_t localNowMs) {
+  if (!status_.automaticPercentAvailable) {
+    synchronizeAutomaticRamp(localNowMs);
+    return;
+  }
+
+  const std::uint64_t elapsedMs =
+      localNowMs >= automaticRampUpdatedAtMs_
+          ? localNowMs - automaticRampUpdatedAtMs_
+          : 0;
+  automaticRampUpdatedAtMs_ = localNowMs;
+  const double target = status_.automaticPercent;
+  const double difference = target - automaticAppliedPercent_;
+  const double rate = difference >= 0.0
+                          ? kAutomaticBrightnessRisePercentPerSecond
+                          : kAutomaticBrightnessFallPercentPerSecond;
+  const double maximumStep =
+      rate * static_cast<double>(elapsedMs) / 1000.0;
+  if (std::abs(difference) <= maximumStep) {
+    automaticAppliedPercent_ = target;
+  } else if (difference > 0.0) {
+    automaticAppliedPercent_ += maximumStep;
+  } else {
+    automaticAppliedPercent_ -= maximumStep;
+  }
+  status_.appliedPercent = clampBrightness(
+      static_cast<std::uint8_t>(std::lround(automaticAppliedPercent_)));
 }
 
 bool AutomaticBrightnessController::recoveryReady(
@@ -219,6 +259,7 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
     status_.automaticPercentAvailable = false;
     status_.luxFresh = false;
     status_.persistenceRequested = false;
+    synchronizeAutomaticRamp(localNowMs);
     return status_;
   }
 
@@ -233,8 +274,15 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
   if (fresh &&
       (newUsableGeneration ||
        (automaticLimitsChanged_ && status_.automaticPercentAvailable))) {
-    status_.automaticPercent = constrainedAutomaticPercent(
+    const std::uint8_t candidatePercent = constrainedAutomaticPercent(
         snapshot.lastUsableMillilux);
+    const int targetDifference =
+        std::abs(static_cast<int>(candidatePercent) -
+                 static_cast<int>(status_.automaticPercent));
+    if (!status_.automaticPercentAvailable || automaticLimitsChanged_ ||
+        targetDifference >= kAutomaticBrightnessTargetDeadbandPercent) {
+      status_.automaticPercent = candidatePercent;
+    }
     status_.automaticPercentAvailable = true;
     automaticLimitsChanged_ = false;
   }
@@ -257,11 +305,13 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
 
   if (fresh && recoveryReady(snapshot)) {
     status_.state = AutomaticBrightnessState::automatic;
-    status_.appliedPercent = status_.automaticPercent;
+    updateAutomaticRamp(localNowMs);
   } else if (status_.state == AutomaticBrightnessState::fallback) {
     updateFallback(localNowMs);
+    synchronizeAutomaticRamp(localNowMs);
   } else if (status_.state == AutomaticBrightnessState::waitingForSamples) {
     status_.appliedPercent = manualBackupPercent_;
+    synchronizeAutomaticRamp(localNowMs);
   }
 
   status_.persistenceRequested = false;

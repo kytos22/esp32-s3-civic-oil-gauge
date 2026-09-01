@@ -472,6 +472,9 @@ void test_auto_starts_on_backup_and_requires_two_new_samples() {
   TEST_ASSERT_EQUAL_UINT8(55, status.appliedPercent);
   CivicAuxSnapshot second = usableSnapshot(2, 2, 2'000'000, 300, 2300);
   status = controller.update(second, 300);
+  TEST_ASSERT_EQUAL_UINT8(65, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(63, status.appliedPercent);
+  status = controller.update(second, 350);
   TEST_ASSERT_EQUAL_UINT8(65, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -502,15 +505,18 @@ void test_invalid_traffic_falls_back_smoothly_over_1500_ms() {
   (void)controller.update(first, 100);
   CivicAuxSnapshot active = usableSnapshot(2, 2, 30'000'000, 300, 5000);
   auto status = controller.update(active, 300);
+  TEST_ASSERT_EQUAL_UINT8(100, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(28, status.appliedPercent);
+  status = controller.update(active, 2300);
   TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
 
   active.invalidTrafficFallback = true;
   active.consecutiveUsableAmbientFrames = 0;
-  status = controller.update(active, 1000);
+  status = controller.update(active, 3000);
   TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
-  status = controller.update(active, 1750);
+  status = controller.update(active, 3750);
   TEST_ASSERT_EQUAL_UINT8(60, status.appliedPercent);
-  status = controller.update(active, 2500);
+  status = controller.update(active, 4500);
   TEST_ASSERT_EQUAL_UINT8(20, status.appliedPercent);
 }
 
@@ -525,6 +531,9 @@ void test_two_second_timeout_falls_back_and_two_samples_recover() {
   (void)controller.update(first, 100);
   CivicAuxSnapshot active = usableSnapshot(2, 2, 10'000'000, 200, 2200);
   auto status = controller.update(active, 200);
+  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(39, status.appliedPercent);
+  status = controller.update(active, 1350);
   TEST_ASSERT_EQUAL_UINT8(85, status.appliedPercent);
   status = controller.update(active, 2200);
   TEST_ASSERT_EQUAL_UINT8(
@@ -540,6 +549,9 @@ void test_two_second_timeout_falls_back_and_two_samples_recover() {
       static_cast<std::uint8_t>(status.state));
   recovering = usableSnapshot(4, 2, 500'000, 4000, 6000);
   status = controller.update(recovering, 4000);
+  TEST_ASSERT_EQUAL_UINT8(50, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(43, status.appliedPercent);
+  status = controller.update(recovering, 4175);
   TEST_ASSERT_EQUAL_UINT8(50, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -567,6 +579,9 @@ void test_hub_restart_requires_two_post_restart_samples() {
   restarted = usableSnapshot(4, 2, 500'000, 700, 2700);
   restarted.diagnostics.hubRestarts = 1;
   status = controller.update(restarted, 700);
+  TEST_ASSERT_EQUAL_UINT8(50, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(58, status.appliedPercent);
+  status = controller.update(restarted, 1020);
   TEST_ASSERT_EQUAL_UINT8(50, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -616,7 +631,8 @@ void test_communicated_age_shortens_the_local_freshness_window() {
                1200);
   status = controller.update(receiver.snapshot(), 1200);
   TEST_ASSERT_EQUAL_UINT64(1700, receiver.snapshot().lastUsableUntilMs);
-  TEST_ASSERT_EQUAL_UINT8(85, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(63, status.appliedPercent);
   TEST_ASSERT_TRUE(status.luxFresh);
 
   status = controller.update(receiver.snapshot(), 1700);
@@ -656,6 +672,9 @@ void test_manual_to_auto_requires_two_samples_received_after_selection() {
   CivicAuxSnapshot second =
       usableSnapshot(12, 12, 30'000'000, 500, 2500);
   status = controller.update(second, 500);
+  TEST_ASSERT_EQUAL_UINT8(100, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(50, status.appliedPercent);
+  status = controller.update(second, 1750);
   TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -681,7 +700,8 @@ void test_invalid_frame_breaks_end_to_end_fallback_recovery() {
                            kCivicAuxFlagDataValid, 0, 30'000'000),
                300);
   auto status = controller.update(receiver.snapshot(), 300);
-  TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(100, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(28, status.appliedPercent);
 
   auto corrupt = makeAmbient(3, 500, CivicAuxSensorState::valid,
                              kCivicAuxFlagDataValid, 0, 30'000'000);
@@ -720,6 +740,9 @@ void test_invalid_frame_breaks_end_to_end_fallback_recovery() {
                            kCivicAuxFlagDataValid, 0, 500'000),
                2000);
   status = controller.update(receiver.snapshot(), 2000);
+  TEST_ASSERT_EQUAL_UINT8(50, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(34, status.appliedPercent);
+  status = controller.update(receiver.snapshot(), 2400);
   TEST_ASSERT_EQUAL_UINT8(50, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -743,7 +766,8 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
   const CivicAuxSnapshot active =
       usableSnapshot(2, 2, 10'000'000, 300, 5000);
   auto status = controller.update(active, 300);
-  TEST_ASSERT_EQUAL_UINT8(85, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(43, status.appliedPercent);
 
   settings.warningVisualMode = WarningVisualMode::fullScreenBlink;
   settings.warningSoundEnabled = false;
@@ -761,7 +785,8 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
       400);
   status = controller.update(active, 400);
 
-  TEST_ASSERT_EQUAL_UINT8(85, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(47, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
       static_cast<std::uint8_t>(status.state));
@@ -770,7 +795,7 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
 
 void test_automatic_limits_clamp_both_ends_of_the_curve() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 20, 75, 0);
+  controller.reset(BrightnessMode::automatic, 20, 20, 75, 0);
 
   (void)controller.update(usableSnapshot(1, 1, 0, 100, 5000), 100);
   auto status =
@@ -781,6 +806,9 @@ void test_automatic_limits_clamp_both_ends_of_the_curve() {
   status = controller.update(
       usableSnapshot(3, 3, 30'000'000, 500, 5000), 500);
   TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(28, status.appliedPercent);
+  status = controller.update(
+      usableSnapshot(3, 3, 30'000'000, 500, 5000), 1675);
   TEST_ASSERT_EQUAL_UINT8(75, status.appliedPercent);
 }
 
@@ -796,12 +824,71 @@ void test_automatic_limits_reapply_without_a_new_lux_frame() {
   const CivicAuxSnapshot active =
       usableSnapshot(2, 2, 30'000'000, 300, 5000);
   auto status = controller.update(active, 300);
+  TEST_ASSERT_EQUAL_UINT8(100, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(63, status.appliedPercent);
+  status = controller.update(active, 1225);
   TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
 
-  controller.setPreferences(BrightnessMode::automatic, 55, 20, 70, 400);
-  status = controller.update(active, 400);
+  controller.setPreferences(BrightnessMode::automatic, 55, 20, 70, 1300);
+  status = controller.update(active, 1300);
   TEST_ASSERT_EQUAL_UINT8(70, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(98, status.appliedPercent);
+  status = controller.update(active, 2420);
   TEST_ASSERT_EQUAL_UINT8(70, status.appliedPercent);
+}
+
+void test_automatic_brightness_uses_a_time_based_asymmetric_ramp() {
+  AutomaticBrightnessController controller;
+  controller.reset(BrightnessMode::automatic,
+                   20,
+                   20,
+                   kFullAutomaticMaximumPercent,
+                   0);
+  (void)controller.update(
+      usableSnapshot(1, 1, 30'000'000, 100, 10'000), 100);
+  const CivicAuxSnapshot bright =
+      usableSnapshot(2, 2, 30'000'000, 200, 10'000);
+  auto status = controller.update(bright, 200);
+  TEST_ASSERT_EQUAL_UINT8(24, status.appliedPercent);
+  status = controller.update(bright, 1200);
+  TEST_ASSERT_EQUAL_UINT8(64, status.appliedPercent);
+  status = controller.update(bright, 2100);
+  TEST_ASSERT_EQUAL_UINT8(100, status.appliedPercent);
+
+  const CivicAuxSnapshot dark =
+      usableSnapshot(3, 3, 0, 2200, 10'000);
+  status = controller.update(dark, 2200);
+  TEST_ASSERT_EQUAL_UINT8(20, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(98, status.appliedPercent);
+  status = controller.update(dark, 3200);
+  TEST_ASSERT_EQUAL_UINT8(73, status.appliedPercent);
+  status = controller.update(dark, 5300);
+  TEST_ASSERT_EQUAL_UINT8(20, status.appliedPercent);
+}
+
+void test_one_percent_lux_jitter_does_not_toggle_the_auto_target() {
+  TEST_ASSERT_EQUAL_UINT8(
+      34, automaticBrightnessPercentForMillilux(90'000));
+  TEST_ASSERT_EQUAL_UINT8(
+      35, automaticBrightnessPercentForMillilux(100'000));
+
+  AutomaticBrightnessController controller;
+  controller.reset(BrightnessMode::automatic,
+                   34,
+                   kFullAutomaticMinimumPercent,
+                   kFullAutomaticMaximumPercent,
+                   0);
+  (void)controller.update(
+      usableSnapshot(1, 1, 90'000, 100, 5000), 100);
+  auto status = controller.update(
+      usableSnapshot(2, 2, 90'000, 300, 5000), 300);
+  TEST_ASSERT_EQUAL_UINT8(34, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(34, status.appliedPercent);
+
+  status = controller.update(
+      usableSnapshot(3, 3, 100'000, 500, 5000), 500);
+  TEST_ASSERT_EQUAL_UINT8(34, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(34, status.appliedPercent);
 }
 
 }  // namespace
@@ -842,5 +929,7 @@ int main(int, char**) {
       test_menu_and_warning_preferences_do_not_change_automatic_brightness);
   RUN_TEST(test_automatic_limits_clamp_both_ends_of_the_curve);
   RUN_TEST(test_automatic_limits_reapply_without_a_new_lux_frame);
+  RUN_TEST(test_automatic_brightness_uses_a_time_based_asymmetric_ramp);
+  RUN_TEST(test_one_percent_lux_jitter_does_not_toggle_the_auto_target);
   return UNITY_END();
 }

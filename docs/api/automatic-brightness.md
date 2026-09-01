@@ -22,8 +22,16 @@ AUTO minimum and maximum.
 limits. `setPreferences()` handles explicit mode, backup, and limit changes.
 `update()` consumes a coherent receiver snapshot and local monotonic
 milliseconds, returning an `AutomaticBrightnessStatus`. Changing either AUTO
-limit recomputes the constrained output from the current fresh sample even when
+limit recomputes the constrained target from the current fresh sample even when
 its receive generation has not changed.
+
+The AUTO target uses a two-percentage-point deadband, so a mapped 34↔35% input
+does not toggle the panel. The applied output slews toward an accepted target at
+40 percentage points/s while brightening and 25 percentage points/s while
+dimming. Across the default 20–100% range this is about 2.0 s up and 3.2 s down.
+MANUAL remains immediate. Fallback keeps its independent 1.5 s interpolation.
+`automaticPercent` reports the stabilized AUTO target; `appliedPercent` reports
+the current point on the physical ramp.
 
 The states are:
 

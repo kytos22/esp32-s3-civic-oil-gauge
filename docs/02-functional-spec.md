@@ -267,9 +267,12 @@ See `docs/03-technical-plan.md`.
   two new usable frames after fallback or hub restart. Automatic samples create
   zero NVS writes, and only the main loop applies brightness through
   `requestOilDisplayBrightness()`.
+  A 2-percentage-point target deadband rejects 1% chatter. Accepted AUTO targets
+  slew at 40 percentage points/s brighter and 25 percentage points/s dimmer;
+  MANUAL remains immediate.
 - **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, AUTO
   minimum/maximum in one range slider, received lux, sensor/range/freshness,
-  constrained AUTO brightness, and applied brightness.
+  stabilized AUTO target brightness, and current ramped applied brightness.
   The approved 480 x 480 main gauge is unchanged. Native software evidence must
   pass before a separately authorized bench flash; real UART reception, panel
   errors, tear-free behavior, and less than 5% display-cadence regression remain

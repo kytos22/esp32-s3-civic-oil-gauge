@@ -104,6 +104,13 @@ The provisional mapping linearly interpolates over `log1p(lux)`:
 This curve is a software starting point, not an in-vehicle optical calibration.
 The table is the raw curve; the configured AUTO range clamps its result.
 
+After range clamping, a 2-percentage-point target deadband absorbs 1% chatter
+from small lux fluctuations. Accepted AUTO targets are applied through a
+time-based ramp: 40 percentage points/s brighter and 25 percentage points/s
+dimmer. That is about 2.0 s upward and 3.2 s downward across the default
+20–100% span. MANUAL stays immediate; invalid/stale fallback retains its 1.5 s
+transition to the saved backup.
+
 ## State and recovery rules
 
 | Condition | Result |
@@ -120,7 +127,8 @@ The table is the raw curve; the configured AUTO range clamps its result.
 
 The settings page exposes AUTO/MANUAL, the manual/backup slider, the two-handle
 AUTO range, received lux, sensor/range/freshness, constrained AUTO percentage,
-and applied percentage. The approved main gauge screen is unchanged.
+and current ramped applied percentage. The approved main gauge screen is
+unchanged.
 
 ## Physical validation still required
 
