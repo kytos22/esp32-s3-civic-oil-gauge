@@ -45,7 +45,7 @@ temperature bands.
 
 ### `TemperatureState`
 
-`fault`, `belowRange`, `cold`, `warming`, `optimal`, `hot`, or `veryHot`.
+`fault`, `belowRange`, `cold`, `warming`, `optimal`, `veryHot`, or `warning`.
 
 ### `RgbColor`
 
@@ -53,40 +53,47 @@ An 8-bit red/green/blue value used before conversion to the display's native for
 
 ### `DisplayState`
 
-Carries pressure and temperature semantic states, both colors, the visibility of
-warning-attention elements, the `<50` decision, and normalized 0–1 bar fractions.
-The numeric pressure value is deliberately not blink-gated.
+Carries pressure and temperature semantic states, independent bar/text and icon
+colors, warning-attention visibility, the `<50` decision, and normalized 0–1 bar
+fractions. Numeric values are deliberately not blink-gated.
 
 ### `evaluatePressureState()`
 
 ```cpp
 PressureState evaluatePressureState(
     const ConvertedValue& pressure,
-    const EngineState& engine);
+    const EngineState& engine,
+    double warningThresholdPsi = 10.0);
 ```
 
 Priority: invalid/negative pressure → fault; unknown engine → engine unknown; zero RPM
-→ stopped; then 0–10 warning, above 10 and below 15 low, 15–80 OK, above 80 high.
+→ stopped; then pressure up to the selected 1–30 PSI cut → warning, below 15 → low,
+15–80 → OK, and above 80 → high.
 
 ### `evaluateTemperatureState()`
 
 ```cpp
 TemperatureState evaluateTemperatureState(
-    const ConvertedValue& temperature);
+    const ConvertedValue& temperature,
+    double warningThresholdC = 120.0);
 ```
 
-Maps the exact boundaries in AC-08/AC-10. A valid value below 50 °C is
-`belowRange`, which instructs the renderer to show `<50`.
+Maps below 50, 50–59, 60–75, 76–100, 101 to the selected warning cut, and
+warning through 140 °C. A valid value below 50 °C is `belowRange`; demo renders
+`<50`, while the A1 resistor-test source may show the provisional measured number.
 
 ### `temperatureColor()`
 
 ```cpp
-RgbColor temperatureColor(double temperatureC);
+RgbColor temperatureColor(
+    double temperatureC,
+    double warningThresholdC = 120.0);
 ```
 
-Linearly interpolates the approved RGB stops at 50, 57, 75, 89, 94, 100, and
-138 °C, clamping outside the endpoints. Non-finite input returns the cold endpoint;
-callers must still honor the separate fault state.
+Linearly interpolates the approved stops at 50/59 °C blue, 76 °C desaturated
+green, 90 °C light amber, 100 °C orange, and the selected 110–140 °C warning
+cut red. It clamps outside the endpoints. Non-finite input returns the cold
+endpoint; callers must still honor the separate fault state.
 
 ### `evaluateDisplayState()`
 
@@ -96,12 +103,15 @@ DisplayState evaluateDisplayState(
     const ConvertedValue& temperature,
     const EngineState& engine,
     bool blinkPhaseOn,
-    bool reducedMotion);
+    bool reducedMotion,
+    double warningThresholdPsi = 10.0,
+    double temperatureWarningC = 120.0);
 ```
 
 Uses the canonical state functions. In warning state, attention elements are visible
 when the caller-provided binary 2 Hz phase is on, or continuously when reduced motion
-is requested. Pressure and temperature bars normalize to 0–150 PSI and 50–138 °C.
+is requested. The pressure bar normalizes to 0–85 PSI and the temperature bar
+to 50–140 °C, clamping outside those visual endpoints.
 
 ## Diagnostic names
 

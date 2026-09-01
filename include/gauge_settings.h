@@ -30,6 +30,7 @@ struct GaugeSettings {
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   std::uint8_t lowPressureWarningPsi = 10;
+  std::uint8_t highTemperatureWarningCelsius = 120;
   std::uint8_t startupLogoSeconds = 1;
   PressureUnit pressureUnit = PressureUnit::psi;
   TemperatureUnit temperatureUnit = TemperatureUnit::celsius;

@@ -42,7 +42,8 @@ The earlier hand-built thermometer geometry is superseded by D-061.
 
 ## Oil pressure
 
-Provisional visual scale: 0–150 PSI.
+Visual bar scale: 0–85 PSI. Values above 85 PSI remain readable while the bar
+clamps at full width.
 
 | Condition | State label | Color/behavior |
 |---|---|---|
@@ -52,8 +53,9 @@ Provisional visual scale: 0–150 PSI.
 | 15–80 PSI | `OK` | Yellow/amber |
 | >80 PSI | `PRESIÓN ALTA` | Provisional, validate |
 
-Normal icon/bar color: `rgb(255, 176, 32)`.
-Alarm color: `rgb(255, 57, 72)`.
+Normal bar/label color: `rgb(255, 176, 32)`; alarm color:
+`rgb(255, 57, 72)`. The icon has its own palette: red in warning, white in
+`OK`, and amber for the remaining valid states.
 
 During `WARNING`, icon, text, and bar alternate between fully visible and fully
 transparent every 250 ms; the numeric value remains fixed and readable. No dimmed
@@ -67,11 +69,12 @@ runtime changes only its hidden flag and never reorders or rebuilds it.
 
 ## Oil temperature
 
-The MTX-D display starts near 49 °C. Until a wider direct curve is validated:
+The demo retains the approved lower-floor presentation:
 
 - below 50 °C render `<50 °C`, or `<122 °F` when Fahrenheit is selected;
 - keep icon blue and bar empty below 50 °C;
-- never show a precise number below the validated range.
+- in `SENSORES`, show the provisional measured number below 50 °C so resistor
+  points down to 10 °C can be checked.
 
 Semantic states:
 
@@ -79,12 +82,11 @@ Semantic states:
 |---|---|
 | <60 °C | `FRÍO` (`<50` when below measurable range) |
 | 60–75 °C | `CALENTANDO` |
-| 76–95 °C | `ÓPTIMO` |
-| 96–100 °C | `CALIENTE` |
-| 101–119 °C | `MUY CALIENTE` |
-| 120–140 °C | blinking red `WARNING` |
+| 76–100 °C | `ÓPTIMO` |
+| 101 °C to (warning − 0.1) | `MUY CALIENTE` |
+| warning to 140 °C | blinking red `WARNING` |
 
-Bar, icon, and label use the same continuous interpolation:
+Bar and dynamic label use continuous interpolation:
 
 | Point | RGB | Meaning |
 |---:|---|---|
@@ -93,12 +95,15 @@ Bar, icon, and label use the same continuous interpolation:
 | 76 °C | `174, 205, 167` | Light desaturated green at optimal entry |
 | 90 °C | `234, 190, 82` | Light amber after gradual transition from 76 °C |
 | 100 °C | `255, 118, 28` | Orange |
-| 120 °C | `255, 45, 56` | Red warning entry |
+| selected warning | `255, 45, 56` | Red warning entry; 120 °C by default |
 | 140 °C | `255, 45, 56` | Fixed red at display limit |
 
-Interpolate linearly between stops. Normalize the bar from 50–140 °C. At
-120–140 °C only the dynamic `WARNING` label blinks at 2 Hz; number, icon and bar
-remain continuously visible in red.
+Interpolate linearly between stops, with the final orange-to-red segment ending
+at the selected 110–140 °C warning threshold. Normalize the bar from 50–140 °C.
+At and above that threshold the icon and dynamic `WARNING` label blink together
+at 2 Hz; number and bar remain continuously visible in red. The temperature
+icon palette is blue below 60 °C, white from 60 °C until warning, and red in
+warning.
 
 The pressure and temperature threshold marks remain embedded in their bars; only
 the explanatory fixed text beneath them is removed.
@@ -109,11 +114,13 @@ A full-screen black menu opens after a stationary 700 ms hold and contains:
 
 - brightness 5–100%, live preview;
 - warning sound enabled, volume 5–100%, and the real double-beep test;
-- selectable `DEMO` and `SENSORES`; the latter shows `--`, `SIN DATOS`, and
-  `CALIBRACIÓN PENDIENTE` in neutral gray without enabling acquisition;
+- selectable `DEMO` and `SENSORES`; A1 shows provisional bench temperature while
+  pressure remains `--` / `SIN DATOS` in neutral gray;
 - separate PSI/bar pressure units and °C/°F temperature units;
 - low-pressure warning threshold, 1–30 PSI, displayed in PSI or BAR according to
   the selected pressure unit while remaining canonical PSI internally;
+- high-temperature warning threshold, 110–140 °C, default 120 °C, canonical
+  Celsius internally;
 - warning presentation: `ELEMENTOS 2 HZ`, `PANTALLA 0,5 HZ`, or `FIJO`;
 - Honda/Civic startup-logo duration, 0–10 seconds; 0 disables it and 1 second is default;
 - read-only diagnostics and a confirmation-protected settings reset;
@@ -124,8 +131,8 @@ configured repeating double beep continue, but the gauge and red overlay are not
 rendered behind settings; the gauge catches up after `VOLVER`. Safe preferences
 persist in NVS when the menu closes; missing/corrupt NVS falls back to compile-time
 defaults.
-The source choice persists, but `SENSORES` remains an explicit no-data calibration
-gate until a separately validated acquisition path exists.
+The source choice persists. `SENSORES` enables only the provisional A1 bench
+temperature conversion; A0 pressure remains behind its calibration gate.
 
 Unit conversion is presentation-only. Temperature states, colors, bar position,
 and warnings always use canonical degrees Celsius. The large numeric font must
@@ -151,15 +158,19 @@ characterized and compared against the MTX-D.
 ## Firmware implementation
 
 - Fixed-coordinate LVGL renderer: `src/oil_gauge_ui.cpp`.
-- Board/display startup and 20 ms continuous demo sequence: `src/main.cpp` and
+- Board/display startup and 15 ms producer target: `src/main.cpp` and
   `src/demo_sequence.cpp`.
 - Embedded Montserrat subsets: `src/fonts/`.
 - Framework: ESP-IDF 6.0.2, official Waveshare BSP 2.0.1, LVGL 9.5.0.
 - Baseline software/hardware evidence: 14/14 native tests and a complete 676,224-byte
   ESP32-S3 image generated on 2026-08-04 from application version `3e0298a`,
   SHA-256 `042942dc254dc1cdb51529c338d716aecedded144edd263097742600b7abb8e5`.
-  Exact-board flash passes and eight consecutive completed-frame windows measure
-  65–67 FPS.
+  Exact-board flash passed; the historical 65–67 counter was an LVGL/software
+  metric and is not used as physical-presentation evidence for the current path.
+
+The current unflashed PARTIAL v2 candidate passes 36/36 native tests and a
+complete ESP-IDF 6.0.2 build. Physical FPS, menu motion and tearing remain an
+exact-board acceptance step.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

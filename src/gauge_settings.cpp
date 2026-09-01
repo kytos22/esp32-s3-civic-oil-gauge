@@ -37,6 +37,8 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
       settings.warningVolumePercent, 5, 100);
   settings.lowPressureWarningPsi = std::clamp<std::uint8_t>(
       settings.lowPressureWarningPsi, 1, 30);
+  settings.highTemperatureWarningCelsius = std::clamp<std::uint8_t>(
+      settings.highTemperatureWarningCelsius, 110, 140);
   settings.startupLogoSeconds = std::min<std::uint8_t>(
       settings.startupLogoSeconds, 10);
   if (!validPressureUnit(settings.pressureUnit)) {

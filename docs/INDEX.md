@@ -31,6 +31,7 @@ Spanish originals are linked only through the archive index.
 - [Waveshare pinout](WAVESHARE_PINOUT.md)
 - [Arrival checklist](ARRIVAL_CHECKLIST.md)
 - [Calibration](CALIBRATION.md)
+- [Graphical sensor wiring](sensor-wiring.html)
 - [Research](RESEARCH.md)
 - [Test points](05-test-points.md)
 - [Playground](playground.md)

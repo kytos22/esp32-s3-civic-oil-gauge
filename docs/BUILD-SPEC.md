@@ -82,10 +82,9 @@ Temperature colors are linearly interpolated between:
 | below range | <50 °C | `FRÍO`, `<50` | blue, empty bar | implemented/tested |
 | cold | 50–59 °C | `FRÍO` | interpolated | implemented/tested |
 | warming | 60–75 °C | `CALENTANDO` | interpolated | implemented/tested |
-| optimal | 76–95 °C | `ÓPTIMO` | interpolated | implemented/tested |
-| hot | 96–100 °C | `CALIENTE` | interpolated | implemented/tested |
-| very hot | 101–119 °C | `MUY CALIENTE` | orange to red | implemented/tested |
-| thermal warning | 120–140 °C | blinking `WARNING` | fixed red | implemented/tested |
+| optimal | 76–100 °C | `ÓPTIMO` | interpolated | implemented/tested |
+| very hot | 101 °C to (warning cut − 0.1) | `MUY CALIENTE` | orange to red | implemented/tested |
+| thermal warning | warning cut to 140 °C (default 120) | blinking `WARNING` | fixed red | implemented/tested |
 | fault | invalid temperature | explicit fault | non-color cue | implemented/tested |
 
 ## 4a. Accessibility
@@ -113,17 +112,18 @@ Temperature colors are linearly interpolated between:
 | RPM unavailable | do not arm pressure warning | explicit unknown state |
 | warning blink phase changes | toggle icon/label/bar only | warning and motion allowed |
 | reduced motion enabled | hold warning elements red | warning |
-| 700 ms stationary hold | open full-screen settings | gauge visible; no active warning |
+| 700 ms stationary hold | open full-screen settings | gauge visible; warning may be active |
 | `VOLVER` | save changed settings and return to gauge | settings visible |
 | pressure warning while menu open | keep settings visible; continue warning evaluation/audio without rendering the gauge behind it | warning active |
-| data source `SENSORES` | persist selection and show neutral-gray `--` / `SIN DATOS`; do not start acquisition | calibration pending |
+| data source `SENSORES` | persist selection; show provisional A1 temperature and neutral-gray `--` / `SIN DATOS` pressure | ADS1115 present; pressure calibration pending |
 | warning mode `PANTALLA 0,5 HZ` | alternate one-second normal/red phases; red includes pressure and danger message | warning active |
 | pressure units changed | convert the displayed pressure and labels from canonical PSI | never changes calibration or alarm math |
 | warning threshold changed | store 1–30 canonical PSI and re-evaluate the engine-gated warning | menu label follows selected PSI/BAR unit |
+| temperature warning changed | store 110–140 canonical °C and move the bar warning tick | default 120 °C; °F is presentation only |
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
-| temperature below 50 | render `<50` in Celsius or `<122` in Fahrenheit, with an empty temperature bar | valid sample |
-| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | every 20 ms |
+| temperature below 50 | render `<50` / `<122` in demo; render measured value in sensor bench mode; keep bar empty | valid sample |
+| demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | 15 ms producer target, TE-paced presentation |
 
 ## 6. Asset map
 

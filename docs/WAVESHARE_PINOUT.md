@@ -1,7 +1,7 @@
 # Verified Pinout — ESP32-S3-Touch-AMOLED-2.16
 
 Source: official Waveshare schematic, silkscreen, and pinned BSP 2.0.1 source,
-reviewed again on 2026-08-11.
+reviewed again against the physically wired board on 2026-08-25.
 
 ## Exposed pads
 
@@ -14,12 +14,14 @@ reviewed again on 2026-08-11.
 | P5 | GPIO20 / USB D+ |
 | P6 | GPIO14 / I²C SCL |
 | P7 | GPIO15 / I²C SDA |
-| P8 | GPIO43 / UART TX |
-| P9 | GPIO44 / UART RX |
+| P8 | GPIO43 / display TE input (wired from panel TP3) |
+| P9 | GPIO44 / future UART RX only |
 
 Project use:
 
 - ADS1115: P2, P3, P6, P7.
+- Display synchronization: panel TP3 → P8/GPIO43; do not reuse it as UART TX.
+- Future one-way UART input: P9/GPIO44 only.
 - MTS is laptop-only calibration equipment; it is not connected to a board pin.
 - Vehicle power: regulated 5 V to P1/GND, never 12 V.
 - The board has no onboard ambient-light sensor. A future external sensor may share

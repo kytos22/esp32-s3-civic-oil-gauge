@@ -8,10 +8,10 @@ ESP32-S3-Touch-AMOLED-2.16 de 480×480 píxeles. El proyecto pretende sustituir
 manteniendo los sensores ya instalados y un adaptador reversible en el vehículo.
 
 > [!WARNING]
-> Las curvas de los sensores todavía no están calibradas. El firmware actual
-> funciona únicamente con valores sintéticos claramente identificados como
-> `DEMO`. No debe utilizarse como protección del motor ni sustituir todavía al
-> MTX-D instalado.
+> La presión de aceite sigue sin calibrar. La temperatura A1 usa únicamente una
+> curva provisional para ensayos con resistencias; `DEMO` sigue siendo el modo
+> predeterminado. No debe utilizarse como protección del motor ni sustituir
+> todavía al MTX-D instalado.
 
 [![Demo animada 50/50 del reloj de aceite — abrir el simulador interactivo](assets/oil-gauge-demo.gif)](https://kytos22.github.io/esp32-s3-civic-oil-gauge/design/references/oil-gauge-design.html)
 
@@ -27,31 +27,35 @@ GIF y este enlace abren el simulador publicado con GitHub Pages.
 - Firmware nativo ESP-IDF 6.0.2 con el BSP oficial de Waveshare 2.0.1 y
   LVGL 9.5.0.
 - Inicialización de pantalla y panel táctil comprobada en el hardware real.
-- Demo determinista y continua medida durante ocho ventanas consecutivas entre
-  65 y 67 FPS completados en la placa de destino.
+- Ruta FULL de retorno comprobada sin tearing en la placa exacta, con unas
+  30,5–32,7 presentaciones físicas por segundo.
+- Candidato PARTIAL v2 todavía sin flashear: buffer LVGL de 480×32, tres lienzos
+  completos coherentes, daños por generación y presentación gobernada por TE.
 - Zonas iguales 50/50 para presión y temperatura sobre fondo AMOLED negro puro.
 - Estados semánticos en español de 24 px, valores principales centrados, barras
-  de nueve píxeles y aviso parpadeante de presión baja.
-- Catorce pruebas Unity independientes del hardware superadas.
-- La calibración directa, el adaptador reversible de Innovate y la validación en
-  el vehículo siguen intencionadamente pendientes.
+  de 21 píxeles y aviso parpadeante de presión baja.
+- Treinta y seis pruebas Unity independientes del hardware superadas, incluidas
+  las reglas de buffers y la tabla provisional de resistencias de 10–140 °C.
+- La temperatura de banco por ADS1115 A1 está implementada; la calibración de
+  presión, el adaptador reversible y la validación en coche siguen pendientes.
 
 La situación detallada y las barreras de seguridad pendientes se mantienen en
 [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ## Características
 
-- Presión de aceite en PSI y temperatura de aceite en grados Celsius.
-- Estados explícitos de frío, calentando, óptimo, caliente y muy caliente.
+- Presión de aceite en PSI/BAR y temperatura de aceite en °C/°F.
+- Estados explícitos de frío, calentando, óptimo, muy caliente y warning.
 - El aviso de presión baja depende del estado del motor; un motor parado no
   genera una falsa alarma.
 - Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
   unidad seleccionada y conservado internamente en PSI.
+- Umbral persistente de temperatura entre 110 y 140 °C, 120 °C por defecto.
 - Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
-- Un doble pitido no bloqueante por el altavoz integrado cuando la demo entra
-  en aviso de presión baja; no se repite mientras el aviso siga activo.
-- Por debajo del rango útil del sensor se muestra `<50` en lugar de inventar
-  precisión.
+- Bucle no bloqueante de dobles pitidos por el altavoz integrado mientras la
+  demo permanezca en aviso de presión baja.
+- La demo muestra `<50` bajo su escala visual; el modo sensores muestra el valor
+  provisional real para comprobar resistencias entre 10 y 50 °C.
 - El significado de los avisos nunca depende únicamente del color.
 - El modo demo seguirá siendo el valor predeterminado hasta disponer de una
   calibración medida.
@@ -62,8 +66,7 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 
 - Waveshare ESP32-S3-Touch-AMOLED-2.16 con AMOLED de 480×480 píxeles.
 - Instalación existente Innovate MTX-D Oil Pressure/Temperature.
-- ADC externo compatible con ADS1115-Q1 a 3,3 V previsto para la ruta de lectura
-  directa.
+- ADS1115 a 3,3 V y dirección I²C `0x48`, usado por la entrada de banco A1.
 - Fuente protegida de 12 V a 5 V para automoción y mazo reversible antes de usar
   el sistema en el vehículo.
 
@@ -78,14 +81,16 @@ propuestas en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   sensor de temperatura es un NTC de 10 kΩ.
 - No asignes funciones a partir del color de los cables.
 - No cortes el mazo de Innovate.
-- Mantén el MTX-D conectado mientras se recopilan referencias en frío, caliente
-  y a distintas RPM.
+- Mantén el MTX-D conectado para referencias pasivas. Desconecta su entrada de
+  temperatura antes de aplicar a A1 el pull-up independiente de 3,3 V/4,99 kΩ.
 
 El bus I²C expuesto de la placa utiliza SDA GPIO15 y SCL GPIO14. Ya incorpora
 resistencias pull-up de 2,2 kΩ a 3,3 V; el ADS1115 previsto utiliza la dirección
 `0x48`. Estos datos no identifican ningún cable de los sensores Innovate. Sigue
 el procedimiento de [`docs/CALIBRATION.md`](docs/CALIBRATION.md) antes de
 conectar señales de los sensores.
+El montaje de banco y las rutas futuras también aparecen en el
+[`esquema gráfico de conexiones`](docs/sensor-wiring.html).
 
 ## Descargas de firmware
 
@@ -112,12 +117,6 @@ Ejecutar las pruebas nativas de medición y demo:
 
 ```bash
 ./scripts/pio test -e native
-```
-
-Ejecutar las comprobaciones del repositorio y de seguridad:
-
-```bash
-./scripts/keel-verify
 ```
 
 El flasheo es una operación de hardware independiente. Verifica la placa exacta
@@ -148,6 +147,10 @@ Los colaboradores y agentes de programación deben leer [`AGENTS.md`](AGENTS.md)
 antes de modificar el renderizador, los tiempos de pantalla, las barreras de
 calibración, los pines, el empaquetado o las pruebas de hardware. El índice de la
 documentación mantenida está en [`docs/INDEX.md`](docs/INDEX.md).
+
+La ruta CO5300 de retorno comprobada sin tearing y el candidato PARTIAL v2
+actual se documentan en
+[`docs/reference/display-pipeline.md`](docs/reference/display-pipeline.md).
 
 ## Licencia
 

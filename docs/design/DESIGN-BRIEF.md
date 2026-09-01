@@ -59,17 +59,18 @@ It shows pressure in the upper half and temperature in the lower half. It accept
 converted samples, engine/RPM state, fault state, blink phase, and reduced-motion
 preference. RPM is never displayed.
 
-The settings page provides brightness, warning audio, demo/calibration-gated source,
-PSI/bar units, warning presentation, diagnostics, and protected reset. Warning
-activation interrupts settings and restores the gauge immediately.
+The settings page provides brightness, warning audio, demo/provisional-A1 source,
+PSI/bar and °C/°F units, pressure and temperature thresholds, warning presentation,
+startup-logo duration, diagnostics, and protected reset. A warning never closes
+settings and the gauge is not rendered behind the open menu.
 
 ## 4. Required states
 
 - Pressure: engine state unknown, engine stopped, warning 0–10 PSI while running,
   provisional low 11–14 PSI, OK 15–80 PSI, provisional high above 80 PSI, sensor fault.
-- Temperature: below-range `<50` shown as cold, cold 50–59, warming 60–75,
-  optimal 76–95, hot 96–100, very hot 101–119, blinking red warning 120–140,
-  sensor fault.
+- Temperature: demo below-range `<50`, cold 50–59, warming 60–75, optimal
+  76–100, very hot above 100 and below the selected cut, blinking red warning
+  from the 110–140 °C cut, and sensor fault.
 - System: demo-labelled, ADC missing, calibration missing/raw-only, valid calibrated,
   and per-channel fault.
 - Fixed viewport only: no responsive breakpoints.

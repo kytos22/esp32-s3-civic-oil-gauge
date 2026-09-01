@@ -131,15 +131,15 @@ See `docs/03-technical-plan.md`.
 ## Acceptance criteria
 
 - **AC-01:** With demo mode enabled, the display labels all simulated data as demo and never implies sensor validity.
-- **AC-02:** With missing calibration, pressure and temperature conversion functions return `calibrationMissing`.
+- **AC-02:** Missing pressure calibration returns `calibrationMissing`. Temperature conversion is enabled only by the explicit provisional A1 bench profile and is never presented as vehicle-validated.
 - **AC-03:** Missing ADS1115 is visible and never yields a retained last-known or fabricated value.
 - **AC-04:** Invalid ADC/thermistor input returns an explicit fault and cannot become an engineering-unit value.
 - **AC-05:** Engine stopped/RPM zero never triggers low-pressure warning.
 - **AC-06:** At engine-running state and 0–10 PSI, the pressure warning text/icon/bar use a binary 2 Hz flash (250 ms fully visible, 250 ms fully transparent) while the numeric value remains stable; reduced motion uses fixed red.
 - **AC-07:** Pressure 15–80 PSI maps to the approved amber OK state; 11–14 and >80 remain explicitly provisional until threshold validation.
-- **AC-08:** Temperature below 50 °C renders `<50 °C`, starts at blue, and does not show a precise number.
-- **AC-09:** Temperature color interpolation follows the approved stops at 50/59 blue, 76 green, 90 light amber, 100 intense orange, and 120/140 red.
-- **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–95, hot at 96–100, very hot at 101–119, and blinking red `WARNING` from 120–140 °C; values below the measurable range still render `<50`.
+- **AC-08:** Demo temperature below 50 °C renders `<50 °C`, starts blue, and keeps the bar empty. Sensor bench mode shows the provisional measured value down to 10 °C so resistor points can be checked.
+- **AC-09:** Temperature color interpolation follows the approved stops at 50/59 blue, 76 green, 90 light amber, 100 intense orange, and reaches red at the selected 110–140 °C warning cut.
+- **AC-10:** Temperature semantic states are cold below 60, warming at 60–75, optimal at 76–100, very hot above 100 and below the selected warning cut, and blinking red `WARNING` from that cut through 140 °C.
 - **AC-11:** Both numbers are horizontally centered on the complete 480 px axis and the pressure/temperature regions are equal height.
 - **AC-12:** The display background is pure black and bars are 21 px thick in the 480×480 reference coordinate system.
 - **AC-13:** Direct pressure agrees with the MTX-D within 2 PSI in the normal range on held-out cold/hot points before cutover.

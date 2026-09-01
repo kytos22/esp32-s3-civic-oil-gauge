@@ -11,7 +11,9 @@ Innovate identifies pressure sensor `12-0074` (0–150 PSI) and thermistor
 - thermistor nominal resistance, Beta, tolerance, or R/T table.
 
 Assuming a common 0.5–4.5 V sensor or 10 kΩ NTC can create false readings or
-damage the ADC. Calibrated output remains disabled until this procedure passes.
+damage the ADC. Pressure conversion therefore remains disabled. Temperature
+has a separately identified **provisional bench curve** for resistor tests; it
+is not yet an installed-vehicle calibration or authorization to remove MTX-D.
 
 Innovate's separate `11-0161A` instructions for a 10 bar sensor with SSI-4 PLUS
 adapter specify 5 V excitation and 0.5–4.5 V for 0–150 PSI. No consulted
@@ -21,8 +23,11 @@ those values are the leading test hypothesis rather than installed-sensor proof.
 ## Core rule
 
 Keep the MTX-D connected and operational while collecting high-impedance
-parallel measurements. Only after matched curves and fault tests pass may the
-new electronics power the sensors directly.
+parallel measurements. The active A1 thermistor test is the exception: its
+4.99 kΩ pull-up to 3.3 V must not be connected in parallel with the MTX-D
+temperature input, whose unloaded bias was measured at approximately 4.939 V.
+Only after matched curves and fault tests pass may the new electronics replace
+the gauge in the vehicle.
 
 ## 1. Inventory and photographs
 
@@ -107,6 +112,52 @@ gauge at least at 0, 2, 4, 6, 8, and 10 bar. Use rated fittings and never an
 unlimited pressure source.
 
 ## 4. Thermistor curve
+
+### Provisional A1 resistor-test curve
+
+The firmware now enables temperature conversion only for controlled bench
+tests on ADS1115 channel A1. The test circuit is:
+
+```text
+3V3 ── 4.99 kΩ (0.1%) ──┬── ADS1115 A1
+                         │
+                    resistor under test
+                         │
+                        GND
+```
+
+The resistor under test may later be replaced by the disconnected temperature
+sensor. Do not connect this node to the powered MTX-D temperature input. The
+implemented provisional model is a two-coefficient Steinhart-Hart/Beta curve:
+
+```text
+1 / T_kelvin = 0.0012672904878823104
+             + 0.0002631578947368421 × ln(R_ohm)
+```
+
+It is equivalent to a Beta of approximately 3800 K anchored at 2552 Ω and
+27 °C. These are the current expected display values:
+
+| Resistance A1→GND | Provisional temperature |
+|---:|---:|
+| 5458 Ω | 10.0 °C |
+| 2552 Ω | 27.0 °C |
+| 1036 Ω | 50.0 °C |
+| 470 Ω | 73.3 °C |
+| 220 Ω | 99.1 °C |
+| 100 Ω | 130.2 °C |
+| 89 Ω | 135.3 °C |
+| 86 Ω | 136.8 °C |
+| 84 Ω | 137.8 °C |
+| 80 Ω | 140.0 °C |
+
+The 2552 Ω ambient point and the high-temperature MTX-D observations are not
+enough to establish tolerance, sensor self-heating, or error through the full
+vehicle range. The screen intentionally shows real values below 50 °C in
+`SENSORES` mode so the 10–50 °C resistor points can be checked; demo mode keeps
+the approved `<50` presentation. Sensor-mode output is clamped to the provisional
+10–140 °C evidence range; lower resistance therefore reproduces the MTX-D `TMAX`
+behavior instead of extrapolating an unsupported temperature.
 
 ### Map what MTX-D expects
 

@@ -2,10 +2,11 @@
 
 ## Scope
 
-This document records the as-built display path, the rejected experiments, and
-the next safe performance architecture. It is descriptive only: the accepted
-firmware remains `pb5-good-base`, and no display code changes are authorized by
-this document.
+This document records the hardware-accepted rollback path, the rejected
+experiments, and the current software candidate on
+`codex/partial-v2-integration`. The rollback remains `pb5-good-base`; the new
+candidate is built and unit-tested but has not yet been flashed or accepted on
+the exact display.
 
 ## Hardware boundary
 
@@ -28,7 +29,7 @@ The exact board measures approximately 59.5 TE edges per second and 13–15 ms
 for a complete QSPI transfer. The physical frame period is about 16.8 ms, so a
 60 FPS pipeline has only 2–3 ms of non-overlapped margin.
 
-## Accepted implementation
+## Hardware-accepted rollback implementation
 
 The accepted base uses `esp_lvgl_adapter` 0.6.3 for LVGL lifecycle, locking,
 timers and touch input. It does **not** use
@@ -85,7 +86,7 @@ new full image. The CO5300 cannot: a host-side pointer swap never replaces the
 460,800-byte QSPI transfer. The transferable part of the RGB design is buffer
 ownership and scheduling, not zero-copy presentation.
 
-## Parked triple-buffer experiment
+## What failed in the first triple-buffer experiment
 
 The isolated branch `codex/triple-buffer-pipeline` at `0594dba` explored:
 
@@ -102,11 +103,10 @@ resumes it on `LV_EVENT_REFR_REQUEST`. The adapter worker could then call
 `lv_timer_handler()` and flush outside the application-owned render, producing
 callbacks without an owned destination, freezes and a latched fatal state.
 
-## Next experimental architecture
+## Current PARTIAL v2 candidate
 
-The next display experiment must start from the parked branch, never from the
-accepted feature branch, and establish one refresh authority before restoring
-the compositor:
+The candidate has been reconstructed on a dedicated branch from the accepted
+rollback base. Its scheduling chain is:
 
 ```text
 GPIO43 TE
@@ -114,32 +114,52 @@ GPIO43 TE
    ▼
 READY → IN_FLIGHT; start complete QSPI DMA
    │
-   └── authorize exactly one application-owned LVGL refresh
+   └── request exactly one application-owned LVGL refresh immediately
                          │
                          ▼
                   FREE → RENDERING → READY
 ```
 
-Required invariants:
+Implemented invariants:
 
-1. Delete the automatic display refresh timer with
-   `lv_display_delete_refr_timer()`; pausing is forbidden.
-2. Keep the adapter worker only for touch and non-display LVGL timers.
-3. Execute manual display refresh under the adapter lock from one application
-   owner; never concurrently with `lv_timer_handler()`.
-4. TE hand-off, not an independent 15 ms presentation timer, grants permission
-   for the next frame.
-5. Keep one immutable IN_FLIGHT frame until `on_color_trans_done`.
-6. Keep at most one complete READY frame; never overwrite it.
-7. If PARTIAL composition is retained, apply every damage generation missing
-   from the selected destination before its new changes.
-8. Record TE, render start/end, READY wait, DMA start/end, missed TE windows,
-   ownership violations and physical presentations. LVGL FPS alone is not
-   presentation evidence.
+1. Keep LVGL's display refresh timer object because LVGL 9.5 implements
+   `lv_refr_now()` by calling that timer directly; deleting it would make manual
+   refresh a no-op.
+2. Hold the timer paused and register a later `LV_EVENT_REFR_REQUEST` callback
+   that immediately pauses it again after LVGL's built-in callback resumes it.
+   This removes the adapter worker as a second display-refresh authority while
+   retaining touch and non-display timers.
+3. Execute every manual `lv_refr_now()` under the adapter lock from the single
+   application owner.
+4. Keep three persistent full PSRAM canvases with explicit `FREE`, `RENDERING`,
+   `READY` and `IN_FLIGHT` ownership. At most one slot may be READY.
+5. At TE, atomically hand READY to IN_FLIGHT, start its complete QSPI transfer,
+   and immediately wake the producer for the next generation. Rendering can
+   overlap DMA but never modifies the in-flight canvas.
+6. Give LVGL one 480×32 `PARTIAL` draw buffer. Each flush copies its completed
+   block synchronously into the owned full canvas and then releases only the
+   small LVGL buffer.
+7. Mark a generation READY only after `lv_display_flush_is_last()` has been
+   observed. A render with no terminal flush is discarded and retried.
+8. Track 32×32 damage tiles for eight generations. When a stale free canvas is
+   reused, invalidate its new damage plus every generation it missed; if the
+   history is incomplete, force a safe full redraw.
+9. Continue transferring one immutable full frame at TE. LVGL render work is
+   partial, but physical multi-window updates are deliberately avoided because
+   they would expose intermediate panel-GRAM states.
+10. ESP-IDF 6.0.2 splits a large PSRAM color transfer into bounded SPI chunks,
+    but enables `on_color_trans_done` only on the final chunk. The DMA semaphore
+    therefore releases the IN_FLIGHT canvas only after the whole 480×480 bitmap.
+11. Record physical completed FPS, TE edges, render time, producer wake latency,
+    READY wait, DMA time, damage tiles, partial bytes, timeouts and ownership
+    faults. LVGL render FPS alone is not presentation evidence.
 
-Only after the sole-scheduler invariant passes native/source tests should a new
-candidate be built. Flashing and exact-board validation still require separate
-authorization.
+Native tests cover ownership selection, stale-canvas reconstruction and the
+terminal-flush rule. The complete ESP-IDF 6.0.2 / LVGL 9.5.0 build succeeds.
+Flashing and exact-board validation still require separate authorization; the
+first run must check boot stability, menu scroll, full-screen warning, tearing,
+transport faults and measured presentation FPS before this can replace the
+rollback base.
 
 ## Primary references
 

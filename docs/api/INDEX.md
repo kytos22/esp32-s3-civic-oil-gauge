@@ -33,7 +33,7 @@
 | `WarningToneGate` | class | `include/warning_tone_gate.h` | [warning tone gate](warning-tone-gate.md) | Emits start/stop commands for the persistent warning-audio loop |
 | `warningBlinkPhaseOn()` | function | `include/demo_sequence.h` | `docs/api/display-state.md` | Deterministic binary 2 Hz warning phase |
 | `fullScreenWarningPhaseOn()` | function | `include/demo_sequence.h` | [gauge settings](gauge-settings.md) | Deterministic 0.5 Hz full-screen warning phase |
-| `DataSource` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select demo or explicit no-data sensor gate |
+| `DataSource` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select demo or provisional A1 sensor bench source |
 | `TemperatureUnit` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select Celsius or Fahrenheit presentation |
 | `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences |
 | `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences and reject invalid enum values |

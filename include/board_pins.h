@@ -19,7 +19,7 @@ inline constexpr std::int8_t kI2cScl = 14;
 inline constexpr std::int8_t kTouchInterrupt = 11;
 inline constexpr std::int8_t kTouchReset = 40;
 
-inline constexpr std::int8_t kUartTx = 43;
+inline constexpr std::int8_t kDisplayTe = 43;
 inline constexpr std::int8_t kUartRx = 44;
 
 inline constexpr std::uint8_t kAds1115Address = 0x48;

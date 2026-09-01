@@ -65,11 +65,12 @@ The ADC runs at **3.3 V** and address `0x48`. An input must never exceed
 VDD + 0.3 V even when the selected PGA full-scale range is larger. Every
 possible 5/12 V signal therefore requires division and protection.
 
-The first firmware integration is deliberately diagnostic-only. It reuses the BSP's
-already-created I²C master bus, probes only `0x48`, registers the ADS1115 at 100 kHz,
-and performs four 128-SPS single-shot readings at PGA ±4.096 V. It logs signed raw
-counts and ADC-pin volts; it does not interpret a floating input as oil data and does
-not enable either installed sensor calibration.
+The acquisition task reuses the BSP's already-created I²C master bus, probes only
+`0x48`, registers the ADS1115 at 100 kHz, and performs four 128-SPS single-shot
+readings at PGA ±4.096 V. It publishes one coherent four-channel sample about every
+96 ms and logs signed counts and ADC-pin volts. A1 additionally reports resistance
+and a filtered provisional temperature when the source menu is set to `SENSORES`.
+Pressure remains invalid, so a floating or uncalibrated A0 can never become oil data.
 
 ### Provisional bench front end
 
@@ -78,7 +79,7 @@ These values support characterization only; they are not a final PCB design.
 | Channel | Provisional circuit | Purpose |
 |---|---|---|
 | A0 | 33 kΩ / 33 kΩ, 0.1%, 100 nF, low-leakage clamp | Pressure signal up to 5 V |
-| A1 | selectable 2.49/4.99/10 kΩ pull-up, 0.1%, 100 nF | Thermistor |
+| A1 | 4.99 kΩ pull-up to 3.3 V, 0.1%; optional 100 nF | Provisional resistor/thermistor bench test |
 | A2 | 33 kΩ / 33 kΩ, 0.1%, 100 nF | Excitation monitoring |
 | A3 | 150 kΩ / 22 kΩ, 0.1%, 100 nF, clamp | Lighting detection |
 
@@ -88,10 +89,10 @@ divider maps the nominal signal to 0.25–2.25 V. That intentionally gives the
 would reach 3.333 V at a 5 V input and leave effectively no tolerance margin at
 3.3 V VDD. The divider is still provisional until the real range is measured.
 
-Measure the pressure signal minimum/maximum before connecting A0. Measure the
-temperature sensor resistance only while unpowered and disconnected. Select
-the pull-up from evidence so the useful range uses the ADC well without
-excessive self-heating.
+Measure the pressure signal minimum/maximum before connecting A0. The A1 bench
+curve currently spans about 5458 Ω/10 °C to 80 Ω/140 °C with a 4.99 kΩ pull-up.
+Measure sensor resistance only while unpowered and disconnected. Never parallel
+the 3.3 V A1 pull-up with the powered MTX-D temperature input.
 
 ### Deferred automatic brightness
 
@@ -132,42 +133,59 @@ ADS1115 and the MTX-D can be removed after direct readings pass comparison.
 
 ## Display presentation
 
-The accepted base keeps the CO5300 in native `MADCTL=0x00` scan order and uses
-native touch coordinates. LVGL renders in `FULL` mode directly into two complete
-480×480 PSRAM buffers using `RGB565_SWAPPED`; there is no rotation, snapshot copy
-or post-render byte swap. A project-owned presenter starts a complete immutable
-buffer on the next GPIO43 TE rising edge and releases it only after
-`on_color_trans_done` reports that QSPI DMA has completed.
+The hardware-accepted rollback base keeps the CO5300 in native `MADCTL=0x00`
+scan order, native touch coordinates, two complete PSRAM buffers and LVGL `FULL`
+mode. It is tear-free at approximately 30.5–32.7 completed presentations/s.
+
+The current integration candidate keeps the same proven physical presentation
+path but changes rendering to generation-aware `PARTIAL` mode:
+
+- one 480×32 RGB565_SWAPPED LVGL draw buffer;
+- three persistent complete 480×480 PSRAM canvases;
+- 32×32 damage tiles plus an eight-generation history;
+- exactly one coherent `READY` generation;
+- `READY → IN_FLIGHT` only on the GPIO43 TE rising edge;
+- immediate production of the next generation after that hand-off;
+- immutable in-flight canvas until `on_color_trans_done`;
+- full-frame physical QSPI transfer at TE, even when LVGL rendered only damaged
+  blocks.
+
+The full physical transfer is deliberate: this QSPI CO5300 owns internal GRAM
+and cannot scan directly from an ESP32 framebuffer. Rendering fewer blocks saves
+CPU/PSRAM work; sending one coherent frame preserves the no-tearing behavior of
+the accepted base and avoids visible multi-window updates.
 
 `esp_lvgl_adapter` 0.6.3 remains responsible for LVGL lifecycle, locking, timers
 and touch, but the project deliberately does not use its display-registration
-bridge. Its QSPI `TE_SYNC` mode is FULL/single-buffer and waits for TE plus DMA
-inside the flush, which was measured as a serialized performance regression.
+bridge. The display refresh timer is retained but held paused; project-owned
+`lv_refr_now()` calls are the sole refresh authority. A guard immediately
+neutralizes LVGL's built-in `LV_EVENT_REFR_REQUEST` timer resume, the missing
+ownership rule that caused the first triple-buffer prototype to freeze.
 
 Direct PSRAM DMA remains disabled because the exact board proved that path can
 underflow at 80 MHz QSPI. ESP LCD instead stages bounded 8-row chunks through at
 most 23,040 bytes of internal DMA memory. The exact panel measures about 59.5 TE
-edges/s and 13–15 ms per complete transfer. The accepted base is tear-free and
-completes approximately 30.5–32.7 physical presentations per second.
+edges/s and 13–15 ms per complete transfer. The new PARTIAL candidate compiles
+and passes native invariants, but remains **unflashed and not hardware-accepted**.
 
-The detailed as-built path, rejected adapter mode, parked triple-buffer findings
-and sole-scheduler design for the next experiment are maintained in
+The detailed accepted path, rejected adapter mode and current candidate are maintained in
 [`reference/display-pipeline.md`](reference/display-pipeline.md).
 
 ## Onboard warning audio
 
 The synthetic demo uses the display board's existing ES8311 codec, I²S output
-and integrated speaker. A renderer-independent rising-edge gate requests one
-double beep when pressure state changes into `warning`; a dedicated FreeRTOS
-CPU1-pinned task performs 512-sample blocking PCM writes so the 15 ms UI producer
-never waits for
+and integrated speaker. A renderer-independent edge gate starts a repeating
+double-beep loop for as long as pressure remains in `warning`; the menu's
+`PROBAR` control plays one double beep. A dedicated FreeRTOS CPU1-pinned task
+performs 512-sample blocking PCM writes so the 15 ms UI producer never waits for
 audio. The codec is opened and settled once, then remains unmuted at digital zero
 between cues; each enveloped tone is wrapped in 40 ms of zero samples so its edges
 do not toggle the analogue mute path. Initialization or write failure is
 logged and degrades to a silent visual gauge rather than stopping the display.
 
 The current pattern is approximately 2.2 kHz, 120 ms on, 90 ms off and 120 ms
-on at 35% codec volume. It is enabled only for the calibration-safe demo. A
+on at the configured 5–100% codec volume. It is enabled only for the
+calibration-safe demo. A
 future calibrated vehicle alarm policy must be safety-reviewed separately; the
 reported edge puff, physical loudness, cabin audibility, and post-change FPS remain
 hardware checks for the revised image.

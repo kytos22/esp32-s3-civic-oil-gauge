@@ -10,17 +10,18 @@ change calibration.
 
 ### `DataSource`
 
-`demo` selects the synthetic sequence. `sensors` selects the calibration gate: the
-renderer shows `--` and `SIN DATOS`, and no ADS1115 path or engineering-unit value is
-enabled.
+`demo` selects the synthetic sequence. `sensors` reads ADS1115 A1 through the
+provisional resistor-bench temperature curve; pressure remains behind its
+calibration gate and renders `--` / `SIN DATOS`.
 
 ### `GaugeSettings`
 
 Carries brightness, warning sound enable/volume, pressure unit, temperature unit,
-canonical low-pressure warning PSI, startup-logo seconds, warning visual mode, and
-data source. `sanitizeGaugeSettings()` clamps percentages to 5–100, warning pressure
-to 1–30 PSI, startup duration to 0–10 seconds, and replaces invalid enum
-representations with safe demo defaults.
+canonical low-pressure warning PSI, canonical high-temperature warning Celsius,
+startup-logo seconds, warning visual mode, and data source.
+`sanitizeGaugeSettings()` clamps percentages to 5–100, warning pressure to
+1–30 PSI, temperature warning to 110–140 °C, startup duration to 0–10 seconds,
+and replaces invalid enum representations with safe demo defaults.
 
 ### `pressureForDisplay()`
 
@@ -39,7 +40,8 @@ Changing the unit alone never rewrites the canonical setting.
 `temperatureForDisplay(temperatureC, unit)` returns the canonical Celsius input
 unchanged or applies `°F = °C × 9/5 + 32`. Temperature states, colors, bar fractions,
 calibration, and alarms always consume the original Celsius value. The renderer maps
-the validated lower floor to `<50 °C` or `<122 °F`.
+the demo lower floor to `<50 °C` or `<122 °F`; sensor bench mode can show the
+provisional numeric value below that visual floor.
 
 ## Warning presentation
 

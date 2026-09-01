@@ -51,6 +51,9 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "pressure_warn", value)) {
     settings.lowPressureWarningPsi = value;
   }
+  if (readU8(handle, "temp_warn", value)) {
+    settings.highTemperatureWarningCelsius = value;
+  }
   if (readU8(handle, "boot_seconds", value)) {
     settings.startupLogoSeconds = value;
   }
@@ -89,6 +92,10 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   if (result == ESP_OK) {
     result = nvs_set_u8(
         handle, "pressure_warn", settings.lowPressureWarningPsi);
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "temp_warn", settings.highTemperatureWarningCelsius);
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(handle, "boot_seconds", settings.startupLogoSeconds);
