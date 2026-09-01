@@ -438,6 +438,7 @@ void test_settings_are_sanitized_to_safe_ranges() {
   settings.brightnessPercent = 0;
   settings.automaticBrightnessMinimumPercent = 255;
   settings.automaticBrightnessMaximumPercent = 0;
+  settings.automaticBrightnessBiasPercent = 127;
   settings.warningVolumePercent = 255;
   settings.lowPressureWarningPsi = 0;
   settings.highTemperatureWarningCelsius = 255;
@@ -446,6 +447,8 @@ void test_settings_are_sanitized_to_safe_ranges() {
   settings.temperatureUnit = static_cast<TemperatureUnit>(99);
   settings.warningVisualMode = static_cast<WarningVisualMode>(99);
   settings.dataSource = static_cast<DataSource>(99);
+  settings.brightnessMode = static_cast<BrightnessMode>(99);
+  settings.language = static_cast<UiLanguage>(99);
 
   const GaugeSettings sanitized = sanitizeGaugeSettings(settings);
   TEST_ASSERT_EQUAL_UINT8(5, sanitized.brightnessPercent);
@@ -453,6 +456,8 @@ void test_settings_are_sanitized_to_safe_ranges() {
                           sanitized.automaticBrightnessMinimumPercent);
   TEST_ASSERT_EQUAL_UINT8(100,
                           sanitized.automaticBrightnessMaximumPercent);
+  TEST_ASSERT_EQUAL_INT8(kAutomaticBrightnessBiasMaximum,
+                         sanitized.automaticBrightnessBiasPercent);
   TEST_ASSERT_EQUAL_UINT8(100, sanitized.warningVolumePercent);
   TEST_ASSERT_EQUAL_UINT8(1, sanitized.lowPressureWarningPsi);
   TEST_ASSERT_EQUAL_UINT8(140, sanitized.highTemperatureWarningCelsius);
@@ -465,6 +470,10 @@ void test_settings_are_sanitized_to_safe_ranges() {
                         static_cast<int>(sanitized.warningVisualMode));
   TEST_ASSERT_EQUAL_INT(static_cast<int>(DataSource::demo),
                         static_cast<int>(sanitized.dataSource));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(BrightnessMode::automatic),
+                        static_cast<int>(sanitized.brightnessMode));
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(UiLanguage::spanish),
+                        static_cast<int>(sanitized.language));
 }
 
 void test_configurable_pressure_warning_threshold_controls_state() {

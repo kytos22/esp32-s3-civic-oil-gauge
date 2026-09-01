@@ -33,9 +33,9 @@ GIF y este enlace abren el simulador publicado con GitHub Pages.
   lienzos completos coherentes, daños por generación y presentación gobernada
   por TE.
 - Zonas iguales 50/50 para presión y temperatura sobre fondo AMOLED negro puro.
-- Estados semánticos en español de 24 px, valores principales centrados, barras
+- Estados semánticos seleccionables en español o inglés de 24 px, valores principales centrados, barras
   de 21 píxeles y aviso parpadeante de presión baja.
-- Sesenta y nueve pruebas Unity independientes del hardware superadas, incluidas
+- Setenta pruebas Unity independientes del hardware superadas, incluidas
   las reglas de buffers, la tabla provisional de resistencias de 10–140 °C, los
   vectores CivicAux, la resincronización y el fallback/retorno de brillo automático.
 - La temperatura de banco por ADS1115 A1 está implementada; la calibración de
@@ -56,13 +56,14 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
   unidad seleccionada y conservado internamente en PSI.
 - Umbral persistente de temperatura entre 110 y 140 °C, 120 °C por defecto.
-- Menú por secciones con una portada de accesos a Brillo, Datos, Avisos, Sonido,
-  Unidades, Arranque y Sistema; solo se renderiza la página visible.
+- Menú bilingüe por secciones con una portada de accesos a Brillo, Datos, Avisos,
+  Sonido, Unidades, Arranque, Idioma y Sistema; solo se renderiza la página visible.
 - Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
 - Brillo AUTO/MANUAL persistente. AUTO usa la luz ambiente del hub, exige dos
   tramas utilizables, se limita con un único selector doble persistente (20–100%
-  por defecto), absorbe oscilaciones del 1 %, transiciona suavemente entre
-  objetivos y vuelve al respaldo manual si se pierde.
+  por defecto), permite desplazar la curva −30…+30 puntos, absorbe oscilaciones
+  del 1 %, transiciona suavemente entre objetivos y vuelve al respaldo manual si
+  se pierde.
 - Bucle no bloqueante de dobles pitidos por el altavoz integrado mientras la
   demo permanezca en aviso de presión baja.
 - La demo muestra `<50` bajo su escala visual; el modo sensores muestra el valor

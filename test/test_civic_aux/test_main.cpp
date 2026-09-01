@@ -451,6 +451,10 @@ void test_brightness_mode_defaults_migrates_and_round_trips() {
                           defaults.automaticBrightnessMinimumPercent);
   TEST_ASSERT_EQUAL_UINT8(100,
                           defaults.automaticBrightnessMaximumPercent);
+  TEST_ASSERT_EQUAL_INT8(0, defaults.automaticBrightnessBiasPercent);
+  TEST_ASSERT_EQUAL_UINT8(
+      static_cast<std::uint8_t>(UiLanguage::spanish),
+      static_cast<std::uint8_t>(defaults.language));
 }
 
 void test_auto_starts_on_backup_and_requires_two_new_samples() {
@@ -837,6 +841,31 @@ void test_automatic_limits_reapply_without_a_new_lux_frame() {
   TEST_ASSERT_EQUAL_UINT8(70, status.appliedPercent);
 }
 
+void test_automatic_bias_offsets_and_reapplies_without_new_lux() {
+  AutomaticBrightnessController controller;
+  controller.reset(BrightnessMode::automatic, 55, 20, 90, 0, 10);
+  (void)controller.update(
+      usableSnapshot(1, 1, 2'000'000, 100, 5000), 100);
+  const CivicAuxSnapshot active =
+      usableSnapshot(2, 2, 2'000'000, 300, 5000);
+  auto status = controller.update(active, 300);
+  TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
+  status = controller.update(active, 800);
+  TEST_ASSERT_EQUAL_UINT8(75, status.appliedPercent);
+
+  controller.setPreferences(
+      BrightnessMode::automatic, 55, 20, 90, 900, -10);
+  status = controller.update(active, 900);
+  TEST_ASSERT_EQUAL_UINT8(55, status.automaticPercent);
+  status = controller.update(active, 1700);
+  TEST_ASSERT_EQUAL_UINT8(55, status.appliedPercent);
+
+  controller.setPreferences(
+      BrightnessMode::automatic, 55, 20, 70, 1800, 30);
+  status = controller.update(active, 1800);
+  TEST_ASSERT_EQUAL_UINT8(70, status.automaticPercent);
+}
+
 void test_automatic_brightness_uses_a_time_based_asymmetric_ramp() {
   AutomaticBrightnessController controller;
   controller.reset(BrightnessMode::automatic,
@@ -929,6 +958,7 @@ int main(int, char**) {
       test_menu_and_warning_preferences_do_not_change_automatic_brightness);
   RUN_TEST(test_automatic_limits_clamp_both_ends_of_the_curve);
   RUN_TEST(test_automatic_limits_reapply_without_a_new_lux_frame);
+  RUN_TEST(test_automatic_bias_offsets_and_reapplies_without_new_lux);
   RUN_TEST(test_automatic_brightness_uses_a_time_based_asymmetric_ramp);
   RUN_TEST(test_one_percent_lux_jitter_does_not_toggle_the_auto_target);
   return UNITY_END();

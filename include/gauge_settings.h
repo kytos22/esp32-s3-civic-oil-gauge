@@ -30,10 +30,19 @@ enum class BrightnessMode : std::uint8_t {
   manual = 1,
 };
 
+enum class UiLanguage : std::uint8_t {
+  spanish = 0,
+  english = 1,
+};
+
+inline constexpr std::int8_t kAutomaticBrightnessBiasMinimum = -30;
+inline constexpr std::int8_t kAutomaticBrightnessBiasMaximum = 30;
+
 struct GaugeSettings {
   std::uint8_t brightnessPercent = 55;
   std::uint8_t automaticBrightnessMinimumPercent = 20;
   std::uint8_t automaticBrightnessMaximumPercent = 100;
+  std::int8_t automaticBrightnessBiasPercent = 0;
   bool warningSoundEnabled = true;
   std::uint8_t warningVolumePercent = 35;
   std::uint8_t lowPressureWarningPsi = 10;
@@ -44,6 +53,7 @@ struct GaugeSettings {
   WarningVisualMode warningVisualMode = WarningVisualMode::elementsBlink;
   DataSource dataSource = DataSource::demo;
   BrightnessMode brightnessMode = BrightnessMode::automatic;
+  UiLanguage language = UiLanguage::spanish;
 };
 
 struct WarningPresentation {

@@ -78,13 +78,18 @@ void AutomaticBrightnessController::reset(BrightnessMode mode,
                                           std::uint8_t manualBackupPercent,
                                           std::uint8_t automaticMinimumPercent,
                                           std::uint8_t automaticMaximumPercent,
-                                          std::uint64_t localNowMs) {
+                                          std::uint64_t localNowMs,
+                                          std::int8_t automaticBiasPercent) {
   mode_ = mode;
   manualBackupPercent_ = clampBrightness(manualBackupPercent);
   normalizeBrightnessRange(
       automaticMinimumPercent, automaticMaximumPercent);
   automaticMinimumPercent_ = automaticMinimumPercent;
   automaticMaximumPercent_ = automaticMaximumPercent;
+  automaticBiasPercent_ = std::clamp<std::int8_t>(
+      automaticBiasPercent,
+      kAutomaticBrightnessBiasMinimum,
+      kAutomaticBrightnessBiasMaximum);
   fallbackStartPercent_ = manualBackupPercent_;
   fallbackStartedAtMs_ = localNowMs;
   automaticRampUpdatedAtMs_ = localNowMs;
@@ -92,7 +97,7 @@ void AutomaticBrightnessController::reset(BrightnessMode mode,
   recoveryBaseGeneration_ = 0;
   lastObservedUsableGeneration_ = 0;
   lastObservedHubRestarts_ = 0;
-  automaticLimitsChanged_ = false;
+  automaticCurveSettingsChanged_ = false;
   status_ = {};
   status_.state = mode_ == BrightnessMode::manual
                       ? AutomaticBrightnessState::manual
@@ -106,26 +111,34 @@ void AutomaticBrightnessController::setPreferences(
     std::uint8_t manualBackupPercent,
     std::uint8_t automaticMinimumPercent,
     std::uint8_t automaticMaximumPercent,
-    std::uint64_t localNowMs) {
+    std::uint64_t localNowMs,
+    std::int8_t automaticBiasPercent) {
   if (!initialized_) {
     reset(mode,
           manualBackupPercent,
           automaticMinimumPercent,
           automaticMaximumPercent,
-          localNowMs);
+          localNowMs,
+          automaticBiasPercent);
     return;
   }
 
   normalizeBrightnessRange(
       automaticMinimumPercent, automaticMaximumPercent);
-  const bool automaticLimitsChanged =
+  automaticBiasPercent = std::clamp<std::int8_t>(
+      automaticBiasPercent,
+      kAutomaticBrightnessBiasMinimum,
+      kAutomaticBrightnessBiasMaximum);
+  const bool automaticCurveSettingsChanged =
       automaticMinimumPercent != automaticMinimumPercent_ ||
-      automaticMaximumPercent != automaticMaximumPercent_;
+      automaticMaximumPercent != automaticMaximumPercent_ ||
+      automaticBiasPercent != automaticBiasPercent_;
   manualBackupPercent_ = clampBrightness(manualBackupPercent);
   automaticMinimumPercent_ = automaticMinimumPercent;
   automaticMaximumPercent_ = automaticMaximumPercent;
-  if (automaticLimitsChanged) {
-    automaticLimitsChanged_ = true;
+  automaticBiasPercent_ = automaticBiasPercent;
+  if (automaticCurveSettingsChanged) {
+    automaticCurveSettingsChanged_ = true;
     if (status_.automaticPercentAvailable) {
       status_.automaticPercent = std::clamp<std::uint8_t>(
           status_.automaticPercent,
@@ -234,10 +247,13 @@ bool AutomaticBrightnessController::recoveryReady(
 
 std::uint8_t AutomaticBrightnessController::constrainedAutomaticPercent(
     std::uint32_t millilux) const {
-  return std::clamp<std::uint8_t>(
-      automaticBrightnessPercentForMillilux(millilux),
-      automaticMinimumPercent_,
-      automaticMaximumPercent_);
+  const int biased =
+      static_cast<int>(automaticBrightnessPercentForMillilux(millilux)) +
+      static_cast<int>(automaticBiasPercent_);
+  return static_cast<std::uint8_t>(std::clamp(
+      biased,
+      static_cast<int>(automaticMinimumPercent_),
+      static_cast<int>(automaticMaximumPercent_)));
 }
 
 AutomaticBrightnessStatus AutomaticBrightnessController::update(
@@ -248,7 +264,8 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
           manualBackupPercent_,
           automaticMinimumPercent_,
           automaticMaximumPercent_,
-          localNowMs);
+          localNowMs,
+          automaticBiasPercent_);
   }
 
   if (mode_ == BrightnessMode::manual) {
@@ -273,18 +290,18 @@ AutomaticBrightnessStatus AutomaticBrightnessController::update(
   }
   if (fresh &&
       (newUsableGeneration ||
-       (automaticLimitsChanged_ && status_.automaticPercentAvailable))) {
+       (automaticCurveSettingsChanged_ && status_.automaticPercentAvailable))) {
     const std::uint8_t candidatePercent = constrainedAutomaticPercent(
         snapshot.lastUsableMillilux);
     const int targetDifference =
         std::abs(static_cast<int>(candidatePercent) -
                  static_cast<int>(status_.automaticPercent));
-    if (!status_.automaticPercentAvailable || automaticLimitsChanged_ ||
+    if (!status_.automaticPercentAvailable || automaticCurveSettingsChanged_ ||
         targetDifference >= kAutomaticBrightnessTargetDeadbandPercent) {
       status_.automaticPercent = candidatePercent;
     }
     status_.automaticPercentAvailable = true;
-    automaticLimitsChanged_ = false;
+    automaticCurveSettingsChanged_ = false;
   }
 
   const bool hubRestarted =

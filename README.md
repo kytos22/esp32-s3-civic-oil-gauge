@@ -33,9 +33,9 @@ hosted by GitHub Pages.
   presentation.
 - Equal 50/50 pressure and temperature regions on a pure-black AMOLED
   background.
-- 24 px Spanish semantic states, centered main values, 21-pixel bars and a
+- Selectable 24 px Spanish or English semantic states, centered main values, 21-pixel bars and a
   blinking low-pressure warning.
-- Sixty-nine hardware-independent Unity tests pass, including buffer ownership,
+- Seventy hardware-independent Unity tests pass, including buffer ownership,
   the provisional 10–140 °C resistor table, CivicAux protocol vectors, parser
   recovery, and automatic-brightness fallback/recovery.
 - ADS1115 A1 bench temperature is implemented; direct pressure calibration, the
@@ -56,13 +56,14 @@ The detailed development position and remaining safety gates are maintained in
 - Persistent 1–30 PSI low-pressure warning threshold, shown in PSI or BAR to
   match the selected unit while remaining canonical PSI internally.
 - Persistent 110–140 °C high-temperature warning threshold, default 120 °C.
-- Sectioned settings home with Brightness, Data, Warnings, Sound, Units, Startup,
-  and System pages; only the selected page is rendered.
+- Bilingual sectioned settings home with Brightness, Data, Warnings, Sound, Units,
+  Startup, Language, and System pages; only the selected page is rendered.
 - Persistent 0–10 second Honda/Civic startup splash; zero disables it.
 - Persistent AUTO/MANUAL brightness. AUTO uses hub ambient lux, requires two
   usable frames, is constrained by one persistent two-handle range (20–100% by
-  default), rejects one-percent sensor chatter, slews smoothly between targets,
-  and returns smoothly to the saved manual backup on loss.
+  default), supports a persistent −30…+30-point curve offset, rejects one-percent
+  sensor chatter, slews smoothly between targets, and returns smoothly to the
+  saved manual backup on loss.
 - A non-blocking repeating double-beep loop through the integrated speaker for
   as long as the demo remains in low-pressure warning.
 - Demo shows `<50` below its visual floor; sensor mode shows the provisional

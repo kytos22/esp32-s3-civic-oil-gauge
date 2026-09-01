@@ -187,7 +187,7 @@ separately authorized hardware check.
 The detailed accepted path, rejected adapter mode and current candidate are maintained in
 [`reference/display-pipeline.md`](reference/display-pipeline.md).
 
-The settings overlay is one fixed 480×480 shell with a home page and seven
+The settings overlay is one fixed 480×480 shell with a home page and eight
 independent child pages. Navigation marks every non-selected page hidden, so
 LVGL invalidates and renders only the visible home/subsection rather than the
 former 1,648-pixel scrolling object tree. The underlying gauge also remains

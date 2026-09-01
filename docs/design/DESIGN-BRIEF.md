@@ -61,8 +61,8 @@ preference. RPM is never displayed.
 
 The settings page provides brightness, warning audio, demo/provisional-A1 source,
 PSI/bar and °C/°F units, pressure and temperature thresholds, warning presentation,
-startup-logo duration, diagnostics, and protected reset. A warning never closes
-settings and the gauge is not rendered behind the open menu.
+startup-logo duration, Spanish/English language, diagnostics, and protected reset.
+A warning never closes settings and the gauge is not rendered behind the open menu.
 
 ## 4. Required states
 

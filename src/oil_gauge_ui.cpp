@@ -39,6 +39,12 @@ struct BarWidgets {
   bool hidden = false;
 };
 
+struct LocalizedLabel {
+  lv_obj_t* label = nullptr;
+  const char* spanish = nullptr;
+  const char* english = nullptr;
+};
+
 enum class MenuPage : std::size_t {
   home = 0,
   brightness,
@@ -47,6 +53,7 @@ enum class MenuPage : std::size_t {
   sound,
   units,
   startup,
+  language,
   system,
   count,
 };
@@ -60,12 +67,15 @@ struct UiWidgets {
   lv_obj_t* fullScreenPressureValue = nullptr;
   lv_obj_t* bootSplash = nullptr;
   std::array<lv_obj_t*, static_cast<std::size_t>(MenuPage::count)> menuPages{};
+  std::array<LocalizedLabel, 96> localizedLabels{};
+  std::size_t localizedLabelCount = 0;
   lv_obj_t* homeBrightnessSummary = nullptr;
   lv_obj_t* homeDataSummary = nullptr;
   lv_obj_t* homeWarningsSummary = nullptr;
   lv_obj_t* homeSoundSummary = nullptr;
   lv_obj_t* homeUnitsSummary = nullptr;
   lv_obj_t* homeStartupSummary = nullptr;
+  lv_obj_t* homeLanguageSummary = nullptr;
   lv_obj_t* pressureState = nullptr;
   lv_obj_t* sourceBadge = nullptr;
   lv_obj_t* pressureValue = nullptr;
@@ -84,12 +94,15 @@ struct UiWidgets {
   lv_obj_t* brightnessValue = nullptr;
   lv_obj_t* automaticBrightnessRangeSlider = nullptr;
   lv_obj_t* automaticBrightnessRangeValue = nullptr;
+  lv_obj_t* automaticBrightnessBiasSlider = nullptr;
+  lv_obj_t* automaticBrightnessBiasValue = nullptr;
   lv_obj_t* brightnessAutoButton = nullptr;
   lv_obj_t* brightnessManualButton = nullptr;
   lv_obj_t* ambientLuxLabel = nullptr;
   lv_obj_t* ambientStateLabel = nullptr;
   lv_obj_t* automaticBrightnessLabel = nullptr;
   lv_obj_t* soundSwitch = nullptr;
+  lv_obj_t* soundEnabledValue = nullptr;
   lv_obj_t* volumeSlider = nullptr;
   lv_obj_t* volumeValue = nullptr;
   lv_obj_t* pressureWarningSlider = nullptr;
@@ -108,6 +121,8 @@ struct UiWidgets {
   lv_obj_t* warningScreenButton = nullptr;
   lv_obj_t* warningFixedButton = nullptr;
   lv_obj_t* warningModeDescription = nullptr;
+  lv_obj_t* languageSpanishButton = nullptr;
+  lv_obj_t* languageEnglishButton = nullptr;
   BarWidgets temperatureBar{};
   char pressureValueText[8]{};
   char sourceBadgeText[16]{};
@@ -120,7 +135,9 @@ struct UiWidgets {
   char temperatureWarningText[24]{};
   char startupLogoText[24]{};
   char brightnessValueText[40]{};
+  char automaticBrightnessBiasText[40]{};
   char volumeValueText[24]{};
+  char soundEnabledText[24]{};
   char warningModeDescriptionText[48]{};
   char homeBrightnessSummaryText[40]{};
   char homeDataSummaryText[24]{};
@@ -128,10 +145,11 @@ struct UiWidgets {
   char homeSoundSummaryText[32]{};
   char homeUnitsSummaryText[24]{};
   char homeStartupSummaryText[32]{};
+  char homeLanguageSummaryText[24]{};
   char automaticBrightnessRangeText[40]{};
   char ambientLuxText[40]{};
-  char ambientStateText[56]{};
-  char automaticBrightnessText[56]{};
+  char ambientStateText[64]{};
+  char automaticBrightnessText[64]{};
   RgbColor pressureColor{};
   RgbColor temperatureColor{};
   GaugeSettings settings{};
@@ -156,6 +174,14 @@ struct UiWidgets {
 };
 
 UiWidgets gUi;
+
+bool languageIsEnglish() {
+  return gUi.settings.language == UiLanguage::english;
+}
+
+const char* localizedText(const char* spanish, const char* english) {
+  return languageIsEnglish() ? english : spanish;
+}
 
 void setFullScreenWarningVisible(bool visible) {
   if (gUi.fullScreenWarningVisible != visible) {
@@ -195,6 +221,50 @@ lv_obj_t* createLabel(lv_obj_t* parent,
   lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
   lv_label_set_text(label, text);
   return label;
+}
+
+void registerLocalizedLabel(lv_obj_t* label,
+                            const char* spanish,
+                            const char* english) {
+  if (label == nullptr ||
+      gUi.localizedLabelCount >= gUi.localizedLabels.size()) {
+    return;
+  }
+  gUi.localizedLabels[gUi.localizedLabelCount++] =
+      LocalizedLabel{label, spanish, english};
+}
+
+lv_obj_t* createLocalizedLabel(lv_obj_t* parent,
+                               const char* spanish,
+                               const char* english,
+                               std::int32_t x,
+                               std::int32_t y,
+                               std::int32_t width,
+                               std::int32_t height,
+                               const lv_font_t* font,
+                               lv_color_t textColor,
+                               lv_text_align_t alignment) {
+  lv_obj_t* label = createLabel(parent,
+                                localizedText(spanish, english),
+                                x,
+                                y,
+                                width,
+                                height,
+                                font,
+                                textColor,
+                                alignment);
+  registerLocalizedLabel(label, spanish, english);
+  return label;
+}
+
+void refreshLocalizedLabels() {
+  for (std::size_t index = 0; index < gUi.localizedLabelCount; ++index) {
+    const LocalizedLabel& entry = gUi.localizedLabels[index];
+    const char* desired = localizedText(entry.spanish, entry.english);
+    if (std::strcmp(lv_label_get_text(entry.label), desired) != 0) {
+      lv_label_set_text(entry.label, desired);
+    }
+  }
 }
 
 lv_obj_t* createSolid(lv_obj_t* parent,
@@ -250,27 +320,27 @@ void setChoiceSelected(lv_obj_t* button, bool selected) {
 const char* ambientSensorStateName(std::uint8_t state) {
   switch (static_cast<CivicAuxSensorState>(state)) {
     case CivicAuxSensorState::initializing:
-      return "INICIANDO";
+      return localizedText("INICIANDO", "STARTING");
     case CivicAuxSensorState::valid:
-      return "VÁLIDO";
+      return localizedText("VÁLIDO", "VALID");
     case CivicAuxSensorState::degraded:
-      return "DEGRADADO";
+      return localizedText("DEGRADADO", "DEGRADED");
     case CivicAuxSensorState::missing:
-      return "AUSENTE";
+      return localizedText("AUSENTE", "MISSING");
   }
-  return "DESCONOCIDO";
+  return localizedText("DESCONOCIDO", "UNKNOWN");
 }
 
 const char* ambientRangeName(std::uint8_t range) {
   switch (static_cast<CivicAuxRangeProfile>(range)) {
     case CivicAuxRangeProfile::dark:
-      return "OSCURO";
+      return localizedText("OSCURO", "DARK");
     case CivicAuxRangeProfile::normal:
       return "NORMAL";
     case CivicAuxRangeProfile::intense:
-      return "INTENSO";
+      return localizedText("INTENSO", "BRIGHT");
   }
-  return "RANGO ?";
+  return localizedText("RANGO ?", "RANGE ?");
 }
 
 const char* automaticBrightnessStateName(AutomaticBrightnessState state) {
@@ -278,13 +348,13 @@ const char* automaticBrightnessStateName(AutomaticBrightnessState state) {
     case AutomaticBrightnessState::manual:
       return "MANUAL";
     case AutomaticBrightnessState::waitingForSamples:
-      return "ESPERANDO";
+      return localizedText("ESPERANDO", "WAITING");
     case AutomaticBrightnessState::automatic:
-      return "ACTIVO";
+      return localizedText("ACTIVO", "ACTIVE");
     case AutomaticBrightnessState::fallback:
       return "FALLBACK";
   }
-  return "ESPERANDO";
+  return localizedText("ESPERANDO", "WAITING");
 }
 
 bool sameBrightnessStatus(const OilGaugeBrightnessStatus& left,
@@ -309,12 +379,15 @@ void refreshBrightnessTelemetry() {
   }
   if (!gUi.brightnessStatus.hasAmbientFrame) {
     setLabelTextIfChanged(
-        gUi.ambientLuxLabel, gUi.ambientLuxText, "LUZ HUB: --");
+        gUi.ambientLuxLabel,
+        gUi.ambientLuxText,
+        localizedText("LUZ HUB: --", "HUB LIGHT: --"));
   } else {
     char luxText[40];
     std::snprintf(luxText,
                   sizeof(luxText),
-                  "LUZ HUB: %lu.%01lu LX",
+                  localizedText("LUZ HUB: %lu.%01lu LX",
+                                "HUB LIGHT: %lu.%01lu LX"),
                   static_cast<unsigned long>(
                       gUi.brightnessStatus.filteredMillilux / 1000U),
                   static_cast<unsigned long>(
@@ -323,11 +396,19 @@ void refreshBrightnessTelemetry() {
         gUi.ambientLuxLabel, gUi.ambientLuxText, luxText);
   }
 
-  char stateText[56];
+  char stateText[64];
   if (!gUi.brightnessStatus.receiverRunning) {
-    std::snprintf(stateText, sizeof(stateText), "UART: NO DISPONIBLE");
+    std::snprintf(stateText,
+                  sizeof(stateText),
+                  "%s",
+                  localizedText("UART: NO DISPONIBLE",
+                                "UART: UNAVAILABLE"));
   } else if (!gUi.brightnessStatus.hasAmbientFrame) {
-    std::snprintf(stateText, sizeof(stateText), "UART: ESPERANDO LUZ");
+    std::snprintf(stateText,
+                  sizeof(stateText),
+                  "%s",
+                  localizedText("UART: ESPERANDO LUZ",
+                                "UART: WAITING FOR LIGHT"));
   } else {
     std::snprintf(
         stateText,
@@ -337,18 +418,19 @@ void refreshBrightnessTelemetry() {
         ambientRangeName(gUi.brightnessStatus.rangeProfile),
         gUi.brightnessStatus.latestAmbientUsable &&
                 gUi.brightnessStatus.luxFresh
-            ? "FRESCO"
-            : "NO UTILIZABLE");
+            ? localizedText("FRESCO", "FRESH")
+            : localizedText("NO UTILIZABLE", "NOT USABLE"));
   }
   setLabelTextIfChanged(
       gUi.ambientStateLabel, gUi.ambientStateText, stateText);
 
-  char automaticText[56];
+  char automaticText[64];
   if (gUi.brightnessStatus.automaticPercentAvailable) {
     std::snprintf(
         automaticText,
         sizeof(automaticText),
-        "AUTO %s: %u%% · APLICADO: %u%%",
+        localizedText("AUTO %s: %u%% · APLICADO: %u%%",
+                      "AUTO %s: %u%% · APPLIED: %u%%"),
         automaticBrightnessStateName(gUi.brightnessStatus.automaticState),
         static_cast<unsigned>(gUi.brightnessStatus.automaticPercent),
         static_cast<unsigned>(gUi.brightnessStatus.appliedPercent));
@@ -356,7 +438,8 @@ void refreshBrightnessTelemetry() {
     std::snprintf(
         automaticText,
         sizeof(automaticText),
-        "AUTO %s · APLICADO: %u%%",
+        localizedText("AUTO %s · APLICADO: %u%%",
+                      "AUTO %s · APPLIED: %u%%"),
         automaticBrightnessStateName(gUi.brightnessStatus.automaticState),
         static_cast<unsigned>(gUi.brightnessStatus.appliedPercent));
   }
@@ -373,7 +456,8 @@ void refreshAutomaticBrightnessRangeLabel() {
   std::snprintf(
       rangeText,
       sizeof(rangeText),
-      "LÍMITES AUTO: %u–%u%%",
+      localizedText("LÍMITES AUTO: %u–%u%%",
+                    "AUTO LIMITS: %u–%u%%"),
       static_cast<unsigned>(gUi.settings.automaticBrightnessMinimumPercent),
       static_cast<unsigned>(gUi.settings.automaticBrightnessMaximumPercent));
   setLabelTextIfChanged(gUi.automaticBrightnessRangeValue,
@@ -381,12 +465,40 @@ void refreshAutomaticBrightnessRangeLabel() {
                         rangeText);
 }
 
+void refreshAutomaticBrightnessBiasLabel() {
+  if (gUi.automaticBrightnessBiasValue == nullptr) {
+    return;
+  }
+  char biasText[40];
+  const int bias = static_cast<int>(
+      gUi.settings.automaticBrightnessBiasPercent);
+  if (bias == 0) {
+    std::snprintf(biasText,
+                  sizeof(biasText),
+                  "%s",
+                  localizedText("CURVA AUTO: NORMAL",
+                                "AUTO CURVE: NORMAL"));
+  } else {
+    std::snprintf(biasText,
+                  sizeof(biasText),
+                  localizedText("CURVA AUTO: %+d%%",
+                                "AUTO CURVE: %+d%%"),
+                  bias);
+  }
+  setLabelTextIfChanged(gUi.automaticBrightnessBiasValue,
+                        gUi.automaticBrightnessBiasText,
+                        biasText);
+}
+
 void refreshWarningModeDescription() {
-  const char* description = "ELEMENTOS · 2 HZ";
+  const char* description = localizedText("ELEMENTOS · 2 HZ",
+                                           "ELEMENTS · 2 HZ");
   if (gUi.settings.warningVisualMode == WarningVisualMode::fullScreenBlink) {
-    description = "PANTALLA ROJA · 0,5 HZ";
+    description = localizedText("PANTALLA ROJA · 0,5 HZ",
+                                "RED SCREEN · 0.5 HZ");
   } else if (gUi.settings.warningVisualMode == WarningVisualMode::fixed) {
-    description = "AVISO FIJO · SIN PARPADEO";
+    description = localizedText("AVISO FIJO · SIN PARPADEO",
+                                "FIXED WARNING · NO BLINK");
   }
   setLabelTextIfChanged(gUi.warningModeDescription,
                         gUi.warningModeDescriptionText,
@@ -409,7 +521,7 @@ void refreshMenuSummaries() {
   } else {
     std::snprintf(brightnessText,
                   sizeof(brightnessText),
-                  "MANUAL · %u%%",
+        localizedText("MANUAL · %u%%", "MANUAL · %u%%"),
                   static_cast<unsigned>(gUi.settings.brightnessPercent));
   }
   setLabelTextIfChanged(gUi.homeBrightnessSummary,
@@ -419,7 +531,9 @@ void refreshMenuSummaries() {
   setLabelTextIfChanged(
       gUi.homeDataSummary,
       gUi.homeDataSummaryText,
-      gUi.settings.dataSource == DataSource::demo ? "DEMO" : "SENSORES");
+      gUi.settings.dataSource == DataSource::demo
+          ? "DEMO"
+          : localizedText("SENSORES", "SENSORS"));
 
   const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
   const double pressureThreshold = warningThresholdForDisplay(
@@ -455,10 +569,13 @@ void refreshMenuSummaries() {
   if (gUi.settings.warningSoundEnabled) {
     std::snprintf(soundText,
                   sizeof(soundText),
-                  "ACTIVO · %u%%",
+                  localizedText("ACTIVO · %u%%", "ENABLED · %u%%"),
                   static_cast<unsigned>(gUi.settings.warningVolumePercent));
   } else {
-    std::snprintf(soundText, sizeof(soundText), "DESACTIVADO");
+    std::snprintf(soundText,
+                  sizeof(soundText),
+                  "%s",
+                  localizedText("DESACTIVADO", "DISABLED"));
   }
   setLabelTextIfChanged(
       gUi.homeSoundSummary, gUi.homeSoundSummaryText, soundText);
@@ -475,7 +592,10 @@ void refreshMenuSummaries() {
 
   char startupText[32];
   if (gUi.settings.startupLogoSeconds == 0) {
-    std::snprintf(startupText, sizeof(startupText), "DESACTIVADO");
+    std::snprintf(startupText,
+                  sizeof(startupText),
+                  "%s",
+                  localizedText("DESACTIVADO", "DISABLED"));
   } else {
     std::snprintf(startupText,
                   sizeof(startupText),
@@ -485,6 +605,9 @@ void refreshMenuSummaries() {
   setLabelTextIfChanged(gUi.homeStartupSummary,
                         gUi.homeStartupSummaryText,
                         startupText);
+  setLabelTextIfChanged(gUi.homeLanguageSummary,
+                        gUi.homeLanguageSummaryText,
+                        languageIsEnglish() ? "ENGLISH" : "ESPAÑOL");
 }
 
 void refreshBrightnessValueLabel() {
@@ -493,8 +616,8 @@ void refreshBrightnessValueLabel() {
       brightnessValueText,
       sizeof(brightnessValueText),
       gUi.settings.brightnessMode == BrightnessMode::automatic
-          ? "RESPALDO MANUAL: %u%%"
-          : "BRILLO MANUAL: %u%%",
+          ? localizedText("RESPALDO MANUAL: %u%%", "MANUAL BACKUP: %u%%")
+          : localizedText("BRILLO MANUAL: %u%%", "MANUAL BRIGHTNESS: %u%%"),
       static_cast<unsigned>(gUi.settings.brightnessPercent));
   setLabelTextIfChanged(gUi.brightnessValue,
                         gUi.brightnessValueText,
@@ -505,16 +628,26 @@ void refreshVolumeValueLabel() {
   char volumeText[24];
   std::snprintf(volumeText,
                 sizeof(volumeText),
-                "VOLUMEN: %u%%",
+                localizedText("VOLUMEN: %u%%", "VOLUME: %u%%"),
                 static_cast<unsigned>(gUi.settings.warningVolumePercent));
   setLabelTextIfChanged(
       gUi.volumeValue, gUi.volumeValueText, volumeText);
+}
+
+void refreshSoundEnabledLabel() {
+  setLabelTextIfChanged(
+      gUi.soundEnabledValue,
+      gUi.soundEnabledText,
+      gUi.settings.warningSoundEnabled
+          ? localizedText("ACTIVADO", "ENABLED")
+          : localizedText("DESACTIVADO", "DISABLED"));
 }
 
 void refreshMenuControls() {
   if (gUi.brightnessSlider == nullptr) {
     return;
   }
+  refreshLocalizedLabels();
   lv_slider_set_value(
       gUi.brightnessSlider, gUi.settings.brightnessPercent, LV_ANIM_OFF);
   refreshBrightnessValueLabel();
@@ -527,6 +660,11 @@ void refreshMenuControls() {
       gUi.settings.automaticBrightnessMaximumPercent,
       LV_ANIM_OFF);
   refreshAutomaticBrightnessRangeLabel();
+  lv_slider_set_value(
+      gUi.automaticBrightnessBiasSlider,
+      gUi.settings.automaticBrightnessBiasPercent,
+      LV_ANIM_OFF);
+  refreshAutomaticBrightnessBiasLabel();
   lv_slider_set_value(
       gUi.volumeSlider, gUi.settings.warningVolumePercent, LV_ANIM_OFF);
   refreshVolumeValueLabel();
@@ -547,11 +685,14 @@ void refreshMenuControls() {
                       LV_ANIM_OFF);
   char thresholdText[24];
   if (bar) {
-    std::snprintf(thresholdText, sizeof(thresholdText), "UMBRAL: %.1f BAR", threshold);
+    std::snprintf(thresholdText,
+                  sizeof(thresholdText),
+                  localizedText("UMBRAL: %.1f BAR", "THRESHOLD: %.1f BAR"),
+                  threshold);
   } else {
     std::snprintf(thresholdText,
                   sizeof(thresholdText),
-                  "UMBRAL: %u PSI",
+                  localizedText("UMBRAL: %u PSI", "THRESHOLD: %u PSI"),
                   static_cast<unsigned>(gUi.settings.lowPressureWarningPsi));
   }
   setLabelTextIfChanged(
@@ -583,7 +724,7 @@ void refreshMenuControls() {
   std::snprintf(
       temperatureThresholdText,
       sizeof(temperatureThresholdText),
-      "UMBRAL: %.0f °%c",
+      localizedText("UMBRAL: %.0f °%c", "THRESHOLD: %.0f °%c"),
       temperatureThreshold,
       fahrenheit ? 'F' : 'C');
   setLabelTextIfChanged(gUi.temperatureWarningValue,
@@ -594,11 +735,14 @@ void refreshMenuControls() {
                       LV_ANIM_OFF);
   char startupText[24];
   if (gUi.settings.startupLogoSeconds == 0) {
-    std::snprintf(startupText, sizeof(startupText), "LOGOTIPO DESACTIVADO");
+    std::snprintf(startupText,
+                  sizeof(startupText),
+                  "%s",
+                  localizedText("LOGOTIPO DESACTIVADO", "LOGO DISABLED"));
   } else {
     std::snprintf(startupText,
                   sizeof(startupText),
-                  "DURACIÓN: %u S",
+                  localizedText("DURACIÓN: %u S", "DURATION: %u S"),
                   static_cast<unsigned>(gUi.settings.startupLogoSeconds));
   }
   setLabelTextIfChanged(
@@ -608,6 +752,7 @@ void refreshMenuControls() {
   } else {
     lv_obj_remove_state(gUi.soundSwitch, LV_STATE_CHECKED);
   }
+  refreshSoundEnabledLabel();
   setChoiceSelected(
       gUi.unitPsiButton, gUi.settings.pressureUnit == PressureUnit::psi);
   setChoiceSelected(
@@ -636,8 +781,15 @@ void refreshMenuControls() {
   setChoiceSelected(
       gUi.warningFixedButton,
       gUi.settings.warningVisualMode == WarningVisualMode::fixed);
+  setChoiceSelected(
+      gUi.languageSpanishButton,
+      gUi.settings.language == UiLanguage::spanish);
+  setChoiceSelected(
+      gUi.languageEnglishButton,
+      gUi.settings.language == UiLanguage::english);
   refreshWarningModeDescription();
   refreshMenuSummaries();
+  refreshBrightnessTelemetry();
 }
 
 void queueSettingsApply() {
@@ -733,6 +885,10 @@ void startupPageEvent(lv_event_t*) {
   showMenuPage(MenuPage::startup);
 }
 
+void languagePageEvent(lv_event_t*) {
+  showMenuPage(MenuPage::language);
+}
+
 void systemPageEvent(lv_event_t*) {
   showMenuPage(MenuPage::system);
 }
@@ -752,6 +908,12 @@ void sliderEvent(lv_event_t* event) {
         static_cast<std::uint8_t>(
             lv_slider_get_value(gUi.automaticBrightnessRangeSlider));
     refreshAutomaticBrightnessRangeLabel();
+    refreshMenuSummaries();
+  } else if (target == gUi.automaticBrightnessBiasSlider) {
+    gUi.settings.automaticBrightnessBiasPercent =
+        static_cast<std::int8_t>(
+            lv_slider_get_value(gUi.automaticBrightnessBiasSlider));
+    refreshAutomaticBrightnessBiasLabel();
     refreshMenuSummaries();
   } else if (target == gUi.volumeSlider) {
     gUi.settings.warningVolumePercent = static_cast<std::uint8_t>(
@@ -782,6 +944,7 @@ void soundSwitchEvent(lv_event_t*) {
   gUi.settings.warningSoundEnabled =
       lv_obj_has_state(gUi.soundSwitch, LV_STATE_CHECKED);
   refreshMenuSummaries();
+  refreshSoundEnabledLabel();
   queueSettingsApply();
 }
 
@@ -826,6 +989,21 @@ void brightnessModeEvent(lv_event_t* event) {
   queueSettingsApply();
 }
 
+void languageEvent(lv_event_t* event) {
+  gUi.settings.language =
+      lv_event_get_target_obj(event) == gUi.languageEnglishButton
+          ? UiLanguage::english
+          : UiLanguage::spanish;
+  refreshMenuControls();
+  setLabelTextIfChanged(
+      gUi.sourceBadge,
+      gUi.sourceBadgeText,
+      gUi.settings.dataSource == DataSource::demo
+          ? "DEMO"
+          : localizedText("SENSOR A1", "A1 SENSOR"));
+  queueSettingsApply();
+}
+
 void warningModeEvent(lv_event_t* event) {
   lv_obj_t* target = lv_event_get_target_obj(event);
   if (target == gUi.warningScreenButton) {
@@ -858,12 +1036,14 @@ void resetConfirmEvent(lv_event_t*) {
 }
 
 lv_obj_t* createMenuButton(lv_obj_t* parent,
-                           const char* text,
+                           const char* spanish,
+                           const char* english,
                            std::int32_t x,
                            std::int32_t y,
                            std::int32_t width,
                            std::int32_t height,
-                           lv_event_cb_t callback) {
+                           lv_event_cb_t callback,
+                           const lv_font_t* font = &oil_font_ui_16) {
   lv_obj_t* button = lv_button_create(parent);
   lv_obj_remove_style_all(button);
   lv_obj_set_pos(button, x, y);
@@ -874,20 +1054,23 @@ lv_obj_t* createMenuButton(lv_obj_t* parent,
   lv_obj_set_style_border_width(button, 1, 0);
   lv_obj_set_style_border_color(button, color(kLine), 0);
   lv_obj_add_event_cb(button, callback, LV_EVENT_CLICKED, nullptr);
-  createLabel(button,
-              text,
-              6,
-              (height - 20) / 2,
-              width - 12,
-              20,
-              &oil_font_ui_16,
-              color(kPrimary),
-              LV_TEXT_ALIGN_CENTER);
+  const std::int32_t lineHeight = font->line_height;
+  createLocalizedLabel(button,
+                       spanish,
+                       english,
+                       6,
+                       (height - lineHeight) / 2,
+                       width - 12,
+                       lineHeight,
+                       font,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_CENTER);
   return button;
 }
 
 lv_obj_t* createSectionButton(lv_obj_t* parent,
-                              const char* title,
+                              const char* spanish,
+                              const char* english,
                               std::int32_t x,
                               std::int32_t y,
                               std::int32_t width,
@@ -904,15 +1087,16 @@ lv_obj_t* createSectionButton(lv_obj_t* parent,
   lv_obj_set_style_border_width(button, 1, 0);
   lv_obj_set_style_border_color(button, color(kLine), 0);
   lv_obj_add_event_cb(button, callback, LV_EVENT_CLICKED, nullptr);
-  createLabel(button,
-              title,
-              14,
-              15,
-              width - 28,
-              22,
-              &oil_font_ui_16,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(button,
+                       spanish,
+                       english,
+                       14,
+                       13,
+                       width - 28,
+                       24,
+                       &oil_font_ui_16,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_LEFT);
   summaryLabel = createLabel(button,
                              "--",
                              14,
@@ -926,23 +1110,26 @@ lv_obj_t* createSectionButton(lv_obj_t* parent,
 }
 
 lv_obj_t* createSettingsPage(MenuPage page,
-                             const char* title,
+                             const char* spanish,
+                             const char* english,
                              bool homePage) {
   lv_obj_t* pageObject =
       createSolid(gUi.menu, 0, 0, kCanvasWidth, kCanvasWidth, 0);
   lv_obj_set_style_bg_color(pageObject, color(kBlack), 0);
   gUi.menuPages[static_cast<std::size_t>(page)] = pageObject;
-  createLabel(pageObject,
-              title,
-              28,
-              22,
-              280,
-              34,
-              &lv_font_montserrat_24,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(pageObject,
+                       spanish,
+                       english,
+                       28,
+                       22,
+                       280,
+                       34,
+                       &lv_font_montserrat_24,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_LEFT);
   createMenuButton(pageObject,
                    homePage ? "CERRAR" : "ATRÁS",
+                   homePage ? "CLOSE" : "BACK",
                    340,
                    12,
                    112,
@@ -985,108 +1172,151 @@ void createSettingsMenu(lv_obj_t* screen) {
   gUi.menu = createSolid(screen, 0, 0, kCanvasWidth, kCanvasWidth, 0);
   lv_obj_set_style_bg_color(gUi.menu, color(kBlack), 0);
 
-  lv_obj_t* home = createSettingsPage(MenuPage::home, "AJUSTES", true);
+  lv_obj_t* home =
+      createSettingsPage(MenuPage::home, "AJUSTES", "SETTINGS", true);
   createSectionButton(home,
                       "BRILLO",
+                      "BRIGHTNESS",
                       28,
-                      82,
+                      78,
                       206,
-                      80,
+                      78,
                       brightnessPageEvent,
                       gUi.homeBrightnessSummary);
   createSectionButton(home,
                       "DATOS",
+                      "DATA",
                       246,
-                      82,
+                      78,
                       206,
-                      80,
+                      78,
                       dataPageEvent,
                       gUi.homeDataSummary);
   createSectionButton(home,
                       "AVISOS",
+                      "WARNINGS",
                       28,
-                      173,
+                      166,
                       206,
-                      80,
+                      78,
                       warningsPageEvent,
                       gUi.homeWarningsSummary);
   createSectionButton(home,
                       "SONIDO",
+                      "SOUND",
                       246,
-                      173,
+                      166,
                       206,
-                      80,
+                      78,
                       soundPageEvent,
                       gUi.homeSoundSummary);
   createSectionButton(home,
                       "UNIDADES",
+                      "UNITS",
                       28,
-                      264,
+                      254,
                       206,
-                      80,
+                      78,
                       unitsPageEvent,
                       gUi.homeUnitsSummary);
   createSectionButton(home,
                       "ARRANQUE",
+                      "STARTUP",
                       246,
-                      264,
+                      254,
                       206,
-                      80,
+                      78,
                       startupPageEvent,
                       gUi.homeStartupSummary);
+  createSectionButton(home,
+                      "IDIOMA",
+                      "LANGUAGE",
+                      28,
+                      342,
+                      206,
+                      78,
+                      languagePageEvent,
+                      gUi.homeLanguageSummary);
   lv_obj_t* systemSummary = nullptr;
   createSectionButton(home,
                       "SISTEMA",
-                      28,
-                      356,
-                      424,
-                      92,
+                      "SYSTEM",
+                      246,
+                      342,
+                      206,
+                      78,
                       systemPageEvent,
                       systemSummary);
-  lv_label_set_text(systemSummary, "RESTABLECER AJUSTES");
+  registerLocalizedLabel(
+      systemSummary, "RESTABLECER AJUSTES", "RESET SETTINGS");
+  lv_label_set_text(systemSummary,
+                    localizedText("RESTABLECER AJUSTES", "RESET SETTINGS"));
 
   lv_obj_t* brightness =
-      createSettingsPage(MenuPage::brightness, "BRILLO", false);
-  createLabel(brightness,
-              "MODO DE BRILLO",
-              28,
-              82,
-              220,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+      createSettingsPage(MenuPage::brightness,
+                         "BRILLO",
+                         "BRIGHTNESS",
+                         false);
+  createLocalizedLabel(brightness,
+                       "MODO DE BRILLO",
+                       "BRIGHTNESS MODE",
+                       28,
+                       72,
+                       300,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.brightnessAutoButton = createMenuButton(
-      brightness, "AUTO", 28, 112, 150, 48, brightnessModeEvent);
+      brightness,
+      "AUTO",
+      "AUTO",
+      28,
+      102,
+      206,
+      50,
+      brightnessModeEvent,
+      &oil_font_ui_24);
   gUi.brightnessManualButton = createMenuButton(
-      brightness, "MANUAL", 194, 112, 150, 48, brightnessModeEvent);
+      brightness,
+      "MANUAL",
+      "MANUAL",
+      246,
+      102,
+      206,
+      50,
+      brightnessModeEvent,
+      &oil_font_ui_24);
   gUi.brightnessValue = createLabel(brightness,
-                                    "RESPALDO MANUAL: 55%",
+                                    localizedText("RESPALDO MANUAL: 55%",
+                                                  "MANUAL BACKUP: 55%"),
                                     28,
-                                    178,
-                                    360,
-                                    24,
-                                    &oil_font_ui_16,
+                                    163,
+                                    424,
+                                    28,
+                                    &oil_font_ui_24,
                                     color(kPrimary),
                                     LV_TEXT_ALIGN_LEFT);
   gUi.brightnessSlider = lv_slider_create(brightness);
-  lv_obj_set_pos(gUi.brightnessSlider, 28, 214);
+  lv_obj_set_pos(gUi.brightnessSlider, 28, 197);
   lv_obj_set_size(gUi.brightnessSlider, 424, 16);
   lv_slider_set_range(gUi.brightnessSlider, 5, 100);
   styleSlider(gUi.brightnessSlider);
   lv_obj_add_event_cb(
       gUi.brightnessSlider, sliderEvent, LV_EVENT_VALUE_CHANGED, nullptr);
   gUi.automaticBrightnessRangeValue = createLabel(brightness,
-                                                   "LÍMITES AUTO: 20–100%",
+                                                   localizedText(
+                                                       "LÍMITES AUTO: 20–100%",
+                                                       "AUTO LIMITS: 20–100%"),
                                                    28,
-                                                   254,
+                                                   224,
                                                    424,
-                                                   24,
-                                                   &oil_font_ui_16,
+                                                   28,
+                                                   &oil_font_ui_24,
                                                    color(kPrimary),
                                                    LV_TEXT_ALIGN_LEFT);
   gUi.automaticBrightnessRangeSlider = lv_slider_create(brightness);
-  lv_obj_set_pos(gUi.automaticBrightnessRangeSlider, 28, 290);
+  lv_obj_set_pos(gUi.automaticBrightnessRangeSlider, 28, 258);
   lv_obj_set_size(gUi.automaticBrightnessRangeSlider, 424, 16);
   lv_slider_set_mode(
       gUi.automaticBrightnessRangeSlider, LV_SLIDER_MODE_RANGE);
@@ -1096,124 +1326,194 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
+  gUi.automaticBrightnessBiasValue = createLabel(
+      brightness,
+      localizedText("CURVA AUTO: NORMAL", "AUTO CURVE: NORMAL"),
+      28,
+      285,
+      424,
+      28,
+      &oil_font_ui_24,
+      color(kPrimary),
+      LV_TEXT_ALIGN_LEFT);
+  gUi.automaticBrightnessBiasSlider = lv_slider_create(brightness);
+  lv_obj_set_pos(gUi.automaticBrightnessBiasSlider, 28, 319);
+  lv_obj_set_size(gUi.automaticBrightnessBiasSlider, 424, 16);
+  lv_slider_set_range(
+      gUi.automaticBrightnessBiasSlider,
+      kAutomaticBrightnessBiasMinimum,
+      kAutomaticBrightnessBiasMaximum);
+  styleSlider(gUi.automaticBrightnessBiasSlider);
+  lv_obj_add_event_cb(gUi.automaticBrightnessBiasSlider,
+                      sliderEvent,
+                      LV_EVENT_VALUE_CHANGED,
+                      nullptr);
+  createLocalizedLabel(brightness,
+                       "MÁS OSCURA",
+                       "DARKER",
+                       28,
+                       340,
+                       206,
+                       21,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(brightness,
+                       "MÁS BRILLANTE",
+                       "BRIGHTER",
+                       246,
+                       340,
+                       206,
+                       21,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_RIGHT);
   gUi.ambientLuxLabel = createLabel(brightness,
-                                     "LUZ HUB: --",
+                                     localizedText("LUZ HUB: --",
+                                                   "HUB LIGHT: --"),
                                      28,
-                                     326,
-                                    424,
-                                    20,
-                                    &oil_font_ui_12,
-                                    color(kPrimary),
-                                    LV_TEXT_ALIGN_LEFT);
+                                     369,
+                                     424,
+                                     21,
+                                     &oil_font_ui_16,
+                                     color(kPrimary),
+                                     LV_TEXT_ALIGN_LEFT);
   gUi.ambientStateLabel = createLabel(brightness,
-                                       "UART: ESPERANDO LUZ",
+                                       localizedText("UART: ESPERANDO LUZ",
+                                                     "UART: WAITING FOR LIGHT"),
                                        28,
-                                       350,
-                                      424,
-                                      20,
-                                      &oil_font_ui_12,
-                                      color(kSecondary),
-                                      LV_TEXT_ALIGN_LEFT);
+                                       395,
+                                       424,
+                                       21,
+                                       &oil_font_ui_16,
+                                       color(kSecondary),
+                                       LV_TEXT_ALIGN_LEFT);
   gUi.automaticBrightnessLabel = createLabel(brightness,
-                                               "AUTO ESPERANDO · APLICADO: 55%",
+                                               localizedText(
+                                                   "AUTO ESPERANDO · APLICADO: 55%",
+                                                   "AUTO WAITING · APPLIED: 55%"),
                                                28,
-                                               374,
-                                              424,
-                                              20,
-                                              &oil_font_ui_12,
-                                              color(kSecondary),
-                                              LV_TEXT_ALIGN_LEFT);
+                                               421,
+                                               424,
+                                               21,
+                                               &oil_font_ui_16,
+                                               color(kSecondary),
+                                               LV_TEXT_ALIGN_LEFT);
 
-  lv_obj_t* data = createSettingsPage(MenuPage::data, "DATOS", false);
-  createLabel(data,
-              "FUENTE DE DATOS",
-              28,
-              92,
-              260,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
-  gUi.demoButton =
-      createMenuButton(data, "DEMO", 28, 126, 150, 50, dataSourceEvent);
+  lv_obj_t* data =
+      createSettingsPage(MenuPage::data, "DATOS", "DATA", false);
+  createLocalizedLabel(data,
+                       "FUENTE DE DATOS",
+                       "DATA SOURCE",
+                       28,
+                       84,
+                       300,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  gUi.demoButton = createMenuButton(data,
+                                    "DEMO",
+                                    "DEMO",
+                                    28,
+                                    122,
+                                    206,
+                                    56,
+                                    dataSourceEvent,
+                                    &oil_font_ui_24);
   gUi.sensorsButton = createMenuButton(
-      data, "SENSORES", 194, 126, 150, 50, dataSourceEvent);
-  createLabel(data,
-              "DEMO GENERA LA SECUENCIA DE PRUEBA",
-              28,
-              210,
-              424,
-              20,
-              &oil_font_ui_12,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
-  createLabel(data,
-              "TEMPERATURA A1: CALIBRACIÓN PROVISIONAL",
-              28,
-              246,
-              424,
-              20,
-              &oil_font_ui_12,
-              color(kWarningRed),
-              LV_TEXT_ALIGN_LEFT);
-  createLabel(data,
-              "PRESIÓN: CALIBRACIÓN PENDIENTE",
-              28,
-              276,
-              424,
-              20,
-              &oil_font_ui_12,
-              color(kWarningRed),
-              LV_TEXT_ALIGN_LEFT);
+      data,
+      "SENSORES",
+      "SENSORS",
+      246,
+      122,
+      206,
+      56,
+      dataSourceEvent,
+      &oil_font_ui_24);
+  createLocalizedLabel(data,
+                       "DEMO GENERA LA SECUENCIA DE PRUEBA",
+                       "DEMO RUNS THE TEST SEQUENCE",
+                       28,
+                       210,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(data,
+                       "TEMP. A1: CALIBRACIÓN PROVISIONAL",
+                       "A1 TEMP: PROVISIONAL CALIBRATION",
+                       28,
+                       250,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kWarningRed),
+                       LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(data,
+                       "PRESIÓN: CALIBRACIÓN PENDIENTE",
+                       "PRESSURE: CALIBRATION PENDING",
+                       28,
+                       286,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kWarningRed),
+                       LV_TEXT_ALIGN_LEFT);
 
   lv_obj_t* warnings =
-      createSettingsPage(MenuPage::warnings, "AVISOS", false);
-  createLabel(warnings,
-              "PRESIÓN BAJA",
-              28,
-              82,
-              240,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+      createSettingsPage(MenuPage::warnings, "AVISOS", "WARNINGS", false);
+  createLocalizedLabel(warnings,
+                       "PRESIÓN BAJA",
+                       "LOW PRESSURE",
+                       28,
+                       72,
+                       280,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.pressureWarningValue = createLabel(warnings,
-                                         "UMBRAL: 10 PSI",
+                                         localizedText("UMBRAL: 10 PSI",
+                                                       "THRESHOLD: 10 PSI"),
                                          28,
-                                         112,
-                                         260,
-                                         24,
-                                         &oil_font_ui_16,
+                                         100,
+                                         360,
+                                         28,
+                                         &oil_font_ui_24,
                                          color(kPrimary),
                                          LV_TEXT_ALIGN_LEFT);
   gUi.pressureWarningSlider = lv_slider_create(warnings);
-  lv_obj_set_pos(gUi.pressureWarningSlider, 28, 148);
+  lv_obj_set_pos(gUi.pressureWarningSlider, 28, 137);
   lv_obj_set_size(gUi.pressureWarningSlider, 424, 16);
   styleSlider(gUi.pressureWarningSlider);
   lv_obj_add_event_cb(gUi.pressureWarningSlider,
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-  createLabel(warnings,
-              "TEMPERATURA ALTA",
-              28,
-              190,
-              260,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(warnings,
+                       "TEMPERATURA ALTA",
+                       "HIGH TEMPERATURE",
+                       28,
+                       174,
+                       320,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.temperatureWarningValue = createLabel(warnings,
-                                            "UMBRAL: 120 °C",
+                                            localizedText("UMBRAL: 120 °C",
+                                                          "THRESHOLD: 120 °C"),
                                             28,
-                                            220,
-                                            260,
-                                            24,
-                                            &oil_font_ui_16,
+                                            202,
+                                            360,
+                                            28,
+                                            &oil_font_ui_24,
                                             color(kPrimary),
                                             LV_TEXT_ALIGN_LEFT);
   gUi.temperatureWarningSlider = lv_slider_create(warnings);
-  lv_obj_set_pos(gUi.temperatureWarningSlider, 28, 256);
+  lv_obj_set_pos(gUi.temperatureWarningSlider, 28, 239);
   lv_obj_set_size(gUi.temperatureWarningSlider, 424, 16);
   lv_slider_set_range(gUi.temperatureWarningSlider, 110, 140);
   styleSlider(gUi.temperatureWarningSlider);
@@ -1221,123 +1521,192 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-  createLabel(warnings,
-              "AVISO VISUAL",
-              28,
-              298,
-              240,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(warnings,
+                       "AVISO VISUAL",
+                       "VISUAL WARNING",
+                       28,
+                       276,
+                       280,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.warningElementsButton = createMenuButton(
-      warnings, "ELEMENTOS", 28, 330, 136, 50, warningModeEvent);
+      warnings,
+      "ELEMENTOS",
+      "ELEMENTS",
+      28,
+      310,
+      136,
+      52,
+      warningModeEvent);
   gUi.warningScreenButton = createMenuButton(
-      warnings, "PANTALLA", 172, 330, 136, 50, warningModeEvent);
+      warnings,
+      "PANTALLA",
+      "SCREEN",
+      172,
+      310,
+      136,
+      52,
+      warningModeEvent);
   gUi.warningFixedButton = createMenuButton(
-      warnings, "FIJO", 316, 330, 136, 50, warningModeEvent);
+      warnings,
+      "FIJO",
+      "FIXED",
+      316,
+      310,
+      136,
+      52,
+      warningModeEvent);
   gUi.warningModeDescription = createLabel(warnings,
-                                           "ELEMENTOS · 2 HZ",
+                                           localizedText("ELEMENTOS · 2 HZ",
+                                                         "ELEMENTS · 2 HZ"),
                                            28,
-                                           398,
+                                           382,
                                            424,
-                                           20,
-                                           &oil_font_ui_12,
+                                           24,
+                                           &oil_font_ui_16,
                                            color(kSecondary),
                                            LV_TEXT_ALIGN_LEFT);
 
-  lv_obj_t* sound = createSettingsPage(MenuPage::sound, "SONIDO", false);
-  createLabel(sound,
-              "SONIDO DE AVISO",
-              28,
-              96,
-              240,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
-  createLabel(sound,
-              "ACTIVADO",
-              28,
-              132,
-              190,
-              24,
-              &oil_font_ui_16,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
+  lv_obj_t* sound =
+      createSettingsPage(MenuPage::sound, "SONIDO", "SOUND", false);
+  createLocalizedLabel(sound,
+                       "SONIDO DE AVISO",
+                       "WARNING SOUND",
+                       28,
+                       92,
+                       300,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  gUi.soundEnabledValue = createLabel(
+      sound,
+      localizedText("ACTIVADO", "ENABLED"),
+      28,
+      132,
+      260,
+      28,
+      &oil_font_ui_24,
+      color(kPrimary),
+      LV_TEXT_ALIGN_LEFT);
   gUi.soundSwitch = lv_switch_create(sound);
   lv_obj_set_pos(gUi.soundSwitch, 370, 123);
   lv_obj_set_size(gUi.soundSwitch, 82, 42);
   lv_obj_add_event_cb(
       gUi.soundSwitch, soundSwitchEvent, LV_EVENT_VALUE_CHANGED, nullptr);
   gUi.volumeValue = createLabel(sound,
-                                "VOLUMEN: 35%",
+                                localizedText("VOLUMEN: 35%", "VOLUME: 35%"),
                                 28,
-                                190,
-                                220,
-                                24,
-                                &oil_font_ui_16,
+                                195,
+                                300,
+                                28,
+                                &oil_font_ui_24,
                                 color(kPrimary),
                                 LV_TEXT_ALIGN_LEFT);
   gUi.volumeSlider = lv_slider_create(sound);
-  lv_obj_set_pos(gUi.volumeSlider, 28, 228);
+  lv_obj_set_pos(gUi.volumeSlider, 28, 235);
   lv_obj_set_size(gUi.volumeSlider, 424, 16);
   lv_slider_set_range(gUi.volumeSlider, 5, 100);
   styleSlider(gUi.volumeSlider);
   lv_obj_add_event_cb(
       gUi.volumeSlider, sliderEvent, LV_EVENT_VALUE_CHANGED, nullptr);
-  createMenuButton(sound, "PROBAR SONIDO", 28, 286, 200, 52, testSoundEvent);
+  createMenuButton(sound,
+                   "PROBAR SONIDO",
+                   "TEST SOUND",
+                   28,
+                   286,
+                   424,
+                   58,
+                   testSoundEvent,
+                   &oil_font_ui_24);
 
-  lv_obj_t* units = createSettingsPage(MenuPage::units, "UNIDADES", false);
-  createLabel(units,
-              "PRESIÓN",
-              28,
-              96,
-              180,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
-  gUi.unitPsiButton =
-      createMenuButton(units, "PSI", 28, 130, 150, 50, unitEvent);
-  gUi.unitBarButton =
-      createMenuButton(units, "BAR", 194, 130, 150, 50, unitEvent);
-  createLabel(units,
-              "TEMPERATURA",
-              28,
-              218,
-              220,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  lv_obj_t* units =
+      createSettingsPage(MenuPage::units, "UNIDADES", "UNITS", false);
+  createLocalizedLabel(units,
+                       "PRESIÓN",
+                       "PRESSURE",
+                       28,
+                       90,
+                       240,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  gUi.unitPsiButton = createMenuButton(units,
+                                       "PSI",
+                                       "PSI",
+                                       28,
+                                       128,
+                                       206,
+                                       58,
+                                       unitEvent,
+                                       &oil_font_ui_24);
+  gUi.unitBarButton = createMenuButton(units,
+                                       "BAR",
+                                       "BAR",
+                                       246,
+                                       128,
+                                       206,
+                                       58,
+                                       unitEvent,
+                                       &oil_font_ui_24);
+  createLocalizedLabel(units,
+                       "TEMPERATURA",
+                       "TEMPERATURE",
+                       28,
+                       222,
+                       280,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.unitCelsiusButton = createMenuButton(
-      units, "°C", 28, 252, 150, 50, temperatureUnitEvent);
+      units,
+      "°C",
+      "°C",
+      28,
+      260,
+      206,
+      58,
+      temperatureUnitEvent,
+      &oil_font_ui_24);
   gUi.unitFahrenheitButton = createMenuButton(
-      units, "°F", 194, 252, 150, 50, temperatureUnitEvent);
+      units,
+      "°F",
+      "°F",
+      246,
+      260,
+      206,
+      58,
+      temperatureUnitEvent,
+      &oil_font_ui_24);
 
   lv_obj_t* startup =
-      createSettingsPage(MenuPage::startup, "ARRANQUE", false);
-  createLabel(startup,
-              "LOGOTIPO HONDA / CIVIC",
-              28,
-              96,
-              300,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+      createSettingsPage(MenuPage::startup, "ARRANQUE", "STARTUP", false);
+  createLocalizedLabel(startup,
+                       "LOGOTIPO HONDA / CIVIC",
+                       "HONDA / CIVIC LOGO",
+                       28,
+                       94,
+                       360,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.startupLogoValue = createLabel(startup,
-                                     "DURACIÓN: 1 S",
+                                     localizedText("DURACIÓN: 1 S",
+                                                   "DURATION: 1 S"),
                                      28,
-                                     134,
-                                     300,
-                                     24,
-                                     &oil_font_ui_16,
+                                     136,
+                                     360,
+                                     28,
+                                     &oil_font_ui_24,
                                      color(kPrimary),
                                      LV_TEXT_ALIGN_LEFT);
   gUi.startupLogoSlider = lv_slider_create(startup);
-  lv_obj_set_pos(gUi.startupLogoSlider, 28, 172);
+  lv_obj_set_pos(gUi.startupLogoSlider, 28, 176);
   lv_obj_set_size(gUi.startupLogoSlider, 424, 16);
   lv_slider_set_range(gUi.startupLogoSlider, 0, 10);
   styleSlider(gUi.startupLogoSlider);
@@ -1345,65 +1714,132 @@ void createSettingsMenu(lv_obj_t* screen) {
                       sliderEvent,
                       LV_EVENT_VALUE_CHANGED,
                       nullptr);
-  createLabel(startup,
-              "0 SEGUNDOS DESACTIVA EL LOGOTIPO",
-              28,
-              216,
-              424,
-              20,
-              &oil_font_ui_12,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(startup,
+                       "0 SEGUNDOS DESACTIVA EL LOGOTIPO",
+                       "0 SECONDS DISABLES THE LOGO",
+                       28,
+                       216,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+
+  lv_obj_t* language =
+      createSettingsPage(MenuPage::language, "IDIOMA", "LANGUAGE", false);
+  createLocalizedLabel(language,
+                       "IDIOMA DE LA INTERFAZ",
+                       "INTERFACE LANGUAGE",
+                       28,
+                       92,
+                       360,
+                       28,
+                       &oil_font_ui_24,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  gUi.languageSpanishButton = createMenuButton(language,
+                                               "ESPAÑOL",
+                                               "SPANISH",
+                                               28,
+                                               132,
+                                               206,
+                                               58,
+                                               languageEvent,
+                                               &oil_font_ui_24);
+  gUi.languageEnglishButton = createMenuButton(language,
+                                               "INGLÉS",
+                                               "ENGLISH",
+                                               246,
+                                               132,
+                                               206,
+                                               58,
+                                               languageEvent,
+                                               &oil_font_ui_24);
+  createLocalizedLabel(language,
+                       "SE APLICA AL INSTANTE Y SE GUARDA AL CERRAR",
+                       "APPLIES NOW AND SAVES WHEN CLOSING",
+                       28,
+                       218,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
 
   lv_obj_t* system =
-      createSettingsPage(MenuPage::system, "SISTEMA", false);
-  createLabel(system,
-              "LOS CAMBIOS SE GUARDAN AL CERRAR",
-              28,
-              100,
-              424,
-              24,
-              &oil_font_ui_16,
-              color(kPrimary),
-              LV_TEXT_ALIGN_LEFT);
-  createLabel(system,
-              "RECUPERA TODOS LOS VALORES PREDETERMINADOS",
-              28,
-              146,
-              424,
-              20,
-              &oil_font_ui_12,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
-  createMenuButton(
-      system, "RESTABLECER", 28, 206, 190, 52, resetRequestEvent);
+      createSettingsPage(MenuPage::system, "SISTEMA", "SYSTEM", false);
+  createLocalizedLabel(system,
+                       "LOS CAMBIOS SE GUARDAN AL CERRAR",
+                       "CHANGES ARE SAVED WHEN CLOSING",
+                       28,
+                       96,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(system,
+                       "RESTAURA TODOS LOS VALORES DE FÁBRICA",
+                       "RESTORES ALL DEFAULT VALUES",
+                       28,
+                       142,
+                       424,
+                       24,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
+  createMenuButton(system,
+                   "RESTABLECER",
+                   "RESET",
+                   28,
+                   205,
+                   424,
+                   58,
+                   resetRequestEvent,
+                   &oil_font_ui_24);
 
   gUi.resetConfirm = createSolid(screen, 30, 125, 420, 230, 18);
   lv_obj_set_style_bg_color(gUi.resetConfirm, color(kPanel), 0);
   lv_obj_set_style_border_width(gUi.resetConfirm, 2, 0);
   lv_obj_set_style_border_color(gUi.resetConfirm, color(kPrimary), 0);
-  createLabel(gUi.resetConfirm,
-              "¿RESTABLECER AJUSTES?",
-              24,
-              32,
-              372,
-              30,
-              &lv_font_montserrat_24,
-              color(kPrimary),
-              LV_TEXT_ALIGN_CENTER);
-  createLabel(gUi.resetConfirm,
-              "VOLVERÁN LOS VALORES SEGUROS",
-              24,
-              82,
-              372,
-              24,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_CENTER);
+  createLocalizedLabel(gUi.resetConfirm,
+                       "¿RESTABLECER AJUSTES?",
+                       "RESET SETTINGS?",
+                       24,
+                       32,
+                       372,
+                       30,
+                       &oil_font_ui_24,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_CENTER);
+  createLocalizedLabel(gUi.resetConfirm,
+                       "VOLVERÁN LOS VALORES SEGUROS",
+                       "SAFE DEFAULTS WILL BE RESTORED",
+                       24,
+                       82,
+                       372,
+                       24,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_CENTER);
   createMenuButton(
-      gUi.resetConfirm, "CANCELAR", 24, 148, 174, 54, resetCancelEvent);
+      gUi.resetConfirm,
+      "CANCELAR",
+      "CANCEL",
+      24,
+      148,
+      174,
+      54,
+      resetCancelEvent);
   createMenuButton(
-      gUi.resetConfirm, "RESTABLECER", 222, 148, 174, 54, resetConfirmEvent);
+      gUi.resetConfirm,
+      "RESTABLECER",
+      "RESET",
+      222,
+      148,
+      174,
+      54,
+      resetConfirmEvent);
   lv_obj_add_flag(gUi.resetConfirm, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(gUi.menu, LV_OBJ_FLAG_HIDDEN);
 }
@@ -1422,24 +1858,26 @@ void createFullScreenWarning(lv_obj_t* screen) {
                                              color(kPrimary),
                                              LV_TEXT_ALIGN_CENTER);
   lv_obj_set_style_text_letter_space(gUi.fullScreenPressureValue, -5, 0);
-  createLabel(gUi.fullScreenWarning,
-              "PELIGRO",
-              38,
-              210,
-              404,
-              48,
-              &oil_font_warning_36,
-              color(kPrimary),
-              LV_TEXT_ALIGN_CENTER);
-  createLabel(gUi.fullScreenWarning,
-              "PRESIÓN MUY BAJA",
-              38,
-              266,
-              404,
-              48,
-              &oil_font_warning_36,
-              color(kPrimary),
-              LV_TEXT_ALIGN_CENTER);
+  createLocalizedLabel(gUi.fullScreenWarning,
+                       "PELIGRO",
+                       "DANGER",
+                       38,
+                       210,
+                       404,
+                       48,
+                       &oil_font_warning_36,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_CENTER);
+  createLocalizedLabel(gUi.fullScreenWarning,
+                       "PRESIÓN MUY BAJA",
+                       "LOW OIL PRESSURE",
+                       38,
+                       266,
+                       404,
+                       48,
+                       &oil_font_warning_36,
+                       color(kPrimary),
+                       LV_TEXT_ALIGN_CENTER);
   lv_obj_add_flag(gUi.fullScreenWarning, LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -1525,40 +1963,40 @@ void updateBar(BarWidgets& bar,
 const char* pressureLabel(PressureState state) {
   switch (state) {
     case PressureState::fault:
-      return "FALLO SENSOR";
+      return localizedText("FALLO SENSOR", "SENSOR FAULT");
     case PressureState::engineUnknown:
-      return "RPM SIN DATOS";
+      return localizedText("RPM SIN DATOS", "NO RPM DATA");
     case PressureState::engineStopped:
-      return "MOTOR PARADO";
+      return localizedText("MOTOR PARADO", "ENGINE OFF");
     case PressureState::warning:
       return "WARNING";
     case PressureState::low:
-      return "PRESIÓN BAJA";
+      return localizedText("PRESIÓN BAJA", "LOW PRESSURE");
     case PressureState::ok:
       return "OK";
     case PressureState::high:
-      return "PRESIÓN ALTA";
+      return localizedText("PRESIÓN ALTA", "HIGH PRESSURE");
   }
-  return "FALLO";
+  return localizedText("FALLO", "FAULT");
 }
 
 const char* temperatureLabel(TemperatureState state) {
   switch (state) {
     case TemperatureState::fault:
-      return "FALLO SENSOR";
+      return localizedText("FALLO SENSOR", "SENSOR FAULT");
     case TemperatureState::belowRange:
     case TemperatureState::cold:
-      return "FRÍO";
+      return localizedText("FRÍO", "COLD");
     case TemperatureState::warming:
-      return "CALENTANDO";
+      return localizedText("CALENTANDO", "WARMING");
     case TemperatureState::optimal:
-      return "ÓPTIMO";
+      return localizedText("ÓPTIMO", "OPTIMAL");
     case TemperatureState::veryHot:
-      return "MUY CALIENTE";
+      return localizedText("MUY CALIENTE", "VERY HOT");
     case TemperatureState::warning:
       return "WARNING";
   }
-  return "FALLO";
+  return localizedText("FALLO", "FAULT");
 }
 
 }  // namespace
@@ -1588,7 +2026,9 @@ void createOilGaugeUi(lv_obj_t* screen,
 
   gUi.sourceBadge = createLabel(
       gUi.gaugeRoot,
-      gUi.settings.dataSource == DataSource::demo ? "DEMO" : "SENSOR A1",
+      gUi.settings.dataSource == DataSource::demo
+          ? "DEMO"
+          : localizedText("SENSOR A1", "A1 SENSOR"),
       180,
       7,
       120,
@@ -1597,15 +2037,16 @@ void createOilGaugeUi(lv_obj_t* screen,
       color(kSecondary),
       LV_TEXT_ALIGN_CENTER);
 
-  createLabel(gUi.gaugeRoot,
-              "PRESIÓN ACEITE",
-              kContentX,
-              34,
-              190,
-              20,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(gUi.gaugeRoot,
+                       "PRESIÓN ACEITE",
+                       "OIL PRESSURE",
+                       kContentX,
+                       34,
+                       190,
+                       20,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.pressureState = createLabel(gUi.gaugeRoot,
                                   "OK",
                                   230,
@@ -1641,17 +2082,18 @@ void createOilGaugeUi(lv_obj_t* screen,
       createBar(gUi.gaugeRoot, 188, kPressureTicks, std::size(kPressureTicks),
                 0);
 
-  createLabel(gUi.gaugeRoot,
-              "TEMPERATURA ACEITE",
-              kContentX,
-              274,
-              230,
-              20,
-              &oil_font_ui_16,
-              color(kSecondary),
-              LV_TEXT_ALIGN_LEFT);
+  createLocalizedLabel(gUi.gaugeRoot,
+                       "TEMPERATURA ACEITE",
+                       "OIL TEMPERATURE",
+                       kContentX,
+                       274,
+                       230,
+                       20,
+                       &oil_font_ui_16,
+                       color(kSecondary),
+                       LV_TEXT_ALIGN_LEFT);
   gUi.temperatureState = createLabel(gUi.gaugeRoot,
-                                     "ÓPTIMO",
+                                     localizedText("ÓPTIMO", "OPTIMAL"),
                                      230,
                                      268,
                                      212,
@@ -1721,7 +2163,9 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   setLabelTextIfChanged(
       gUi.sourceBadge,
       gUi.sourceBadgeText,
-      gUi.settings.dataSource == DataSource::demo ? "DEMO" : "SENSOR A1");
+      gUi.settings.dataSource == DataSource::demo
+          ? "DEMO"
+          : localizedText("SENSOR A1", "A1 SENSOR"));
   const bool sensorSource = gUi.settings.dataSource == DataSource::sensors;
   const bool pressurePending = sensorSource && !pressure.valid();
   const bool temperaturePending = sensorSource && !temperature.valid();
@@ -1774,7 +2218,7 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   }
   setLabelTextIfChanged(gUi.pressureState,
                         gUi.pressureStateText,
-                        pressurePending ? "SIN DATOS"
+                        pressurePending ? localizedText("SIN DATOS", "NO DATA")
                                         : pressureLabel(state.pressure));
   if (!gUi.pressureColorSet ||
       !sameColor(gUi.pressureColor, pressureColorValue)) {
@@ -1827,7 +2271,7 @@ void updateOilGaugeUi(const ConvertedValue& pressure,
   setLabelTextIfChanged(gUi.temperatureState,
                         gUi.temperatureStateText,
                         temperaturePending
-                            ? "SIN DATOS"
+                            ? localizedText("SIN DATOS", "NO DATA")
                             : temperatureLabel(state.temperature));
   if (!gUi.temperatureColorSet ||
       !sameColor(gUi.temperatureColor, temperatureColorValue)) {

@@ -37,12 +37,14 @@ class AutomaticBrightnessController {
              std::uint8_t manualBackupPercent,
              std::uint8_t automaticMinimumPercent,
              std::uint8_t automaticMaximumPercent,
-             std::uint64_t localNowMs);
+             std::uint64_t localNowMs,
+             std::int8_t automaticBiasPercent = 0);
   void setPreferences(BrightnessMode mode,
                       std::uint8_t manualBackupPercent,
                       std::uint8_t automaticMinimumPercent,
                       std::uint8_t automaticMaximumPercent,
-                      std::uint64_t localNowMs);
+                      std::uint64_t localNowMs,
+                      std::int8_t automaticBiasPercent = 0);
   [[nodiscard]] AutomaticBrightnessStatus update(
       const CivicAuxSnapshot& snapshot,
       std::uint64_t localNowMs);
@@ -64,6 +66,7 @@ class AutomaticBrightnessController {
   std::uint8_t manualBackupPercent_ = 55;
   std::uint8_t automaticMinimumPercent_ = 20;
   std::uint8_t automaticMaximumPercent_ = 100;
+  std::int8_t automaticBiasPercent_ = 0;
   std::uint8_t fallbackStartPercent_ = 55;
   std::uint64_t fallbackStartedAtMs_ = 0;
   std::uint64_t automaticRampUpdatedAtMs_ = 0;
@@ -71,7 +74,7 @@ class AutomaticBrightnessController {
   std::uint32_t recoveryBaseGeneration_ = 0;
   std::uint32_t lastObservedUsableGeneration_ = 0;
   std::uint32_t lastObservedHubRestarts_ = 0;
-  bool automaticLimitsChanged_ = false;
+  bool automaticCurveSettingsChanged_ = false;
   bool initialized_ = false;
   AutomaticBrightnessStatus status_{};
 };

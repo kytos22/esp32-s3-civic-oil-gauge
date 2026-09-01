@@ -33,6 +33,10 @@ bool validBrightnessMode(BrightnessMode mode) {
   return mode == BrightnessMode::automatic || mode == BrightnessMode::manual;
 }
 
+bool validUiLanguage(UiLanguage language) {
+  return language == UiLanguage::spanish || language == UiLanguage::english;
+}
+
 }  // namespace
 
 GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
@@ -47,6 +51,10 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
     std::swap(settings.automaticBrightnessMinimumPercent,
               settings.automaticBrightnessMaximumPercent);
   }
+  settings.automaticBrightnessBiasPercent = std::clamp<std::int8_t>(
+      settings.automaticBrightnessBiasPercent,
+      kAutomaticBrightnessBiasMinimum,
+      kAutomaticBrightnessBiasMaximum);
   settings.warningVolumePercent = std::clamp<std::uint8_t>(
       settings.warningVolumePercent, 5, 100);
   settings.lowPressureWarningPsi = std::clamp<std::uint8_t>(
@@ -69,6 +77,9 @@ GaugeSettings sanitizeGaugeSettings(GaugeSettings settings) {
   }
   if (!validBrightnessMode(settings.brightnessMode)) {
     settings.brightnessMode = BrightnessMode::automatic;
+  }
+  if (!validUiLanguage(settings.language)) {
+    settings.language = UiLanguage::spanish;
   }
   return settings;
 }

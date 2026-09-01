@@ -18,6 +18,11 @@ bool readU8(nvs_handle_t handle, const char* key, std::uint8_t& value) {
   return result == ESP_OK;
 }
 
+bool readI8(nvs_handle_t handle, const char* key, std::int8_t& value) {
+  const esp_err_t result = nvs_get_i8(handle, key, &value);
+  return result == ESP_OK;
+}
+
 }  // namespace
 
 bool initSettingsStore() {
@@ -47,6 +52,10 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   }
   if (readU8(handle, "auto_max", value)) {
     settings.automaticBrightnessMaximumPercent = value;
+  }
+  std::int8_t signedValue = 0;
+  if (readI8(handle, "auto_bias", signedValue)) {
+    settings.automaticBrightnessBiasPercent = signedValue;
   }
   const bool brightnessModePresent = readU8(handle, "bright_mode", value);
   settings.brightnessMode =
@@ -78,6 +87,9 @@ GaugeSettings loadGaugeSettings(const GaugeSettings& defaults) {
   if (readU8(handle, "source", value)) {
     settings.dataSource = static_cast<DataSource>(value);
   }
+  if (readU8(handle, "language", value)) {
+    settings.language = static_cast<UiLanguage>(value);
+  }
   nvs_close(handle);
   return sanitizeGaugeSettings(settings);
 }
@@ -99,6 +111,10 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   if (result == ESP_OK) {
     result = nvs_set_u8(
         handle, "auto_max", settings.automaticBrightnessMaximumPercent);
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_i8(
+        handle, "auto_bias", settings.automaticBrightnessBiasPercent);
   }
   if (result == ESP_OK) {
     result = nvs_set_u8(
@@ -137,6 +153,10 @@ bool saveGaugeSettings(const GaugeSettings& rawSettings) {
   if (result == ESP_OK) {
     result = nvs_set_u8(
         handle, "source", static_cast<std::uint8_t>(settings.dataSource));
+  }
+  if (result == ESP_OK) {
+    result = nvs_set_u8(
+        handle, "language", static_cast<std::uint8_t>(settings.language));
   }
   if (result == ESP_OK) {
     result = nvs_commit(handle);

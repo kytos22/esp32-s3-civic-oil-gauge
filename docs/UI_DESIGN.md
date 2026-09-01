@@ -112,13 +112,14 @@ the explanatory fixed text beneath them is removed.
 
 A full-screen black settings shell opens after a stationary 700 ms hold. Its
 non-scrolling home page contains buttons for `BRILLO`, `DATOS`, `AVISOS`,
-`SONIDO`, `UNIDADES`, `ARRANQUE`, and `SISTEMA`, each with a compact current-value
-summary. A button opens one independent 480×480 subsection; all other pages are
-hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
+`SONIDO`, `UNIDADES`, `ARRANQUE`, `IDIOMA`, and `SISTEMA`, each with a compact
+current-value summary. A button opens one independent 480×480 subsection; all
+other pages are hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 
-- `BRILLO`: AUTO/MANUAL mode, numeric 5–100% manual/fallback value, two-handle
-  AUTO limits, and live hub lux/state/target/applied telemetry. Telemetry labels
-  update only while this subsection is visible.
+- `BRILLO`: full-width AUTO/MANUAL mode buttons, numeric 5–100% manual/fallback
+  value, two-handle AUTO limits, a persistent −30…+30-point AUTO curve offset,
+  and live hub lux/state/target/applied telemetry. Telemetry labels update only
+  while this subsection is visible.
 - `DATOS`: persistent `DEMO`/`SENSORES` source and the provisional A1/pending
   pressure notices.
 - `AVISOS`: pressure and temperature thresholds plus `ELEMENTOS 2 HZ`,
@@ -128,7 +129,14 @@ hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 - `UNIDADES`: separate PSI/BAR and °C/°F selectors.
 - `ARRANQUE`: Honda/Civic logo duration, 0–10 seconds; 0 disables it and 1 second
   is the default.
+- `IDIOMA`: persistent Spanish/English selection applied immediately to the
+  gauge, warning overlay, summaries, dialog, and every settings subsection.
 - `SISTEMA`: confirmation-protected settings reset.
+
+The 24 px UI and 36 px warning fonts contain the complete uppercase Spanish and
+English glyph set used by these surfaces. Both locales were measured against
+their fixed label widths; the tightest dynamic gauge state retains more than
+7 px of horizontal margin before the LVGL clip boundary.
 
 `ATRÁS` returns from a subsection to the home page without closing settings.
 `CERRAR` on the home page saves dirty preferences and returns to the gauge. There
@@ -190,10 +198,10 @@ characterized and compared against the MTX-D.
   metric and is not used as physical-presentation evidence for the current path.
 
 The PARTIAL v2 plus CivicAux base has run on the exact display and received real
-hub ambient-light frames. The sectioned-menu follow-up passes 69/69 native tests
-and produces a complete 1,079,488-byte ESP-IDF 6.0.2 image. Its home/subsection
-navigation, touch targets, panel errors and tearing still require the next
-exact-board acceptance run.
+hub ambient-light frames. The bilingual sectioned-menu follow-up passes 70/70
+native tests and produces a complete 1,096,800-byte ESP-IDF 6.0.2 image. Its new
+home/subsection typography, language switch, curve slider, touch targets, panel
+errors and tearing still require the next exact-board acceptance run.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

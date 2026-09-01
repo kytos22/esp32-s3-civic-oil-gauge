@@ -125,11 +125,13 @@ Temperature colors are linearly interpolated between:
 | boot-logo duration changed | persist 0–10 s for the next boot | 0 disables; default 1 s |
 | brightness mode `AUTO` | hold manual backup until two usable CivicAux frames, then apply provisional log-lux mapping | UART1 RX GPIO44; main loop is sole panel requester |
 | AUTO brightness range changed | recompute the current fresh target immediately, then slew the physical output | one range slider; default 20–100%; no new lux frame required |
+| AUTO curve offset changed | add −30…+30 points before range clamping and recompute immediately | preserves curve shape, deadband and ramp timing |
 | AUTO target changes | reject 1% chatter, then slew accepted changes at 40 percentage points/s brighter and 25 dimmer | MANUAL remains immediate; fallback keeps its 1.5 s transition |
 | brightness mode `MANUAL` | ignore lux for output and apply the saved slider value | hub diagnostics may remain visible in settings |
 | CivicAux invalid/stale | return smoothly to saved manual backup in 1.5 s | 1 s continued invalid traffic or 2 s without usable ambient data |
 | CivicAux recovery | resume AUTO after two new consecutive usable ambient frames | also required after hub uptime restart |
 | temperature units changed | convert the displayed value, unit, and references from canonical °C; `<50 °C` becomes `<122 °F` | never changes temperature states, colors, bar, calibration, or alarm math |
+| interface language changed | update every static and dynamic label immediately and persist on close | Spanish default; English changes no units or calculations |
 | temperature below 50 | render `<50` / `<122` in demo; render measured value in sensor bench mode; keep bar empty | valid sample |
 | demo frame | linear interpolation plus fractional-pixel bar edge between adjacent synthetic scenes | 15 ms producer target, TE-paced presentation |
 

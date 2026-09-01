@@ -83,7 +83,7 @@ No personal data exists. The device persists only sanitized gauge preferences.
 | Calibration | kind, coefficients/table, valid flag, source dataset, validation error | explicit valid flag; finite values; evidence reference |
 | ConvertedSample | pressure PSI, temperature °C, engine state, faults, timestamp | range and fault state carried with values |
 | DisplayState | pressure state, temperature state, blink phase, reduced-motion flag | deterministic mapping from sample |
-| GaugeSettings | brightness, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
+| GaugeSettings | manual brightness, AUTO limits/curve offset, language, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
 
 Calibration values are compile-time constants today. Persistent calibration storage is out of v1
 unless introduced by a recorded scope change.
@@ -191,13 +191,13 @@ See `docs/03-technical-plan.md`.
   not muted/unmuted at individual tone edges; zero-filled settling segments and the
   waveform envelope prevent an abrupt output step.
 - **AC-33:** A stationary 700 ms hold opens a full-screen black settings home;
-  ordinary taps and dragging do not. The home exposes seven buttons, and each
+  ordinary taps and dragging do not. The home exposes eight buttons, and each
   opens one independent non-scrolling subsection while all other menu pages stay
   hidden and unrendered. `ATRÁS` returns home; `CERRAR` saves changed safe
   preferences and returns to the gauge. The menu remains open during a pressure
   warning, and no gauge widgets or warning overlay are rendered behind it.
-- **AC-34:** Brightness, warning-sound enable/volume, units, warning presentation,
-  and selected data source
+- **AC-34:** Brightness mode/value/limits/curve offset, language,
+  warning-sound enable/volume, units, warning presentation, and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
   compile-time defaults. `SENSORES` is selectable and persistable while calibration
   is incomplete, but it displays `--` and `SIN DATOS`; it cannot start acquisition
@@ -261,8 +261,9 @@ See `docs/03-technical-plan.md`.
   trivially-copyable snapshot and never calls LVGL, panel, brightness, or NVS code.
 - **AC-46:** Brightness defaults to AUTO for a new/migrated/reset installation;
   MANUAL ignores lux and uses the saved slider. AUTO maps the nine provisional
-  points by linear interpolation over `log1p(lux)`, clamps the result to a
-  persistent two-handle range (20–100% default, 5–100% endpoint bounds), waits
+  points by linear interpolation over `log1p(lux)`, adds a persistent −30…+30
+  percentage-point curve offset, clamps the result to a persistent two-handle
+  range (20–100% default, 5–100% endpoint bounds), waits
   for two consecutive
   usable frames, falls back after 1 s of continued invalid traffic or 2 s without
   usable ambient data, reaches the manual backup smoothly in 1.5 s, and requires
@@ -273,12 +274,17 @@ See `docs/03-technical-plan.md`.
   slew at 40 percentage points/s brighter and 25 percentage points/s dimmer;
   MANUAL remains immediate.
 - **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, AUTO
-  minimum/maximum in one range slider, received lux, sensor/range/freshness,
+  minimum/maximum in one range slider, curve offset, received lux, sensor/range/freshness,
   stabilized AUTO target brightness, and current ramped applied brightness.
   The approved 480 x 480 main gauge is unchanged. Native software evidence must
   pass before a separately authorized bench flash; real UART reception, panel
   errors, tear-free behavior, and less than 5% display-cadence regression remain
   explicitly unverified until measured on the exact oil display.
+- **AC-48:** The interface language defaults safely to Spanish and can be switched
+  persistently to English. The selection updates every menu page, dynamic gauge
+  state, source label, reset dialog, and full-screen warning without changing
+  measurement units or sensor/alarm calculations. Both locales fit their fixed
+  label bounds in the software typography audit.
 
 ## Estimate
 

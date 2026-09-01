@@ -92,6 +92,10 @@ One persistent two-handle slider constrains AUTO independently. The safe default
 is 20–100%; both endpoints permit 5–100%. MANUAL and AUTO fallback still use the
 separate manual/backup value.
 
+A second persistent slider shifts the raw AUTO curve by −30…+30 percentage
+points. The offset is applied before the configured minimum/maximum clamp, so it
+can tune perceived brightness without changing the curve shape or ramp timing.
+
 Automatic lux samples never write NVS. Mode and slider changes are saved only
 through the existing explicit settings workflow.
 
@@ -102,7 +106,8 @@ The provisional mapping linearly interpolates over `log1p(lux)`:
 | Brightness | 5% | 7% | 12% | 20% | 35% | 50% | 65% | 85% | 100% |
 
 This curve is a software starting point, not an in-vehicle optical calibration.
-The table is the raw curve; the configured AUTO range clamps its result.
+The table is the raw curve; the configured offset is added first and the AUTO
+range then clamps its result.
 
 After range clamping, a 2-percentage-point target deadband absorbs 1% chatter
 from small lux fluctuations. Accepted AUTO targets are applied through a
@@ -126,9 +131,9 @@ transition to the saved backup.
 | 16-bit sequence wrap | Treat as continuous when the next sequence is zero |
 
 The settings page exposes AUTO/MANUAL, the manual/backup slider, the two-handle
-AUTO range, received lux, sensor/range/freshness, constrained AUTO percentage,
-and current ramped applied percentage. The approved main gauge screen is
-unchanged.
+AUTO range, the curve-offset slider, received lux, sensor/range/freshness,
+constrained AUTO percentage, and current ramped applied percentage. The approved
+main gauge screen is unchanged apart from its selectable Spanish/English labels.
 
 ## Physical validation still required
 
