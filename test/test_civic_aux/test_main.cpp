@@ -770,7 +770,7 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
   const CivicAuxSnapshot active =
       usableSnapshot(2, 2, 10'000'000, 300, 5000);
   auto status = controller.update(active, 300);
-  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(87, status.automaticPercent);
   TEST_ASSERT_EQUAL_UINT8(43, status.appliedPercent);
 
   settings.warningVisualMode = WarningVisualMode::fullScreenBlink;
@@ -789,7 +789,7 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
       400);
   status = controller.update(active, 400);
 
-  TEST_ASSERT_EQUAL_UINT8(85, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(87, status.automaticPercent);
   TEST_ASSERT_EQUAL_UINT8(47, status.appliedPercent);
   TEST_ASSERT_EQUAL_UINT8(
       static_cast<std::uint8_t>(AutomaticBrightnessState::automatic),
@@ -797,23 +797,23 @@ void test_menu_and_warning_preferences_do_not_change_automatic_brightness() {
   TEST_ASSERT_FALSE(status.persistenceRequested);
 }
 
-void test_automatic_limits_clamp_both_ends_of_the_curve() {
+void test_automatic_limits_compress_the_full_curve_between_both_ends() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 20, 20, 75, 0);
+  controller.reset(BrightnessMode::automatic, 40, 40, 75, 0);
 
   (void)controller.update(usableSnapshot(1, 1, 0, 100, 5000), 100);
   auto status =
       controller.update(usableSnapshot(2, 2, 0, 300, 5000), 300);
-  TEST_ASSERT_EQUAL_UINT8(20, status.automaticPercent);
-  TEST_ASSERT_EQUAL_UINT8(20, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(40, status.automaticPercent);
+  TEST_ASSERT_EQUAL_UINT8(40, status.appliedPercent);
 
   status = controller.update(
-      usableSnapshot(3, 3, 30'000'000, 500, 5000), 500);
-  TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
-  TEST_ASSERT_EQUAL_UINT8(28, status.appliedPercent);
+      usableSnapshot(3, 3, 500'000, 500, 5000), 500);
+  TEST_ASSERT_EQUAL_UINT8(57, status.automaticPercent);
+
   status = controller.update(
-      usableSnapshot(3, 3, 30'000'000, 500, 5000), 1675);
-  TEST_ASSERT_EQUAL_UINT8(75, status.appliedPercent);
+      usableSnapshot(4, 4, 30'000'000, 700, 5000), 700);
+  TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
 }
 
 void test_automatic_limits_reapply_without_a_new_lux_frame() {
@@ -841,29 +841,30 @@ void test_automatic_limits_reapply_without_a_new_lux_frame() {
   TEST_ASSERT_EQUAL_UINT8(70, status.appliedPercent);
 }
 
-void test_automatic_bias_offsets_and_reapplies_without_new_lux() {
+void test_automatic_curve_adjustment_survives_a_raised_minimum() {
   AutomaticBrightnessController controller;
-  controller.reset(BrightnessMode::automatic, 55, 20, 90, 0, 10);
+  controller.reset(BrightnessMode::automatic, 55, 40, 100, 0, 0);
   (void)controller.update(
-      usableSnapshot(1, 1, 2'000'000, 100, 5000), 100);
+      usableSnapshot(1, 1, 100'000, 100, 5000), 100);
   const CivicAuxSnapshot active =
-      usableSnapshot(2, 2, 2'000'000, 300, 5000);
+      usableSnapshot(2, 2, 100'000, 300, 5000);
   auto status = controller.update(active, 300);
-  TEST_ASSERT_EQUAL_UINT8(75, status.automaticPercent);
-  status = controller.update(active, 800);
-  TEST_ASSERT_EQUAL_UINT8(75, status.appliedPercent);
+  TEST_ASSERT_EQUAL_UINT8(59, status.automaticPercent);
 
   controller.setPreferences(
-      BrightnessMode::automatic, 55, 20, 90, 900, -10);
-  status = controller.update(active, 900);
-  TEST_ASSERT_EQUAL_UINT8(55, status.automaticPercent);
-  status = controller.update(active, 1700);
-  TEST_ASSERT_EQUAL_UINT8(55, status.appliedPercent);
+      BrightnessMode::automatic, 55, 40, 100, 400, 30);
+  status = controller.update(active, 400);
+  TEST_ASSERT_EQUAL_UINT8(81, status.automaticPercent);
 
   controller.setPreferences(
-      BrightnessMode::automatic, 55, 20, 70, 1800, 30);
-  status = controller.update(active, 1800);
-  TEST_ASSERT_EQUAL_UINT8(70, status.automaticPercent);
+      BrightnessMode::automatic, 55, 40, 100, 500, -30);
+  status = controller.update(active, 500);
+  TEST_ASSERT_EQUAL_UINT8(42, status.automaticPercent);
+
+  controller.setPreferences(
+      BrightnessMode::automatic, 55, 40, 100, 600, 0);
+  status = controller.update(active, 600);
+  TEST_ASSERT_EQUAL_UINT8(59, status.automaticPercent);
 }
 
 void test_automatic_brightness_uses_a_time_based_asymmetric_ramp() {
@@ -956,9 +957,9 @@ int main(int, char**) {
   RUN_TEST(test_invalid_frame_breaks_end_to_end_fallback_recovery);
   RUN_TEST(
       test_menu_and_warning_preferences_do_not_change_automatic_brightness);
-  RUN_TEST(test_automatic_limits_clamp_both_ends_of_the_curve);
+  RUN_TEST(test_automatic_limits_compress_the_full_curve_between_both_ends);
   RUN_TEST(test_automatic_limits_reapply_without_a_new_lux_frame);
-  RUN_TEST(test_automatic_bias_offsets_and_reapplies_without_new_lux);
+  RUN_TEST(test_automatic_curve_adjustment_survives_a_raised_minimum);
   RUN_TEST(test_automatic_brightness_uses_a_time_based_asymmetric_ramp);
   RUN_TEST(test_one_percent_lux_jitter_does_not_toggle_the_auto_target);
   return UNITY_END();

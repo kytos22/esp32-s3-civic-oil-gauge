@@ -112,12 +112,13 @@ the explanatory fixed text beneath them is removed.
 
 A full-screen black settings shell opens after a stationary 700 ms hold. Its
 non-scrolling home page contains buttons for `BRILLO`, `DATOS`, `AVISOS`,
-`SONIDO`, `UNIDADES`, `ARRANQUE`, `IDIOMA`, and `SISTEMA`, each with a compact
-current-value summary. A button opens one independent 480×480 subsection; all
+`SONIDO`, `UNIDADES`, `ARRANQUE`, `IDIOMA`, and `SISTEMA`. Each button shows only
+its centered section name in the 24 px UI face for maximum readability. A button
+opens one independent 480×480 subsection; all
 other pages are hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 
 - `BRILLO`: full-width AUTO/MANUAL mode buttons, numeric 5–100% manual/fallback
-  value, two-handle AUTO limits, a persistent −30…+30-point AUTO curve offset,
+  value, two-handle AUTO limits, a persistent −30…+30 AUTO gamma adjustment,
   and live hub lux/state/target/applied telemetry. Telemetry labels update only
   while this subsection is visible.
 - `DATOS`: persistent `DEMO`/`SENSORES` source and the provisional A1/pending
@@ -130,7 +131,7 @@ other pages are hidden with `LV_OBJ_FLAG_HIDDEN` and are not rendered.
 - `ARRANQUE`: Honda/Civic logo duration, 0–10 seconds; 0 disables it and 1 second
   is the default.
 - `IDIOMA`: persistent Spanish/English selection applied immediately to the
-  gauge, warning overlay, summaries, dialog, and every settings subsection.
+  gauge, warning overlay, dialog, home buttons, and every settings subsection.
 - `SISTEMA`: confirmation-protected settings reset.
 
 The 24 px UI and 36 px warning fonts contain the complete uppercase Spanish and
@@ -156,6 +157,12 @@ hub samples. MANUAL ignores lux for output. Stale or invalid reception returns
 smoothly to the saved slider value without automatic NVS writes. A brightness
 request wakes the serialized panel presenter even when the gauge has no visual
 damage, so static data cannot delay a physical brightness change.
+
+The provisional 5–100% lux curve is normalized, gamma-shaped by the curve
+adjustment, and scaled into the selected AUTO minimum/maximum. Raising the
+minimum therefore compresses the full curve upward instead of clipping its dark
+region. The endpoints remain exact; the curve control changes only intermediate
+light levels.
 
 AUTO ignores mapped target changes smaller than 2 percentage points and ramps
 the physical output at 40 percentage points/s upward and 25 downward. The
@@ -198,10 +205,15 @@ characterized and compared against the MTX-D.
   metric and is not used as physical-presentation evidence for the current path.
 
 The PARTIAL v2 plus CivicAux base has run on the exact display and received real
-hub ambient-light frames. The bilingual sectioned-menu follow-up passes 70/70
-native tests and produces a complete 1,096,800-byte ESP-IDF 6.0.2 image. Its new
-home/subsection typography, language switch, curve slider, touch targets, panel
-errors and tearing still require the next exact-board acceptance run.
+hub ambient-light frames. The current bilingual name-only settings home and
+compressed gamma AUTO-brightness follow-up passes 70/70 native tests and produces
+a complete 1,099,152-byte ESP-IDF 6.0.2 image, SHA-256
+`5e3ecafab7807fc163f40619e21085733fdec9d769c2100f5d16f74eb2e6ab58`.
+Its authorized 2026-09-02 exact-board run passed independent immutable-region
+verification, reported usable 59.6 Hz TE with zero display-pipeline errors or
+timeouts, and Marcos accepted its physical appearance as Physical Baseline 7.
+Daylight, night, glare, in-vehicle motion, and detailed control-by-control review
+remain separate hardware checks.
 
 The Sprint 6 physical-review revision passes 21/21 native tests, 9/9 settings
 invariants, 11/11 split-cadence warning invariants, 12/12 review invariants, and a

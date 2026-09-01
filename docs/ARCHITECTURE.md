@@ -192,7 +192,8 @@ independent child pages. Navigation marks every non-selected page hidden, so
 LVGL invalidates and renders only the visible home/subsection rather than the
 former 1,648-pixel scrolling object tree. The underlying gauge also remains
 frozen while settings is open. Brightness telemetry refreshes only on its own
-visible page; summaries are updated while hidden and appear current on return.
+visible page. Home buttons contain only their centered 24 px section names, so
+they require no hidden summary refresh work.
 
 ## Onboard warning audio
 

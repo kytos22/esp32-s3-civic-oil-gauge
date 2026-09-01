@@ -83,7 +83,7 @@ No personal data exists. The device persists only sanitized gauge preferences.
 | Calibration | kind, coefficients/table, valid flag, source dataset, validation error | explicit valid flag; finite values; evidence reference |
 | ConvertedSample | pressure PSI, temperature °C, engine state, faults, timestamp | range and fault state carried with values |
 | DisplayState | pressure state, temperature state, blink phase, reduced-motion flag | deterministic mapping from sample |
-| GaugeSettings | manual brightness, AUTO limits/curve offset, language, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
+| GaugeSettings | manual brightness, AUTO limits/curve adjustment, language, warning audio/volume, pressure unit, temperature unit, low-pressure warning threshold, warning presentation, startup-logo duration, data source | sanitized enums/ranges; missing NVS keys use safe defaults |
 
 Calibration values are compile-time constants today. Persistent calibration storage is out of v1
 unless introduced by a recorded scope change.
@@ -191,12 +191,13 @@ See `docs/03-technical-plan.md`.
   not muted/unmuted at individual tone edges; zero-filled settling segments and the
   waveform envelope prevent an abrupt output step.
 - **AC-33:** A stationary 700 ms hold opens a full-screen black settings home;
-  ordinary taps and dragging do not. The home exposes eight buttons, and each
+  ordinary taps and dragging do not. The home exposes eight 24 px name-only
+  buttons for maximum readability, and each
   opens one independent non-scrolling subsection while all other menu pages stay
   hidden and unrendered. `ATRÁS` returns home; `CERRAR` saves changed safe
   preferences and returns to the gauge. The menu remains open during a pressure
   warning, and no gauge widgets or warning overlay are rendered behind it.
-- **AC-34:** Brightness mode/value/limits/curve offset, language,
+- **AC-34:** Brightness mode/value/limits/curve adjustment, language,
   warning-sound enable/volume, units, warning presentation, and selected data source
   persist in NVS with sanitized ranges and defaults. Missing or corrupt NVS uses
   compile-time defaults. `SENSORES` is selectable and persistable while calibration
@@ -261,9 +262,11 @@ See `docs/03-technical-plan.md`.
   trivially-copyable snapshot and never calls LVGL, panel, brightness, or NVS code.
 - **AC-46:** Brightness defaults to AUTO for a new/migrated/reset installation;
   MANUAL ignores lux and uses the saved slider. AUTO maps the nine provisional
-  points by linear interpolation over `log1p(lux)`, adds a persistent −30…+30
-  percentage-point curve offset, clamps the result to a persistent two-handle
-  range (20–100% default, 5–100% endpoint bounds), waits
+  points by linear interpolation over `log1p(lux)`, normalizes that curve,
+  applies a persistent −30…+30 gamma adjustment, and compresses the result into
+  a persistent two-handle range (20–100% default, 5–100% endpoint bounds). The
+  selected limits remain exact and the adjustment remains effective at
+  intermediate lux values. AUTO waits
   for two consecutive
   usable frames, falls back after 1 s of continued invalid traffic or 2 s without
   usable ambient data, reaches the manual backup smoothly in 1.5 s, and requires
@@ -274,7 +277,7 @@ See `docs/03-technical-plan.md`.
   slew at 40 percentage points/s brighter and 25 percentage points/s dimmer;
   MANUAL remains immediate.
 - **AC-47:** Settings exposes AUTO/MANUAL, manual/fallback brightness, AUTO
-  minimum/maximum in one range slider, curve offset, received lux, sensor/range/freshness,
+  minimum/maximum in one range slider, curve adjustment, received lux, sensor/range/freshness,
   stabilized AUTO target brightness, and current ramped applied brightness.
   The approved 480 x 480 main gauge is unchanged. Native software evidence must
   pass before a separately authorized bench flash; real UART reception, panel

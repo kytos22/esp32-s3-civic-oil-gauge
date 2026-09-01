@@ -69,13 +69,6 @@ struct UiWidgets {
   std::array<lv_obj_t*, static_cast<std::size_t>(MenuPage::count)> menuPages{};
   std::array<LocalizedLabel, 96> localizedLabels{};
   std::size_t localizedLabelCount = 0;
-  lv_obj_t* homeBrightnessSummary = nullptr;
-  lv_obj_t* homeDataSummary = nullptr;
-  lv_obj_t* homeWarningsSummary = nullptr;
-  lv_obj_t* homeSoundSummary = nullptr;
-  lv_obj_t* homeUnitsSummary = nullptr;
-  lv_obj_t* homeStartupSummary = nullptr;
-  lv_obj_t* homeLanguageSummary = nullptr;
   lv_obj_t* pressureState = nullptr;
   lv_obj_t* sourceBadge = nullptr;
   lv_obj_t* pressureValue = nullptr;
@@ -139,13 +132,6 @@ struct UiWidgets {
   char volumeValueText[24]{};
   char soundEnabledText[24]{};
   char warningModeDescriptionText[48]{};
-  char homeBrightnessSummaryText[40]{};
-  char homeDataSummaryText[24]{};
-  char homeWarningsSummaryText[48]{};
-  char homeSoundSummaryText[32]{};
-  char homeUnitsSummaryText[24]{};
-  char homeStartupSummaryText[32]{};
-  char homeLanguageSummaryText[24]{};
   char automaticBrightnessRangeText[40]{};
   char ambientLuxText[40]{};
   char ambientStateText[64]{};
@@ -505,111 +491,6 @@ void refreshWarningModeDescription() {
                         description);
 }
 
-void refreshMenuSummaries() {
-  if (gUi.homeBrightnessSummary == nullptr) {
-    return;
-  }
-
-  char brightnessText[40];
-  if (gUi.settings.brightnessMode == BrightnessMode::automatic) {
-    std::snprintf(
-        brightnessText,
-        sizeof(brightnessText),
-        "AUTO · %u–%u%%",
-        static_cast<unsigned>(gUi.settings.automaticBrightnessMinimumPercent),
-        static_cast<unsigned>(gUi.settings.automaticBrightnessMaximumPercent));
-  } else {
-    std::snprintf(brightnessText,
-                  sizeof(brightnessText),
-        localizedText("MANUAL · %u%%", "MANUAL · %u%%"),
-                  static_cast<unsigned>(gUi.settings.brightnessPercent));
-  }
-  setLabelTextIfChanged(gUi.homeBrightnessSummary,
-                        gUi.homeBrightnessSummaryText,
-                        brightnessText);
-
-  setLabelTextIfChanged(
-      gUi.homeDataSummary,
-      gUi.homeDataSummaryText,
-      gUi.settings.dataSource == DataSource::demo
-          ? "DEMO"
-          : localizedText("SENSORES", "SENSORS"));
-
-  const bool bar = gUi.settings.pressureUnit == PressureUnit::bar;
-  const double pressureThreshold = warningThresholdForDisplay(
-      gUi.settings.lowPressureWarningPsi, gUi.settings.pressureUnit);
-  const double temperatureThreshold = temperatureWarningThresholdForDisplay(
-      gUi.settings.highTemperatureWarningCelsius,
-      gUi.settings.temperatureUnit);
-  char warningsText[48];
-  if (bar) {
-    std::snprintf(warningsText,
-                  sizeof(warningsText),
-                  "%.1f BAR · %.0f °%c",
-                  pressureThreshold,
-                  temperatureThreshold,
-                  gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit
-                      ? 'F'
-                      : 'C');
-  } else {
-    std::snprintf(warningsText,
-                  sizeof(warningsText),
-                  "%u PSI · %.0f °%c",
-                  static_cast<unsigned>(gUi.settings.lowPressureWarningPsi),
-                  temperatureThreshold,
-                  gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit
-                      ? 'F'
-                      : 'C');
-  }
-  setLabelTextIfChanged(gUi.homeWarningsSummary,
-                        gUi.homeWarningsSummaryText,
-                        warningsText);
-
-  char soundText[32];
-  if (gUi.settings.warningSoundEnabled) {
-    std::snprintf(soundText,
-                  sizeof(soundText),
-                  localizedText("ACTIVO · %u%%", "ENABLED · %u%%"),
-                  static_cast<unsigned>(gUi.settings.warningVolumePercent));
-  } else {
-    std::snprintf(soundText,
-                  sizeof(soundText),
-                  "%s",
-                  localizedText("DESACTIVADO", "DISABLED"));
-  }
-  setLabelTextIfChanged(
-      gUi.homeSoundSummary, gUi.homeSoundSummaryText, soundText);
-
-  char unitsText[24];
-  std::snprintf(
-      unitsText,
-      sizeof(unitsText),
-      "%s · °%c",
-      bar ? "BAR" : "PSI",
-      gUi.settings.temperatureUnit == TemperatureUnit::fahrenheit ? 'F' : 'C');
-  setLabelTextIfChanged(
-      gUi.homeUnitsSummary, gUi.homeUnitsSummaryText, unitsText);
-
-  char startupText[32];
-  if (gUi.settings.startupLogoSeconds == 0) {
-    std::snprintf(startupText,
-                  sizeof(startupText),
-                  "%s",
-                  localizedText("DESACTIVADO", "DISABLED"));
-  } else {
-    std::snprintf(startupText,
-                  sizeof(startupText),
-                  "LOGO · %u S",
-                  static_cast<unsigned>(gUi.settings.startupLogoSeconds));
-  }
-  setLabelTextIfChanged(gUi.homeStartupSummary,
-                        gUi.homeStartupSummaryText,
-                        startupText);
-  setLabelTextIfChanged(gUi.homeLanguageSummary,
-                        gUi.homeLanguageSummaryText,
-                        languageIsEnglish() ? "ENGLISH" : "ESPAÑOL");
-}
-
 void refreshBrightnessValueLabel() {
   char brightnessValueText[40];
   std::snprintf(
@@ -788,7 +669,6 @@ void refreshMenuControls() {
       gUi.languageEnglishButton,
       gUi.settings.language == UiLanguage::english);
   refreshWarningModeDescription();
-  refreshMenuSummaries();
   refreshBrightnessTelemetry();
 }
 
@@ -899,7 +779,6 @@ void sliderEvent(lv_event_t* event) {
     gUi.settings.brightnessPercent = static_cast<std::uint8_t>(
         lv_slider_get_value(gUi.brightnessSlider));
     refreshBrightnessValueLabel();
-    refreshMenuSummaries();
   } else if (target == gUi.automaticBrightnessRangeSlider) {
     gUi.settings.automaticBrightnessMinimumPercent =
         static_cast<std::uint8_t>(
@@ -908,18 +787,15 @@ void sliderEvent(lv_event_t* event) {
         static_cast<std::uint8_t>(
             lv_slider_get_value(gUi.automaticBrightnessRangeSlider));
     refreshAutomaticBrightnessRangeLabel();
-    refreshMenuSummaries();
   } else if (target == gUi.automaticBrightnessBiasSlider) {
     gUi.settings.automaticBrightnessBiasPercent =
         static_cast<std::int8_t>(
             lv_slider_get_value(gUi.automaticBrightnessBiasSlider));
     refreshAutomaticBrightnessBiasLabel();
-    refreshMenuSummaries();
   } else if (target == gUi.volumeSlider) {
     gUi.settings.warningVolumePercent = static_cast<std::uint8_t>(
         lv_slider_get_value(gUi.volumeSlider));
     refreshVolumeValueLabel();
-    refreshMenuSummaries();
   } else if (target == gUi.pressureWarningSlider) {
     const std::int32_t value = lv_slider_get_value(gUi.pressureWarningSlider);
     gUi.settings.lowPressureWarningPsi = warningThresholdPsiFromDisplay(
@@ -943,7 +819,6 @@ void sliderEvent(lv_event_t* event) {
 void soundSwitchEvent(lv_event_t*) {
   gUi.settings.warningSoundEnabled =
       lv_obj_has_state(gUi.soundSwitch, LV_STATE_CHECKED);
-  refreshMenuSummaries();
   refreshSoundEnabledLabel();
   queueSettingsApply();
 }
@@ -1075,8 +950,7 @@ lv_obj_t* createSectionButton(lv_obj_t* parent,
                               std::int32_t y,
                               std::int32_t width,
                               std::int32_t height,
-                              lv_event_cb_t callback,
-                              lv_obj_t*& summaryLabel) {
+                              lv_event_cb_t callback) {
   lv_obj_t* button = lv_button_create(parent);
   lv_obj_remove_style_all(button);
   lv_obj_set_pos(button, x, y);
@@ -1090,22 +964,13 @@ lv_obj_t* createSectionButton(lv_obj_t* parent,
   createLocalizedLabel(button,
                        spanish,
                        english,
-                       14,
-                       13,
-                       width - 28,
-                       24,
-                       &oil_font_ui_16,
+                       10,
+                       (height - oil_font_ui_24.line_height) / 2,
+                       width - 20,
+                       oil_font_ui_24.line_height,
+                       &oil_font_ui_24,
                        color(kPrimary),
-                       LV_TEXT_ALIGN_LEFT);
-  summaryLabel = createLabel(button,
-                             "--",
-                             14,
-                             47,
-                             width - 28,
-                             18,
-                             &oil_font_ui_12,
-                             color(kSecondary),
-                             LV_TEXT_ALIGN_LEFT);
+                       LV_TEXT_ALIGN_CENTER);
   return button;
 }
 
@@ -1181,8 +1046,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       78,
                       206,
                       78,
-                      brightnessPageEvent,
-                      gUi.homeBrightnessSummary);
+                      brightnessPageEvent);
   createSectionButton(home,
                       "DATOS",
                       "DATA",
@@ -1190,8 +1054,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       78,
                       206,
                       78,
-                      dataPageEvent,
-                      gUi.homeDataSummary);
+                      dataPageEvent);
   createSectionButton(home,
                       "AVISOS",
                       "WARNINGS",
@@ -1199,8 +1062,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       166,
                       206,
                       78,
-                      warningsPageEvent,
-                      gUi.homeWarningsSummary);
+                      warningsPageEvent);
   createSectionButton(home,
                       "SONIDO",
                       "SOUND",
@@ -1208,8 +1070,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       166,
                       206,
                       78,
-                      soundPageEvent,
-                      gUi.homeSoundSummary);
+                      soundPageEvent);
   createSectionButton(home,
                       "UNIDADES",
                       "UNITS",
@@ -1217,8 +1078,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       254,
                       206,
                       78,
-                      unitsPageEvent,
-                      gUi.homeUnitsSummary);
+                      unitsPageEvent);
   createSectionButton(home,
                       "ARRANQUE",
                       "STARTUP",
@@ -1226,8 +1086,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       254,
                       206,
                       78,
-                      startupPageEvent,
-                      gUi.homeStartupSummary);
+                      startupPageEvent);
   createSectionButton(home,
                       "IDIOMA",
                       "LANGUAGE",
@@ -1235,9 +1094,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       342,
                       206,
                       78,
-                      languagePageEvent,
-                      gUi.homeLanguageSummary);
-  lv_obj_t* systemSummary = nullptr;
+                      languagePageEvent);
   createSectionButton(home,
                       "SISTEMA",
                       "SYSTEM",
@@ -1245,12 +1102,7 @@ void createSettingsMenu(lv_obj_t* screen) {
                       342,
                       206,
                       78,
-                      systemPageEvent,
-                      systemSummary);
-  registerLocalizedLabel(
-      systemSummary, "RESTABLECER AJUSTES", "RESET SETTINGS");
-  lv_label_set_text(systemSummary,
-                    localizedText("RESTABLECER AJUSTES", "RESET SETTINGS"));
+                      systemPageEvent);
 
   lv_obj_t* brightness =
       createSettingsPage(MenuPage::brightness,

@@ -23,9 +23,11 @@ AUTO fallback; automatic samples do not change it.
 
 AUTO has a separate persistent minimum/maximum range. Its defaults are 20% and
 100%; both endpoints are constrained to 5–100% and reordered safely if stored
-data is corrupt. These limits do not constrain MANUAL or the fallback target.
-The persistent AUTO curve offset is constrained to −30…+30 percentage points;
-zero preserves the raw curve. It is applied before the AUTO minimum/maximum clamp.
+data is corrupt. The normalized AUTO curve is compressed into these exact
+endpoints; these limits do not constrain MANUAL or the fallback target.
+The persistent AUTO curve adjustment is constrained to −30…+30; zero preserves
+the normalized curve, positive values brighten its middle and negative values
+darken it through bounded gamma shaping before range scaling.
 
 `brightnessModeFromStoredValue()` provides absent-key migration and rejects
 invalid enum bytes back to AUTO. `brightnessModeStoredValue()` provides the
@@ -39,12 +41,12 @@ the full-screen warning; it never changes units or sensor math.
 
 ### `GaugeSettings`
 
-Carries manual/backup brightness, AUTO minimum/maximum and curve offset,
+Carries manual/backup brightness, AUTO minimum/maximum and curve adjustment,
 brightness mode, UI language, warning sound enable/volume, pressure unit, temperature unit,
 canonical low-pressure warning PSI, canonical high-temperature warning Celsius,
 startup-logo seconds, warning visual mode, and data source.
 `sanitizeGaugeSettings()` clamps percentages to 5–100, orders the AUTO limits,
-clamps the AUTO curve offset and rejects invalid language values, warning pressure to
+clamps the AUTO curve adjustment and rejects invalid language values, warning pressure to
 1–30 PSI, temperature warning to 110–140 °C, startup duration to 0–10 seconds,
 and replaces invalid enum representations with safe demo defaults.
 

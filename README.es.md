@@ -56,14 +56,15 @@ La situación detallada y las barreras de seguridad pendientes se mantienen en
 - Umbral persistente de aviso entre 1 y 30 PSI, mostrado en PSI o BAR según la
   unidad seleccionada y conservado internamente en PSI.
 - Umbral persistente de temperatura entre 110 y 140 °C, 120 °C por defecto.
-- Menú bilingüe por secciones con una portada de accesos a Brillo, Datos, Avisos,
-  Sonido, Unidades, Arranque, Idioma y Sistema; solo se renderiza la página visible.
+- Menú bilingüe por secciones con botones grandes que muestran únicamente Brillo,
+  Datos, Avisos, Sonido, Unidades, Arranque, Idioma y Sistema; solo se renderiza
+  la página visible.
 - Logotipos Honda/Civic persistentes durante 0–10 segundos al arrancar; cero los desactiva.
 - Brillo AUTO/MANUAL persistente. AUTO usa la luz ambiente del hub, exige dos
-  tramas utilizables, se limita con un único selector doble persistente (20–100%
-  por defecto), permite desplazar la curva −30…+30 puntos, absorbe oscilaciones
-  del 1 %, transiciona suavemente entre objetivos y vuelve al respaldo manual si
-  se pierde.
+  tramas utilizables, comprime su curva normalizada dentro de un único selector
+  doble persistente (20–100% por defecto), permite ajustar su gamma entre −30 y
+  +30, absorbe oscilaciones del 1 %, transiciona suavemente entre objetivos y
+  vuelve al respaldo manual si se pierde.
 - Bucle no bloqueante de dobles pitidos por el altavoz integrado mientras la
   demo permanezca en aviso de presión baja.
 - La demo muestra `<50` bajo su escala visual; el modo sensores muestra el valor

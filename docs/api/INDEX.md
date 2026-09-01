@@ -37,7 +37,7 @@
 | `TemperatureUnit` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select Celsius or Fahrenheit presentation |
 | `BrightnessMode` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select automatic CivicAux lux or saved manual brightness |
 | `UiLanguage` | enum | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Select persistent Spanish or English presentation |
-| `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences, including AUTO limits and curve offset |
+| `GaugeSettings` | struct | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Sanitized persistent display/audio/source preferences, including AUTO limits and curve adjustment |
 | `sanitizeGaugeSettings()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Clamp preferences, order AUTO limits, and reject invalid enum values |
 | `pressureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical PSI for display only |
 | `temperatureForDisplay()` | function | `include/gauge_settings.h` | [gauge settings](gauge-settings.md) | Convert canonical Celsius for display only |

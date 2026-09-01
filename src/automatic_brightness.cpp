@@ -26,6 +26,8 @@ constexpr std::array<BrightnessPoint, 9> kBrightnessCurve{{
     {30'000'000U, 100U},
 }};
 
+constexpr double kAutomaticBrightnessAdjustmentMaxGamma = 3.0;
+
 std::uint8_t clampBrightness(std::uint8_t percent) {
   return std::clamp<std::uint8_t>(percent, 5U, 100U);
 }
@@ -247,11 +249,32 @@ bool AutomaticBrightnessController::recoveryReady(
 
 std::uint8_t AutomaticBrightnessController::constrainedAutomaticPercent(
     std::uint32_t millilux) const {
-  const int biased =
-      static_cast<int>(automaticBrightnessPercentForMillilux(millilux)) +
-      static_cast<int>(automaticBiasPercent_);
+  const double curveMinimum =
+      static_cast<double>(kBrightnessCurve.front().percent);
+  const double curveMaximum =
+      static_cast<double>(kBrightnessCurve.back().percent);
+  const double rawPercent = static_cast<double>(
+      automaticBrightnessPercentForMillilux(millilux));
+  const double normalized = std::clamp(
+      (rawPercent - curveMinimum) / (curveMaximum - curveMinimum),
+      0.0,
+      1.0);
+
+  // Keep the selected AUTO limits as true endpoints. Shaping the normalized
+  // curve before scaling avoids a raised minimum swallowing a positive user
+  // adjustment, while preserving monotonicity and both configured bounds.
+  const double adjustment =
+      static_cast<double>(automaticBiasPercent_) /
+      static_cast<double>(kAutomaticBrightnessBiasMaximum);
+  const double gamma = std::pow(
+      kAutomaticBrightnessAdjustmentMaxGamma, -adjustment);
+  const double shaped = std::pow(normalized, gamma);
+  const double span = static_cast<double>(automaticMaximumPercent_) -
+                      static_cast<double>(automaticMinimumPercent_);
+  const int mapped = static_cast<int>(std::lround(
+      static_cast<double>(automaticMinimumPercent_) + shaped * span));
   return static_cast<std::uint8_t>(std::clamp(
-      biased,
+      mapped,
       static_cast<int>(automaticMinimumPercent_),
       static_cast<int>(automaticMaximumPercent_)));
 }
